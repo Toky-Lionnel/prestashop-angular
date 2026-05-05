@@ -1,0 +1,10 @@
+<div *ngFor="let order of orders">
+  <h3>Commande #{{ order.id }}</h3>
+  <p>Total: {{ order.total_paid }}</p>
+
+  <ul>
+    <li *ngFor="let p of order.products">
+      {{ p.product_name }} - {{ p.quantity }} x {{ p.product_price }}
+    </li>
+  </ul>
+</div>
