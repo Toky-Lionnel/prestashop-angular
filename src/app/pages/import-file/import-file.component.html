@@ -1,0 +1,47 @@
+<div class="import-container">
+  <h1>Importer des fichiers CSV</h1>
+
+  <p-toast></p-toast>
+
+  <p class="result">Resultat de l'import : {{ result }}</p>
+
+  <div class="import-block">
+    <h2>Import venant d'Excel</h2>
+    <p class="hint">Vous devez choisir exactement 3 fichiers.</p>
+
+    <div class="field-row">
+      <label for="excelFile1">Fichier 1</label>
+      <input id="excelFile1" type="file" accept=".csv" (change)="onExcelFileChange($event, 0)" />
+    </div>
+
+    <div class="field-row">
+      <label for="excelFile2">Fichier 2</label>
+      <input id="excelFile2" type="file" accept=".csv" (change)="onExcelFileChange($event, 1)" />
+    </div>
+
+    <div class="field-row">
+      <label for="excelFile3">Fichier 3</label>
+      <input id="excelFile3" type="file" accept=".csv" (change)="onExcelFileChange($event, 2)" />
+    </div>
+
+    <button type="button" class="btn" (click)="importExcelFiles()" [disabled]="isExcelImportDisabled">
+      Importer les 3 fichiers Excel
+    </button>
+  </div>
+
+  <hr />
+
+  <div class="import-block">
+    <h2>Import venant du back</h2>
+    <p class="hint">Vous devez choisir un seul fichier.</p>
+
+    <div class="field-row">
+      <label for="backFile">Fichier back</label>
+      <input id="backFile" type="file" accept=".csv" (change)="onBackFileChange($event)" />
+    </div>
+
+    <button type="button" class="btn" (click)="importBackFile()" [disabled]="!backFile || isLoading">
+      Importer le fichier back
+    </button>
+  </div>
+</div>
