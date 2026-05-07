@@ -1,5 +1,5 @@
 export interface PrestashopLanguageEntry {
-  id: number | 1;
+  id: number;
   value: string;
 }
 
@@ -20,23 +20,98 @@ export interface PrestashopProductAssociations {
 }
 
 export interface PrestashopProduct {
-  id_category_default: number | 2;
-  id_tax_rules_group: number | 0;
-  id_shop_default: number | 1;
-  state: number | 1;
-  active: number | 1;
-  available_for_order: number | 1;
-  show_price: number | 1;
-  visibility: string | 'both';
-  type: string | 'standard';
-  product_type: string | 'standard';
-  condition: string | 'new';
-  minimal_quantity: number | 1;
-  redirect_type: string | '404';
+  id : number | null;
+  id_category_default: number;
+  id_tax_rules_group: number;
+  id_shop_default: number;
+  state: number;
+  active: number;
+  available_for_order: number;
+  show_price: number;
+  visibility: string;
+  type: string;
+  product_type: string;
+  condition: string;
+  minimal_quantity: number;
+  redirect_type: string;
   price: number;
+  quantity: number;
+  line_number : number;
   name: PrestashopLocalizedField;
   link_rewrite: PrestashopLocalizedField;
   associations: PrestashopProductAssociations;
+}
+
+const DEFAULT_LANGUAGE_ID = 1;
+const DEFAULT_CATEGORY_ID = 2;
+
+const toNumber = (value: unknown, fallback: number): number => {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const toSlug = (value: string): string => {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+const buildLocalizedField = (value: string, languageId: number = DEFAULT_LANGUAGE_ID): PrestashopLocalizedField => ({
+  language: [
+    {
+      id: languageId,
+      value
+    }
+  ]
+});
+
+export function transformProductRowToModel(row: any): PrestashopProduct {
+  const name = row.name?.trim() || 'Produit sans nom';
+  const price = toNumber(row.price, 0);
+  const quantity = toNumber(row.quantity, 1);
+  const lineNumber = toNumber(row.line_number, 1);
+
+  return {
+    id: null,
+    id_category_default: DEFAULT_CATEGORY_ID,
+    id_tax_rules_group: 0,
+    id_shop_default: 1,
+    state: 1,
+    active: 1,
+    available_for_order: 1,
+    show_price: 1,
+    visibility: 'both',
+    type: 'standard',
+    product_type: 'standard',
+    condition: 'new',
+    minimal_quantity: 1,
+    redirect_type: '404',
+    price,
+    quantity,
+    line_number: lineNumber,
+    name: buildLocalizedField(name),
+    link_rewrite: buildLocalizedField(toSlug(name) || 'produit-sans-nom'),
+    associations: {
+      categories: {
+        category: [
+          {
+            id: DEFAULT_CATEGORY_ID
+          }
+        ]
+      }
+    }
+  };
+}
+
+export function transformProductRowsToModel(rows: any[]): PrestashopProduct[] {
+  return rows.map((row) => transformProductRowToModel(row));
 }
 
 const escapeCDATA = (value: string | number) => {
@@ -51,7 +126,7 @@ const buildLocalizedFieldXML = (fieldName: string, field: PrestashopLocalizedFie
     )
     .join('\n');
 
-  return `  <${fieldName}>\n${languages}\n  </${fieldName}>`;
+  return `<${fieldName}>\n ${languages} \n  </${fieldName}>`;
 };
 
 export function buildProductXML(data: PrestashopProduct): string {

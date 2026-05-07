@@ -6,7 +6,8 @@ import { MessageService } from 'primeng/api';
 import { ImportFileService } from '../../services/service/import/import.service';
 import { BackendData } from '../../utils/interface';
 import { transformCSVtoBackend } from '../../utils/parse-csv.utils';
-
+import { PrestashopProduct ,transformProductRowsToModel } from '../../models/product.model';
+import { ProductFacadeService } from '../../services/facade/productFacade/product-facade.service';
 @Component({
   selector: 'app-import-file',
   standalone: true,
@@ -25,11 +26,15 @@ export class ImportFileComponent {
 
   result: string = '';
 
-  private importService: ImportFileService = inject(ImportFileService);
   private messageService: MessageService = inject(MessageService);
+  private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
+
 
   constructor(
   ) {}
+
+  async ngOnInit() {
+  }
 
   onBackFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -50,9 +55,17 @@ export class ImportFileComponent {
     this.isLoading = true;
 
     try {
-
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      console.log(backendData.data);
+      const products : PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
+
+      await this.productFacadeService.importProduct(products);
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Import réussi',
+        detail: 'Le fichier a été importé avec succès'
+      });
+
 
     } catch (error: any) {
       this.messageService.add({
