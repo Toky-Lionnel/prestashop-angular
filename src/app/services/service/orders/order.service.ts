@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Order } from '../../../models/OrderModel';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
+import { PrestashopOrder, buildOrderXML } from '../../../models/order.model';
 
 @Injectable({
   providedIn: 'root'
@@ -85,4 +86,25 @@ export class OrderService {
 
     return products;
   }
+
+
+  async createOrder(order: PrestashopOrder): Promise<number | null> {
+    const api = this.authInterceptor.getApi();
+    const orderXML = buildOrderXML(order);
+
+    try {
+      const response = await api.post('/api/orders', orderXML, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+      return response.data?.order?.id ?? null;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return null;
+    }
+  }
+
+
+
 }

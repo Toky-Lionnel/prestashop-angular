@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { PrestashopCart, buildCartXML } from '../../../models/cart.model';
+import { parseStringPromise } from 'xml2js';
+
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +23,18 @@ export class CartService {
           'Content-Type': 'application/xml'
         }
       });
-      return response.data?.cart?.id ?? null;
+
+
+
+      const responseData = await parseStringPromise(response.data);
+
+      const cart = responseData?.prestashop?.cart?.[0];
+      const id = cart?.id?.[0];
+
+      console.log(id);
+
+
+      return id;
     } catch (error) {
       console.error('Error creating cart:', error);
       return null;
