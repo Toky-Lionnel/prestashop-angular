@@ -8,6 +8,9 @@ import { BackendData } from '../../utils/interface';
 import { transformCSVtoBackend } from '../../utils/parse-csv.utils';
 import { PrestashopProduct ,transformProductRowsToModel } from '../../models/product.model';
 import { ProductFacadeService } from '../../services/facade/productFacade/product-facade.service';
+import { PrestashopCart, transformParsedRowsToCartModels } from '../../models/cart.model';
+import { CartService } from '../../services/service/cart/cart.service';
+
 @Component({
   selector: 'app-import-file',
   standalone: true,
@@ -28,6 +31,7 @@ export class ImportFileComponent {
 
   private messageService: MessageService = inject(MessageService);
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
+  private cartService : CartService = inject(CartService);
 
 
   constructor(
@@ -55,10 +59,21 @@ export class ImportFileComponent {
     this.isLoading = true;
 
     try {
-      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      const products : PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
 
-      await this.productFacadeService.importProduct(products);
+      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
+      const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
+
+      for (const cart of carts) {
+        const cartId = await this.cartService.createCart(cart);
+        if (cartId) {
+          console.log(`Cart created with ID: ${cartId}`);
+        } else {
+          console.error('Failed to create cart');
+        }
+      }
+
+      // const products : PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
+      // await this.productFacadeService.importProduct(products);
 
       this.messageService.add({
         severity: 'success',

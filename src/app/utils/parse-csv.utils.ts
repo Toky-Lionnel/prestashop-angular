@@ -116,16 +116,8 @@ function detectTableName(headers: string[]): string {
     return "PRODUCT";
   }
 
-  if (
-    hasHeaders([
-      "customer_email",
-      "subject_or_name",
-      "type",
-      "status",
-      "expense",
-    ])
-  ) {
-    return "EXPENSE";
+  if ( hasHeaders(["produit", "quantite","panier"])) {
+    return "ORDER";
   }
 
   if (hasHeaders(["customer_email", "budget"])) {
