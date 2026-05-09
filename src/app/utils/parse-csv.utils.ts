@@ -120,8 +120,12 @@ function detectTableName(headers: string[]): string {
     return "ORDER";
   }
 
-  if (hasHeaders(["customer_email", "budget"])) {
-    return "BUDGET";
+  if (hasHeaders(["panier", "mode paiement", "montant"])) {
+    return "ORDER-PAYEMENT";
+  }
+
+  if (hasHeaders(["nom", "prenom", "email", "adresse"])) {
+    return "CUSTOMER";
   }
 
   return "EXPENSE";

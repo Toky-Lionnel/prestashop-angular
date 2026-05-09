@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <customer>
+        <id_default_group><![CDATA[3]]></id_default_group>
+        <firstname><![CDATA[Alex]]></firstname>
+        <lastname><![CDATA[Rak]]></lastname>
+        <email><![CDATA[rak.doe@test.com]]></email>
+        <passwd><![CDATA[202cb962ac59075b964b07152d234b70]]></passwd>
+        <active><![CDATA[1]]></active>
+    </customer>
+</prestashop>

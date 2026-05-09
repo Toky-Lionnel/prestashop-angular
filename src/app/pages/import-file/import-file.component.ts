@@ -14,6 +14,10 @@ import { PrestashopOrder, transformCartToOrder } from '../../models/order.model'
 import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
 import { PrestashopOrderHistory, transformOrderToOrderHistory } from '../../models/order-history.model';
 import { OrderStateService } from '../../services/service/order-state/order-state.service';
+import { OrderService } from '../../services/service/orders/order.service';
+import { CustomerService } from '../../services/service/customer/customer.service';
+import { PrestashopCustomer, transformParsedCustomersToModels } from '../../models/customer.model';
+import { CustomerFacadeService } from '../../services/facade/customerFacade/customer-facade.service';
 
 @Component({
   selector: 'app-import-file',
@@ -40,12 +44,15 @@ export class ImportFileComponent {
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
   private orderHistoryService : OrderStateService = inject(OrderStateService);
 
+  private orderService : OrderService = inject(OrderService);
+  private customerService : CustomerService = inject(CustomerService);
+
+  private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
 
   constructor(
   ) {}
 
   async ngOnInit() {
-
   }
 
   onBackFileChange(event: Event) {
@@ -68,9 +75,10 @@ export class ImportFileComponent {
 
     try {
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
 
-      await this.orderFacadeService.createOrder(carts);
+      const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
+      await this.customerFacadeService.importCustomers(customers);
+
 
       this.messageService.add({
         severity: 'success',

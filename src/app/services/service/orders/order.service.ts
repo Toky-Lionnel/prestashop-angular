@@ -109,6 +109,45 @@ export class OrderService {
     }
   }
 
+  async getOrderById(id: number): Promise<Order | null> {
+    const api = this.authInterceptor.getApi();
+
+    try {
+      const response = await api.get(`/api/orders/${id}`, {
+        responseType: 'text'
+      });
+
+      const json = await xmlToJson(response.data);
+      return json;
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      return null;
+    }
+  }
+
+  async getOrderByIdCart (idCart: number): Promise<any | null> {
+    const api = this.authInterceptor.getApi();
+    try {
+      const response = await api.get('/api/orders?filter[id_cart]=[' + idCart + ']&display=[id]', {
+        responseType: 'text'
+      });
+
+      const orderData = await parseStringPromise(response.data);
+
+      const orders = orderData?.prestashop?.orders?.[0];
+      const order = orders?.order?.[0];
+
+      const id = order?.id?.[0];
+      const fullOrder = await this.getOrderById(id);
+
+      return fullOrder;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return null;
+    }
+
+  }
+
 
 
 }
