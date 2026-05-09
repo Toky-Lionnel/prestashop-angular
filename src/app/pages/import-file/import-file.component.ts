@@ -18,6 +18,7 @@ import { OrderService } from '../../services/service/orders/order.service';
 import { CustomerService } from '../../services/service/customer/customer.service';
 import { PrestashopCustomer, transformParsedCustomersToModels } from '../../models/customer.model';
 import { CustomerFacadeService } from '../../services/facade/customerFacade/customer-facade.service';
+import { ProductService } from '../../services/service/product/product.service';
 
 @Component({
   selector: 'app-import-file',
@@ -40,6 +41,7 @@ export class ImportFileComponent {
   private messageService: MessageService = inject(MessageService);
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
   private cartService : CartService = inject(CartService);
+  private productService : ProductService = inject(ProductService);
 
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
   private orderHistoryService : OrderStateService = inject(OrderStateService);
@@ -53,6 +55,8 @@ export class ImportFileComponent {
   ) {}
 
   async ngOnInit() {
+    const produit = await this.productService.getIdProductByName('Product 1');
+    console.log('ID du produit "Test Product":', produit);
   }
 
   onBackFileChange(event: Event) {
