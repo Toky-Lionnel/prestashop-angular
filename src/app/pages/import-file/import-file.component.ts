@@ -76,9 +76,11 @@ export class ImportFileComponent {
     try {
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
 
-      const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
-      await this.customerFacadeService.importCustomers(customers);
+      // const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
+      // await this.customerFacadeService.importCustomers(customers);
 
+      const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
+      await this.orderFacadeService.createOrder(carts);
 
       this.messageService.add({
         severity: 'success',

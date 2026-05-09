@@ -27,6 +27,7 @@ export interface PrestashopOrder {
   total_products_wt: number;
   conversion_rate: number;
   order_state?: string;
+  customer_email?: string;
   date_add?: string;
   associations: PrestashopOrderAssociations;
 }
@@ -82,6 +83,7 @@ export function transformCartToOrder(
     total_products_wt: totalProducts,
     order_state: cart.order_state,
     date_add : cart.date_add,
+    customer_email: cart.customer_email,
     conversion_rate: settings.conversion_rate,
     associations: {
       order_rows

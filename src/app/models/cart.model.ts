@@ -17,6 +17,7 @@ export interface PrestashopCart {
   id_address_delivery: number;
   id_address_invoice: number;
   order_state?: string;
+  customer_email?: string;
   date_add?: string;
   associations: PrestashopCartAssociations;
 }
@@ -43,9 +44,9 @@ export interface CartTransformOptions {
 const DEFAULT_CART_OPTIONS: Required<CartTransformOptions> = {
   id_currency: 2,
   id_lang: 1,
-  id_customer: 3,
-  id_address_delivery: 7,
-  id_address_invoice: 7,
+  id_customer: 0,
+  id_address_delivery: 0,
+  id_address_invoice: 0,
   default_quantity: 1
 };
 
@@ -85,6 +86,7 @@ export function transformParsedRowsToCartModels(rows: any[],options: CartTransfo
         id_address_delivery: settings.id_address_delivery,
         id_address_invoice: settings.id_address_invoice,
         order_state: row.statut,
+        customer_email: row.customer_email,
         date_add: row.date,
         associations: {
           cart_rows: []

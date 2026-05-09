@@ -93,6 +93,9 @@ export class OrderService {
     const api = this.authInterceptor.getApi();
     const orderXML = buildOrderXML(order);
 
+    console.log(order);
+
+
     try {
       const response = await api.post('/api/orders', orderXML, {
         headers: {
@@ -138,6 +141,12 @@ export class OrderService {
       const order = orders?.order?.[0];
 
       const id = order?.id?.[0];
+
+      // verifier que l'id existe
+      if (!id) {
+        console.error('No order found for cart ID:', idCart);
+        return null;
+      }
       const fullOrder = await this.getOrderById(id);
 
       return fullOrder;
