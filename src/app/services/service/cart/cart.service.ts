@@ -23,18 +23,9 @@ export class CartService {
           'Content-Type': 'application/xml'
         }
       });
-
-
-
       const responseData = await parseStringPromise(response.data);
-
       const cart = responseData?.prestashop?.cart?.[0];
-      const id = cart?.id?.[0];
-
-      console.log(id);
-
-
-      return id;
+      return cart?.id?.[0];
     } catch (error) {
       console.error('Error creating cart:', error);
       return null;

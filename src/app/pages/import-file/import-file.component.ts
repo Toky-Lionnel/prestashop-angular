@@ -12,6 +12,8 @@ import { PrestashopCart, transformParsedRowsToCartModels } from '../../models/ca
 import { CartService } from '../../services/service/cart/cart.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
 import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
+import { PrestashopOrderHistory, transformOrderToOrderHistory } from '../../models/order-history.model';
+import { OrderStateService } from '../../services/service/order-state/order-state.service';
 
 @Component({
   selector: 'app-import-file',
@@ -36,11 +38,14 @@ export class ImportFileComponent {
   private cartService : CartService = inject(CartService);
 
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
+  private orderHistoryService : OrderStateService = inject(OrderStateService);
+
 
   constructor(
   ) {}
 
   async ngOnInit() {
+
   }
 
   onBackFileChange(event: Event) {
@@ -62,25 +67,10 @@ export class ImportFileComponent {
     this.isLoading = true;
 
     try {
-
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
       const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
 
       await this.orderFacadeService.createOrder(carts);
-
-
-
-      // for (const cart of carts) {
-      //   const cartId = await this.cartService.createCart(cart);
-      //   if (cartId) {
-      //     console.log(`Cart created with ID: ${cartId}`);
-      //   } else {
-      //     console.error('Failed to create cart');
-      //   }
-      // }
-
-      // const products : PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
-      // await this.productFacadeService.importProduct(products);
 
       this.messageService.add({
         severity: 'success',

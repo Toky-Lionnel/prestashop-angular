@@ -3,6 +3,7 @@ import { Order } from '../../../models/OrderModel';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
 import { PrestashopOrder, buildOrderXML } from '../../../models/order.model';
+import { parseStringPromise } from 'xml2js';
 
 @Injectable({
   providedIn: 'root'
@@ -98,7 +99,10 @@ export class OrderService {
           'Content-Type': 'application/xml'
         }
       });
-      return response.data?.order?.id ?? null;
+
+      const responseData = await parseStringPromise(response.data);
+      const order = responseData?.prestashop?.order?.[0];
+      return order?.id?.[0];
     } catch (error) {
       console.error('Error creating order:', error);
       return null;

@@ -16,6 +16,8 @@ export interface PrestashopCart {
   id_customer: number;
   id_address_delivery: number;
   id_address_invoice: number;
+  order_state?: string;
+  date_add?: string;
   associations: PrestashopCartAssociations;
 }
 
@@ -66,10 +68,7 @@ const parseProductId = (row: RawCartParsedRow): number => {
   return toNumber(fromLabel, 0);
 };
 
-export function transformParsedRowsToCartModels(
-  rows: any[],
-  options: CartTransformOptions = {}
-): PrestashopCart[] {
+export function transformParsedRowsToCartModels(rows: any[],options: CartTransformOptions = {}): PrestashopCart[] {
   const settings = { ...DEFAULT_CART_OPTIONS, ...options };
   const cartsByPanier = new Map<number, PrestashopCart>();
 
@@ -85,6 +84,8 @@ export function transformParsedRowsToCartModels(
         id_customer: settings.id_customer,
         id_address_delivery: settings.id_address_delivery,
         id_address_invoice: settings.id_address_invoice,
+        order_state: row.statut,
+        date_add: row.date,
         associations: {
           cart_rows: []
         }

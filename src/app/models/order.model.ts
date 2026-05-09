@@ -26,6 +26,8 @@ export interface PrestashopOrder {
   total_products: number;
   total_products_wt: number;
   conversion_rate: number;
+  order_state?: string;
+  date_add?: string;
   associations: PrestashopOrderAssociations;
 }
 
@@ -40,8 +42,8 @@ export interface OrderTransformOptions {
 
 const DEFAULT_ORDER_OPTIONS: Required<OrderTransformOptions> = {
   id_carrier: 2,
-  module: 'ps_wirepayment',
-  payment: 'Bank wire',
+  module: 'ps_cashondelivery',
+  payment: 'Cash on delivery',
   total_paid: 0,
   total_paid_real: 0,
   conversion_rate: 1.0
@@ -78,6 +80,8 @@ export function transformCartToOrder(
     total_paid_real: settings.total_paid_real,
     total_products: totalProducts,
     total_products_wt: totalProducts,
+    order_state: cart.order_state,
+    date_add : cart.date_add,
     conversion_rate: settings.conversion_rate,
     associations: {
       order_rows
@@ -125,3 +129,5 @@ ${orderRows}
     </order>
 </prestashop>`;
 }
+
+
