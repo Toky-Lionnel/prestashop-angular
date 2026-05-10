@@ -67,3 +67,22 @@ export function transformParsedCustomersToModels(rows: any[], options: Partial<C
   if (!Array.isArray(rows)) return [];
   return rows.map((r) => transformParsedCustomerToModel(r, options));
 }
+
+
+export function isEmailValid(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+
+export function isNameValid(name: string): boolean {
+  if (typeof name !== 'string') return false;
+
+  const trimmedName = name.trim();
+
+  // Regex : lettres (accentuées incluses), espaces, tirets et apostrophes
+  // Ajustez selon vos besoins (ex: supprimer tirets/apostrophes si non autorisés)
+  const namePattern = /^[A-Za-zÀ-ÿ\s\-']+$/;
+  return namePattern.test(trimmedName);
+}
+
