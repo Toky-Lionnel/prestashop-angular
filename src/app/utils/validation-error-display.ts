@@ -113,36 +113,57 @@ export function getErrorsAsText<T>(result: ImportValidationResult<T>): string {
  * Génère du HTML formaté pour les erreurs
  * Utile pour afficher dans une div avec formatage riche
  */
-export function getErrorsAsHTML<T>(result: ImportValidationResult<T>): string {
+export function getErrorsAsHTML<T>(result: ImportValidationResult<T>, file_name : string): string {
   const formatted = formatValidationErrors(result);
   let html = '';
 
+  html += `<section class="validation-report-container">`;
+  html += `<h2 class="report-title">Rapport d'importation</h2>`;
+  html += `<div class="report-file">Fichier : <strong>${escapeHtml(file_name)}</strong></div>`;
   html += `<div class="validation-report">`;
   html += `<div class="summary">${formatted.summary}</div>`;
 
   if (formatted.hasErrors) {
     html += `<div class="error-details">`;
+
+    // accordéon par ligne (utilise <details> pour accessibilité et pas de JS)
     formatted.errorsByLine.forEach(lineError => {
-      html += `<div class="line-error">`;
-      html += `<div class="line-header">Ligne ${lineError.lineNumber}</div>`;
+      const errorCount = lineError.errors.length;
+      html += `<details class="line-error" open>`;
+      html += `<summary class="line-header">Ligne ${lineError.lineNumber} — ${errorCount} erreur(s)</summary>`;
       html += `<ul class="errors-list">`;
+
       lineError.errors.forEach(error => {
         html += `<li class="error-item">`;
-        html += `<span class="error-field">${error.field}</span>`;
-        html += `<span class="error-code">[${error.code}]</span>`;
-        html += `<span class="error-message">${error.message}</span>`;
+        html += `<span class="error-field">${escapeHtml(error.field)}</span>`;
+        html += `<span class="error-code">[${escapeHtml(error.code)}]</span>`;
+        html += `<div class="error-message">${escapeHtml(error.message)}</div>`;
         html += `</li>`;
       });
+
       html += `</ul>`;
-      html += `</div>`;
+      html += `</details>`;
     });
+
     html += `</div>`;
   } else {
     html += `<div class="no-errors">✓ Aucune erreur</div>`;
   }
 
-  html += `</div>`;
+  html += `</div>`; // .validation-report
+  html += `</section>`;
+
   return html;
+}
+
+function escapeHtml(input: string | undefined): string {
+  if (input === undefined || input === null) return '';
+  return String(input)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**

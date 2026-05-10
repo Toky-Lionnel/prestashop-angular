@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { CustomerService } from '../../service/customer/customer.service';
 import { PrestashopCustomer, isEmailValid, isNameValid } from '../../../models/customer.model';
 import { transformCustomerToAddress, PrestashopAddress } from '../../../models/address.model';
-import { parseStringPromise } from 'xml2js';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 
 @Injectable({
@@ -27,7 +26,7 @@ export class CustomerFacadeService {
     const customerData = responseCustomer?.prestashop?.customer?.[0];
     const idCustomer = customerData?.id?.[0];
 
-    const address = transformCustomerToAddress(customer);
+    const address : PrestashopAddress = transformCustomerToAddress(customer);
     address.id_customer = idCustomer;
     address.alias = customer.address;
     address.address1 = `Adresse de ${customer.firstname} ${customer.lastname}`;
@@ -48,19 +47,19 @@ export class CustomerFacadeService {
       if (!customer.firstname) {
         fieldErrors.push({ field: 'firstname', code: 'required', message: 'Le prénom est requis.' });
       } else if (!isNameValid(customer.firstname)) {
-        fieldErrors.push({ field: 'firstname', code: 'format', message: 'Le prénom n\'est pas valide.' });
+        fieldErrors.push({ field: 'firstname', code: 'format', message: 'Le prénom n\'est pas valide ' +customer.firstname });
       }
 
       if (!customer.lastname) {
         fieldErrors.push({ field: 'lastname', code: 'required', message: 'Le nom est requis.' });
       } else if (!isNameValid(customer.lastname)) {
-        fieldErrors.push({ field: 'lastname', code: 'format', message: 'Le nom n\'est pas valide.' });
+        fieldErrors.push({ field: 'lastname', code: 'format', message: 'Le nom n\'est pas valide ' +customer.lastname });
       }
 
       if (!customer.email) {
         fieldErrors.push({ field: 'email', code: 'required', message: 'L\'email est requis.' });
       } else if (!isEmailValid(customer.email)) {
-        fieldErrors.push({ field: 'email', code: 'format', message: 'L\'email n\'est pas valide.' });
+        fieldErrors.push({ field: 'email', code: 'format', message: 'L\'email n\'est pas valide ' +customer.email });
       }
 
       if (fieldErrors.length > 0) {
@@ -75,7 +74,7 @@ export class CustomerFacadeService {
           validationResult.invalidData.push({
             lineNumber,
             data: customer,
-            errors: [{ field: 'email', code: 'duplicate', message: 'L\'email est en double dans le fichier.' }]
+            errors: [{ field: 'email', code: 'duplicate', message: `L\'email est en double dans le fichier. Ligne : ${valid.line_number}` }]
           });
           validationResult.validData = validationResult.validData.filter(c => c !== customer);
           break;

@@ -41,15 +41,15 @@ export class ProductFacadeService {
       }
 
       if (product.price === null || product.price === undefined || isNaN(product.price)) {
-        fieldErrors.push({ field: 'price', code: 'required', message: 'Le prix du produit est requis et doit être un nombre.' });
+        fieldErrors.push({ field: 'price', code: 'required', message: `Le prix du produit est requis et doit être un nombre : ${product.price}` });
       } else if (product.price < 0) {
-        fieldErrors.push({ field: 'price', code: 'invalid_value', message: 'Le prix du produit ne peut pas être négatif.' });
+        fieldErrors.push({ field: 'price', code: 'invalid_value', message: `Le prix du produit ne peut pas être négatif : ${product.price}` });
       }
 
       if (product.quantity === null || product.quantity === undefined || isNaN(product.quantity)) {
-        fieldErrors.push({ field: 'quantity', code: 'required', message: 'La quantité du produit est requise et doit être un nombre.' });
+        fieldErrors.push({ field: 'quantity', code: 'required', message: `La quantité du produit est requise et doit être un nombre : ${product.quantity}` });
       } else if (product.quantity < 0) {
-        fieldErrors.push({ field: 'quantity', code: 'invalid_value', message: 'La quantité du produit ne peut pas être négative.' });
+        fieldErrors.push({ field: 'quantity', code: 'invalid_value', message: `La quantité du produit ne peut pas être négative : ${product.quantity}`  });
       }
 
       if (fieldErrors.length > 0) {
@@ -72,7 +72,7 @@ export class ProductFacadeService {
             errors: [{
               field: 'name',
               code: 'duplicate',
-              message: 'Un produit avec ce nom existe déjà.'
+              message: 'Un produit avec ce nom existe déjà dans le fichier. Ligne : ' +validProduct.line_number
             }]
           });
           validationResult.validData = validationResult.validData.filter(p => p !== product);

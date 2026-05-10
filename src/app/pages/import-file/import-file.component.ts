@@ -88,7 +88,7 @@ export class ImportFileComponent {
       const products: PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
       const response = await this.productFacadeService.validateProducts(products, backendData.filename);
 
-      this.result = getErrorsAsHTML(response);
+      this.result = getErrorsAsHTML(response,backendData.filename);
 
 
 
