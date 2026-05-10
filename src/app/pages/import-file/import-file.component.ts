@@ -19,6 +19,7 @@ import { CustomerService } from '../../services/service/customer/customer.servic
 import { PrestashopCustomer, transformParsedCustomersToModels } from '../../models/customer.model';
 import { CustomerFacadeService } from '../../services/facade/customerFacade/customer-facade.service';
 import { ProductService } from '../../services/service/product/product.service';
+import { getErrorsAsHTML } from '../../utils/validation-error-display';
 
 @Component({
   selector: 'app-import-file',
@@ -80,10 +81,15 @@ export class ImportFileComponent {
     try {
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
 
-      const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
-      const response = await this.customerFacadeService.validateCustomers(customers,backendData.filename);
+      // const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
+      // const response = await this.customerFacadeService.validateCustomers(customers,backendData.filename);
 
-      console.log(JSON.stringify(response));
+
+      const products: PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
+      const response = await this.productFacadeService.validateProducts(products, backendData.filename);
+
+      this.result = getErrorsAsHTML(response);
+
 
 
       // const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));

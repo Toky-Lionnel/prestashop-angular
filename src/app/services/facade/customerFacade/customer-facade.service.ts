@@ -69,6 +69,7 @@ export class CustomerFacadeService {
         validationResult.validData.push(customer);
       }
 
+      // recherche anaty base raha ohatra ka email efa misy
       for (const valid of validationResult.validData) {
         if(valid.email === customer.email && valid !== customer) {
           validationResult.invalidData.push({
