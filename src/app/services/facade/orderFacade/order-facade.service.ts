@@ -97,13 +97,13 @@ export class OrderFacadeService {
       }
 
       // verification de l'existence des produits
-      for (const produit of cart.associations.cart_rows) {
-        const product = validProducts.find(p => this.nameMatches(p, produit.product_name));
-        if (!product) {
-          fieldErrors.push({ field : 'product', code : 'invalid_value',
-          message : `Le produit avec le nom ${produit.product_name} n'existe pas.`});
-        }
-      }
+      // for (const produit of cart.associations.cart_rows) {
+      //   const product = validProducts.find(p => this.nameMatches(p, produit.product_name));
+      //   if (!product) {
+      //     fieldErrors.push({ field : 'product', code : 'invalid_value',
+      //     message : `Le produit avec le nom ${produit.product_name} n'existe pas.`});
+      //   }
+      // }
 
       // verification de l'existence du statut de commande
       const idOrderState = this.orderHistoryService.getOrderStateIdByName(cart.order_state ?? '');

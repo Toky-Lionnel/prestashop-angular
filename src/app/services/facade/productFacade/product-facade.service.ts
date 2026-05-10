@@ -65,21 +65,21 @@ export class ProductFacadeService {
 
 
       // eto no mila manao recherche anaty base raha ohatra ka
-      for (const validProduct of validationResult.validData) {
-        if (validProduct.name == product.name) {
-          validationResult.invalidData.push({
-            lineNumber,
-            data: product,
-            errors: [{
-              field: 'name',
-              code: 'duplicate',
-              message: 'Un produit avec ce nom existe déjà dans le fichier. Ligne : ' +validProduct.line_number
-            }]
-          });
-          validationResult.validData = validationResult.validData.filter(p => p !== product);
-          break;
-        }
-      }
+      // for (const validProduct of validationResult.validData) {
+      //   if (validProduct.name == product.name) {
+      //     validationResult.invalidData.push({
+      //       lineNumber,
+      //       data: product,
+      //       errors: [{
+      //         field: 'name',
+      //         code: 'duplicate',
+      //         message: 'Un produit avec ce nom existe déjà dans le fichier. Ligne : ' +validProduct.line_number
+      //       }]
+      //     });
+      //     validationResult.validData = validationResult.validData.filter(p => p !== product);
+      //     break;
+      //   }
+      // }
     }
 
     validationResult.file_name = file_name;

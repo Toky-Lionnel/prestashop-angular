@@ -7,6 +7,7 @@ import { CustomerFacadeService } from '../../facade/customerFacade/customer-faca
 import { PrestashopCustomer, transformParsedCustomersToModels } from '../../../models/customer.model';
 import { PrestashopProduct, transformProductRowsToModel } from '../../../models/product.model';
 import { ImportValidationResult } from '../../../models/validation.model';
+import { getErrorsAsHTML } from '../../../utils/validation-error-display';
 
 
 @Injectable({
@@ -28,7 +29,7 @@ export class ImportFileService {
   }
 
 
-  async importData(backendData: BackendData[]): Promise<void> {
+  async importData(backendData: BackendData[]): Promise<string> {
     const productData: BackendData | undefined = backendData.find(
       data => data.table_name === 'PRODUCT'
     );
@@ -65,9 +66,14 @@ export class ImportFileService {
         importResultsCustomers
       );
 
+    const errorsHTML = getErrorsAsHTML(importResultsProducts, productData?.filename || '') +
+      getErrorsAsHTML(importResultsCustomers, customerData?.filename || '') +
+      getErrorsAsHTML(importResultsOrders, orderData?.filename || '');
+
     await this.productFacadeService.importProduct(importResultsProducts.validData);
     await this.customerFacadeService.importCustomers(importResultsCustomers.validData);
     await this.orderFacadeService.createOrder(importResultsOrders.validData);
+    return errorsHTML;
   }
 
 }

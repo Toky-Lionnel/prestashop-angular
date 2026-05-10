@@ -20,6 +20,7 @@ import { PrestashopCustomer, transformParsedCustomersToModels } from '../../mode
 import { CustomerFacadeService } from '../../services/facade/customerFacade/customer-facade.service';
 import { ProductService } from '../../services/service/product/product.service';
 import { getErrorsAsHTML } from '../../utils/validation-error-display';
+import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
 
 @Component({
   selector: 'app-import-file',
@@ -36,7 +37,7 @@ import { getErrorsAsHTML } from '../../utils/validation-error-display';
 export class ImportFileComponent {
   isLoading = false;
   backFile: File | null = null;
-
+  excelFiles: Array<File | null> = [null, null, null];
   result: string = '';
 
   private messageService: MessageService = inject(MessageService);
@@ -49,15 +50,19 @@ export class ImportFileComponent {
 
   private orderService : OrderService = inject(OrderService);
   private customerService : CustomerService = inject(CustomerService);
-
   private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
 
-  constructor(
-  ) {}
+  private importFileService : ImportFileService = inject(ImportFileService);
+
+  private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
+
+  constructor() {}
 
   async ngOnInit() {
-    const produit = await this.productService.getIdProductByName('Product 1');
-    console.log('ID du produit "Test Product":', produit);
+  }
+
+  async OnReset() {
+    await this.reinitialisationService.resetDatabase();
   }
 
   onBackFileChange(event: Event) {
@@ -65,6 +70,14 @@ export class ImportFileComponent {
     this.backFile = input.files?.[0] ?? null;
   }
 
+  onExcelFileChange(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    this.excelFiles[index] = input.files?.[0] ?? null;
+  }
+
+  get isExcelImportDisabled(): boolean {
+    return this.isLoading || this.excelFiles.some((f) => f === null);
+  }
 
   async importBackFile() {
     if (!this.backFile) {
@@ -80,20 +93,10 @@ export class ImportFileComponent {
 
     try {
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-
-      // const customers: PrestashopCustomer[] = transformParsedCustomersToModels(JSON.parse(backendData.data));
-      // const response = await this.customerFacadeService.validateCustomers(customers,backendData.filename);
-
-
       const products: PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
       const response = await this.productFacadeService.validateProducts(products, backendData.filename);
 
       this.result = getErrorsAsHTML(response,backendData.filename);
-
-
-
-      // const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
-      // await this.orderFacadeService.createOrder(carts);
 
       this.messageService.add({
         severity: 'success',
@@ -101,6 +104,44 @@ export class ImportFileComponent {
         detail: 'Le fichier a été importé avec succès'
       });
 
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur lors de l\'import',
+        detail: error.message || 'Une erreur est survenue'
+      });
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+
+  async importExcelFiles() {
+    if (this.excelFiles.some((f) => !f)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Fichiers manquants',
+        detail: 'Veuillez sélectionner les 3 fichiers requis'
+      });
+      return;
+    }
+
+    this.isLoading = true;
+    this.result = '';
+
+    try {
+      // transformer chaque fichier en BackendData
+      const backendDatas : BackendData [] = await Promise.all(
+        this.excelFiles.map((f) => transformCSVtoBackend(f as File))
+      );
+
+      this.result = await this.importFileService.importData(backendDatas);
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Import réussi',
+        detail: 'Les fichiers ont été traités'
+      });
 
     } catch (error: any) {
       this.messageService.add({
