@@ -2,24 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { PrestashopCart, transformParsedRowsToCartModels } from '../../../models/cart.model';
 import { OrderFacadeService } from '../../facade/orderFacade/order-facade.service';
 import { BackendData } from '../../../utils/interface';
+import { ProductFacadeService } from '../../facade/productFacade/product-facade.service';
+import { CustomerFacadeService } from '../../facade/customerFacade/customer-facade.service';
+import { PrestashopCustomer, transformParsedCustomersToModels } from '../../../models/customer.model';
+import { PrestashopProduct, transformProductRowsToModel } from '../../../models/product.model';
+import { ImportValidationResult } from '../../../models/validation.model';
 
-interface CSVRow {
-  [key: string]: any;
-}
-
-interface ImportResult {
-  headers: string[];
-  filename: string;
-  data: CSVRow[];
-  rowCount: number;
-  columnCount: number;
-}
-
-interface BackendImportPayload {
-  file_name: string;
-  table_name: string;
-  data: CSVRow | CSVRow[];
-}
 
 @Injectable({
   providedIn: 'root'
@@ -29,12 +17,57 @@ export class ImportFileService {
 
   constructor() { }
 
+  private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
+  private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
 
   async testImportOrder () {
     const backendData : BackendData = { filename : '', 'table_name' : 'Order', 'data' : ''};
     const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
     await this.orderFacadeService.createOrder(carts);
+  }
+
+
+  async importData(backendData: BackendData[]): Promise<void> {
+    const productData: BackendData | undefined = backendData.find(
+      data => data.table_name === 'PRODUCT'
+    );
+
+    const customerData: BackendData | undefined = backendData.find(
+      data => data.table_name === 'CUSTOMER'
+    );
+
+    const orderData: BackendData | undefined = backendData.find(
+      data => data.table_name === 'ORDER'
+    );
+
+    if (!productData || !customerData) {
+      throw new Error('Missing Product or Customer import data');
+    }
+
+    const importResultsProducts: ImportValidationResult<PrestashopProduct> =
+      await this.productFacadeService.validateProducts(
+        transformProductRowsToModel(JSON.parse(productData.data || '[]')),
+        productData.filename || ''
+      );
+
+    const importResultsCustomers: ImportValidationResult<PrestashopCustomer> =
+      await this.customerFacadeService.validateCustomers(
+        transformParsedCustomersToModels(JSON.parse(customerData.data || '[]')),
+        customerData.filename || ''
+      );
+
+    const importResultsOrders: ImportValidationResult<PrestashopCart> =
+      await this.orderFacadeService.validateOrders(
+        transformParsedRowsToCartModels(JSON.parse(orderData?.data || '[]')),
+        orderData?.filename || '',
+        importResultsProducts,
+        importResultsCustomers
+      );
+
+    await this.productFacadeService.importProduct(importResultsProducts.validData);
+    await this.customerFacadeService.importCustomers(importResultsCustomers.validData);
+    await this.orderFacadeService.createOrder(importResultsOrders.validData);
   }
 
 }

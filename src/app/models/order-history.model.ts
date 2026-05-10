@@ -5,6 +5,7 @@ export interface PrestashopOrderHistory {
   order_state : string;
   id_order: number;
   date_add: string;
+  line_number?: number;
 }
 
 export interface OrderHistoryTransformOptions {
@@ -23,12 +24,13 @@ const formatDateTime = (date: Date): string => {
 };
 
 export function transformToOrderHistory(id_order : number,
-  id_order_state: number, date_add : string | null): PrestashopOrderHistory {
+  id_order_state: number, date_add : string | null, line_number?: number): PrestashopOrderHistory {
   return {
     id_order_state: id_order_state,
     order_state : String(id_order_state),
     id_order: id_order,
-    date_add: date_add || formatDateTime(new Date())
+    date_add: date_add || formatDateTime(new Date()),
+    line_number: line_number
   };
 }
 
@@ -40,6 +42,7 @@ export function transformOrderToOrderHistory(order : PrestashopOrder): Prestasho
     id_order_state: id,
     id_order: order.id ?? 0,
     order_state : order.order_state ?? '',
+    line_number : order.line_number,
     date_add: order.date_add || formatDateTime(new Date())
   };
 }

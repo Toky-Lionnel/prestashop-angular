@@ -27,7 +27,8 @@ export class ProductFacadeService {
   }
 
 
-  async validateProducts(products: PrestashopProduct[], file_name: string): Promise<ImportValidationResult<PrestashopProduct>> {
+  async validateProducts(products: PrestashopProduct[], file_name: string):
+  Promise<ImportValidationResult<PrestashopProduct>> {
     const validationResult = createEmptyValidationResult<PrestashopProduct>();
 
     for (let i = 0; i < products.length; i++) {

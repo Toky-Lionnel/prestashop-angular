@@ -28,6 +28,7 @@ export interface PrestashopOrder {
   conversion_rate: number;
   order_state?: string;
   customer_email?: string;
+  line_number?: number;
   date_add?: string;
   associations: PrestashopOrderAssociations;
 }
@@ -73,6 +74,7 @@ export function transformCartToOrder(
     id_cart : cart.id ?? 0,
     id_currency: cart.id_currency,
     id_lang: cart.id_lang,
+    line_number : cart.line_number,
     id_customer: cart.id_customer,
     id_carrier: settings.id_carrier,
     module: settings.module,

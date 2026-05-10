@@ -1,4 +1,5 @@
 export interface PrestashopCartRow {
+  product_name: string;
   id_product: number;
   id_product_attribute: number | null;
   id_address_delivery: number;
@@ -18,6 +19,7 @@ export interface PrestashopCart {
   id_address_invoice: number;
   order_state?: string;
   customer_email?: string;
+  line_number: number;
   date_add?: string;
   associations: PrestashopCartAssociations;
 }
@@ -88,6 +90,7 @@ export function transformParsedRowsToCartModels(rows: any[],options: CartTransfo
         order_state: row.statut,
         customer_email: row.customer_email,
         date_add: row.date,
+        line_number: row.line_number,
         associations: {
           cart_rows: []
         }
@@ -99,7 +102,8 @@ export function transformParsedRowsToCartModels(rows: any[],options: CartTransfo
     const rowDeliveryAddress = toNumber(row.id_address_delivery, settings.id_address_delivery);
 
     cart.associations.cart_rows.push({
-      id_product: parseProductId(row),
+      product_name: row.produit ?? '',
+      id_product: 0,
       id_product_attribute:
         row.id_product_attribute === '' || row.id_product_attribute === null || row.id_product_attribute === undefined
           ? null
