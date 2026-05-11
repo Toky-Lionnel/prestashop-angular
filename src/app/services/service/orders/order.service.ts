@@ -4,6 +4,8 @@ import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterc
 import { xmlToJson } from '../../../utils/parse-xml.utils';
 import { PrestashopOrder, buildOrderXML } from '../../../models/order.model';
 import { parseStringPromise } from 'xml2js';
+import { OrderStateService } from '../order-state/order-state.service';
+import { CustomerService } from '../customer/customer.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +13,14 @@ import { parseStringPromise } from 'xml2js';
 export class OrderService {
 
   private authInterceptor: AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
+  private orderStateService : OrderStateService = inject(OrderStateService);
+  private customerService : CustomerService = inject(CustomerService);
 
   constructor() {}
 
-
   async getOrdersFull(): Promise<Order[]> {
+    this.orderStateService.loadOrderStates();
+
     const ids = await this.getOrderIds();
     const promises: Promise<Order>[] = [];
 
@@ -59,11 +64,15 @@ export class OrderService {
   }
 
 
-  private mapOrder(o: any): Order {
+  private async mapOrder(o: any): Promise<Order> {
+    const email = await this.customerService.getCustomerById(o.id_customer._).then((customer) => customer?.email || 'Email non trouvé');
+
     return {
       id: Number(o.id),
       total_paid: Number(o.total_paid),
       date_add: o.date_add,
+      customer_email: email[0],
+      recent_statut: this.orderStateService.getOrderStateNameById(Number(o.current_state._)) || '',
       products: this.mapProducts(o.associations?.order_rows?.order_row)
     };
   }
@@ -92,9 +101,6 @@ export class OrderService {
   async createOrder(order: PrestashopOrder): Promise<number | null> {
     const api = this.authInterceptor.getApi();
     const orderXML = buildOrderXML(order);
-
-    console.log(order);
-
 
     try {
       const response = await api.post('/api/orders', orderXML, {

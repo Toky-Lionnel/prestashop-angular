@@ -84,9 +84,21 @@ export class OrderStateService {
     return matchedState?.id ?? null;
   }
 
+  getOrderStateNameById(id: number, languageId: number = 1): string | null {
+    const state = this.getOrderStateById(id);
+
+    if (!state) {
+      return null;
+    }
+
+    const nameEntry = state.names.find((entry) => entry.id === languageId);
+    return nameEntry ? nameEntry.value : null;
+  }
+
   getStoredOrderStates(): PrestashopOrderState[] {
     return [...this.orderStates];
   }
+
 
   async loadOrderStates(): Promise<PrestashopOrderState[]> {
     const api = this.interceptor.getApi();
@@ -103,9 +115,6 @@ export class OrderStateService {
   async createOrderState(orderHistory : PrestashopOrderHistory): Promise<void> {
     const api = this.interceptor.getApi();
     const xml = buildOrderHistoryXML(orderHistory);
-
-    console.log(xml);
-
 
     const response = await api.post('/api/order_histories', xml, {
       headers: {

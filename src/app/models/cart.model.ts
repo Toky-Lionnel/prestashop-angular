@@ -44,7 +44,7 @@ export interface CartTransformOptions {
 }
 
 const DEFAULT_CART_OPTIONS: Required<CartTransformOptions> = {
-  id_currency: 2,
+  id_currency: 1,
   id_lang: 1,
   id_customer: 0,
   id_address_delivery: 0,
