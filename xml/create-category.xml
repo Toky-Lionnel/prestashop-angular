@@ -1,0 +1,4 @@
+<prestashop>
+
+<category> <id_parent>2</id_parent> <active>1</active> <name> <language id="1">Catégorie Test</language> </name> <link_rewrite> <language id="1">categorie-test</language> </link_rewrite> <description> <language id="1"><![CDATA[Description de la catégorie test]]></language> </description> </category>
+</prestashop>

@@ -112,21 +112,28 @@ function detectTableName(headers: string[]): string {
   const hasHeaders = (expectedHeaders: string[]) =>
     expectedHeaders.every((header) => normalizedHeaders.includes(header));
 
-  if (hasHeaders(["name", "price" , "quantity"])) {
+  // if (hasHeaders(["name", "price" , "quantity"])) {
+  //   return "PRODUCT";
+  // }
+
+  // if ( hasHeaders(["produit", "quantite","panier"])) {
+  //   return "ORDER";
+  // }
+
+  // if (hasHeaders(["panier", "mode paiement", "montant"])) {
+  //   return "ORDER-PAYEMENT";
+  // }
+
+  // if (hasHeaders(["nom", "prenom", "email", "adresse"])) {
+  //   return "CUSTOMER";
+  // }
+
+  
+  if (hasHeaders(["date_availability_produit", "nom" , "reference", "prix_ttc", "taxe", "categorie", "prix_achat"])) {
     return "PRODUCT";
   }
 
-  if ( hasHeaders(["produit", "quantite","panier"])) {
-    return "ORDER";
-  }
 
-  if (hasHeaders(["panier", "mode paiement", "montant"])) {
-    return "ORDER-PAYEMENT";
-  }
-
-  if (hasHeaders(["nom", "prenom", "email", "adresse"])) {
-    return "CUSTOMER";
-  }
 
   return "EXPENSE";
 }

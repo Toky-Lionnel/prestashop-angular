@@ -3,6 +3,11 @@ import { ProductService } from '../../service/product/product.service';
 import { StocksService } from '../../service/stocks/stocks.service';
 import { PrestashopProduct } from '../../../models/product.model';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
+import { CategoriesService } from '../../service/categories/categories.service';
+import { PrestashopCategory } from '../../../models/category.model';
+import { ProductCsvModel } from '../../../models/product-csv.model';
+import { TaxService } from '../../service/tax/tax.service';
+import { PrestashopTax, PrestashopTaxRule, PrestashopTaxRuleGroup } from '../../../models/tax.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +16,8 @@ export class ProductFacadeService {
 
   private productService : ProductService = inject(ProductService);
   private stocksService : StocksService = inject(StocksService);
+  private categoriesService : CategoriesService = inject(CategoriesService);
+  private taxService : TaxService = inject(TaxService);
 
   constructor() { }
 
@@ -24,6 +31,97 @@ export class ProductFacadeService {
         await this.stocksService.updateStock(id_stock, createdProduct);
       }
     }
+  }
+
+
+  async importProductsBase (products : ProductCsvModel []) : Promise<void> {
+      try {
+
+      const categories : PrestashopCategory [] = this.categoriesService.groupCategories(products);
+      const categoryIdByName = new Map<string, number>();
+
+      for (const category of categories) {
+        const categoryName = category.name.language[0]?.value?.trim() ?? '';
+        const createdCategoryId = await this.categoriesService.createCategories(category);
+        const resolvedCategoryId = createdCategoryId ?? await this.categoriesService.getIdCategoryByName(categoryName);
+
+        if (resolvedCategoryId) {
+          categoryIdByName.set(categoryName.toLowerCase(), resolvedCategoryId);
+        }
+      }
+
+      for (const product of products) {
+          const categoryName = product.categorie.trim();
+          const categoryId = categoryIdByName.get(categoryName.toLowerCase()) ?? 2;
+
+          const tax : PrestashopTax = {
+            name: { language: [{ id: 1, value: `Tax for ${product.nom} - ${product.taxe}%` }] },
+            rate: product.taxe,
+            active : 1
+          };
+
+          const taxId = await this.taxService.createTax(tax);
+
+          const taxGroup : PrestashopTaxRuleGroup = {
+            name: `Tax Rule Group for ${product.nom}`,
+            active : 1
+          };
+
+          const taxGroupId = await this.taxService.createTaxGroup(taxGroup);
+
+          const taxRule : PrestashopTaxRule = {
+            id_tax: taxId,
+            id_tax_rules_group: taxGroupId,
+            id_country: 8
+          };
+
+          await this.taxService.createTaxRule(taxRule);
+
+          const produitHorsTaxe = this.formatToThreeDecimals(product.prix_ttc / (1 + product.taxe / 100));
+
+          const prestashopProduct : PrestashopProduct = {
+            id: null,
+            id_category_default : categoryId,
+            id_tax_rules_group: taxGroupId,
+            id_shop_default: 1,
+            state: 1,
+            active: 1,
+            available_for_order: 1,
+            show_price: 1,
+            visibility: 'both',
+            type: 'simple',
+            product_type: 'standard',
+            condition: 'new',
+            minimal_quantity: 1,
+            redirect_type: '404',
+            price: Number(produitHorsTaxe),
+            wholesale_price : Number(product.prix_achat),
+            quantity: 0,
+            reference: product.reference,
+            date_availability: product.date_availability_produit,
+            line_number: product.line_number ?? 0,
+            name: { language: [{ id: 1, value: product.nom }] },
+            link_rewrite: { language: [{ id: 1, value: product.nom.toLowerCase().replace(/\s+/g, '-') }] },
+            associations: {
+              categories: {
+                category: [
+                  { id: categoryId }
+                ]
+              }
+            }
+          }
+
+          await this.productService.createProduct(prestashopProduct);
+      }
+
+    } catch (error) {
+      console.error('Error importing products:', error);
+      throw error;
+    }
+  }
+
+  async createCategory (categorie : PrestashopCategory) {
+    await this.categoriesService.createCategories(categorie);
   }
 
 
@@ -89,6 +187,10 @@ export class ProductFacadeService {
 
     return validationResult;
   }
+
+private formatToThreeDecimals(value: number): string {
+  return value.toFixed(3);
+}
 
 
 

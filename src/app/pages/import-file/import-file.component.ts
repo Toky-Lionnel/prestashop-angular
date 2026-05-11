@@ -23,6 +23,7 @@ import { getErrorsAsHTML } from '../../utils/validation-error-display';
 import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
+import { ProductCsvModel, transformProductCsvRowsToModel } from '../../models/product-csv.model';
 
 @Component({
   selector: 'app-import-file',
@@ -58,7 +59,7 @@ export class ImportFileComponent {
 
   private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
   private sessionService : SessionService = inject(SessionService);
-private router: Router = inject(Router);
+  private router: Router = inject(Router);
 
   constructor() {}
 
@@ -84,6 +85,7 @@ private router: Router = inject(Router);
   }
 
   async importBackFile() {
+
     if (!this.backFile) {
       this.messageService.add({
         severity: 'warn',
@@ -96,11 +98,11 @@ private router: Router = inject(Router);
     this.isLoading = true;
 
     try {
-      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      const products: PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
-      const response = await this.productFacadeService.validateProducts(products, backendData.filename);
 
-      this.result = getErrorsAsHTML(response,backendData.filename);
+      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
+      const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(backendData.data));
+      await this.productFacadeService.importProductsBase(productsCSV);
+
 
       this.messageService.add({
         severity: 'success',

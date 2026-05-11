@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <tax_rule>
+        <id_tax_rules_group required="true" format="isUnsignedId">
+            <![CDATA[7]]>
+        </id_tax_rules_group>
+        <id_country required="true" format="isUnsignedId">
+            <![CDATA[133]]>
+        </id_country>
+        <id_tax required="true" format="isUnsignedId">
+            <![CDATA[36]]>
+        </id_tax>
+    </tax_rule>
+</prestashop>

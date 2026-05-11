@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <tax_rule_group>
+        <name required="true" maxSize="64" format="isGenericName">
+            <![CDATA[Tax rules group pour le produit 1]]>
+        </name>
+        <active format="isBool">
+            <![CDATA[1]]>
+        </active>
+    </tax_rule_group>
+</prestashop>

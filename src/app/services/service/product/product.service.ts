@@ -16,6 +16,8 @@ export class ProductService {
   async createProduct (product: PrestashopProduct) {
     const api = this.interceptor.getApi();
     const productXML = buildProductXML(product);
+    // console.log(productXML);
+
     const response = await api.post('/api/products', productXML, {
       headers: {
         'Content-Type': 'application/xml',
