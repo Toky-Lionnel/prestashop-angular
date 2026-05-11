@@ -21,6 +21,8 @@ import { CustomerFacadeService } from '../../services/facade/customerFacade/cust
 import { ProductService } from '../../services/service/product/product.service';
 import { getErrorsAsHTML } from '../../utils/validation-error-display';
 import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
+import { SessionService } from '../../services/service/session/session.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-import-file',
@@ -55,6 +57,8 @@ export class ImportFileComponent {
   private importFileService : ImportFileService = inject(ImportFileService);
 
   private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
+  private sessionService : SessionService = inject(SessionService);
+private router: Router = inject(Router);
 
   constructor() {}
 
@@ -157,5 +161,13 @@ export class ImportFileComponent {
   clearFiles() {
     this.backFile = null;
     this.result = '';
+  }
+
+  async onLogout() {
+    // Clear session data
+    this.sessionService.clear();
+
+    // Optionally, navigate to the login page
+    await this.router.navigate(['/login']);
   }
 }

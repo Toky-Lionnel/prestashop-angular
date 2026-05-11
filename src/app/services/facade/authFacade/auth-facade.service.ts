@@ -2,6 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { AuthService } from "../../service/auth/auth.service";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
+import { SessionService } from "../../service/session/session.service";
 
 @Injectable({
   providedIn: "root",
@@ -10,6 +11,8 @@ export class AuthFacadeService {
 
   private authService: AuthService = inject(AuthService);
   private router: Router = inject(Router);
+  private sessionService : SessionService = inject(SessionService);
+
   errorMessage = '';
 
   constructor() {}
@@ -26,6 +29,8 @@ export class AuthFacadeService {
         this.errorMessage = responseBody.errors?.[0] || 'Email ou mot de passe incorrect.';
         return false;
       }
+
+      this.sessionService.setUser(email);
 
       this.errorMessage = '';
       await this.router.navigate(['/import']);
@@ -58,6 +63,8 @@ export class AuthFacadeService {
 
     return null;
   }
+
+
 
 
 }
