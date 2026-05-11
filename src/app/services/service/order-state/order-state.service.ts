@@ -54,15 +54,20 @@ export class OrderStateService {
   }
 
   private extractNameValue(name: any): PrestashopOrderStateLanguage[] {
-    const languages = Array.isArray(name?.language)
-      ? name.language
+
+  const rawLanguages = name?.language;
+
+  const languages = Array.isArray(rawLanguages)
+    ? rawLanguages
+    : rawLanguages
+      ? [rawLanguages]
       : [];
 
-    return languages.map((language: any) => ({
-      id: this.toNumber(language?.$?.id, 0),
-      value: String(language?._ ?? '')
-    }));
-  }
+  return languages.map((language: any) => ({
+    id: this.toNumber(language?.$?.id, 0),
+    value: String(language?._ ?? '')
+  }));
+}
 
 
   private getOrderStateById(id: number): PrestashopOrderState | undefined {
@@ -88,6 +93,7 @@ export class OrderStateService {
     const response = await api.get('/api/order_states?display=[id,name]');
 
     const json = await xmlToJson(response.data);
+
     const rawOrderStates =
     json?.prestashop?.order_states?.order_state ?? [];
     this.orderStates = this.transformOrderStates(rawOrderStates);

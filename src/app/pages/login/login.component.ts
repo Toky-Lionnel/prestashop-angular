@@ -21,14 +21,16 @@ export class LoginComponent {
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private authFacade: AuthFacadeService) {
     this.loginForm = this.fb.group({
-      email: ['admin'],
-      password: ['admin']
+      email: ['tokyrajaonarivony@gmail.com'],
+      password: ['dislOcoeur04*']
     });
   }
 
-  onLogin() {
+  async onLogin() {
     const { email, password } = this.loginForm.value;
-    this.authFacade.login(email!, password!);
+    this.errorMessage = '';
+    await this.authFacade.login(email!, password!);
+    this.errorMessage = this.authFacade.errorMessage;
   }
 
 

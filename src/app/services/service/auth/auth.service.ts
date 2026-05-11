@@ -13,18 +13,23 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    const payload = { username, password };
+    const apiUrl = `${this.url}/admin962dfddqafcqbyx1oq4/index.php?controller=AdminLogin`;
 
-    const apiUrl = `${this.url}/auth/login`;
-    console.log(this.url);
+    const params = new URLSearchParams();
+    params.append('email', username);
+    params.append('passwd', password);
+    params.append('submitLogin', '1');
+    params.append('stay_logged_in', '1');
+    params.append('controller', 'AdminLogin');
+    params.append('ajax', '1');
 
     return from(
-      axios.post(apiUrl, payload, {
+      axios.post(apiUrl, params.toString(), {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        withCredentials: true
-      }).then(res => res.data)
+        responseType: 'text'
+      })
     );
   }
 
