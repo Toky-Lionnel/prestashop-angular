@@ -128,9 +128,9 @@ function detectTableName(headers: string[]): string {
   //   return "CUSTOMER";
   // }
 
-  
+
   if (hasHeaders(["date_availability_produit", "nom" , "reference", "prix_ttc", "taxe", "categorie", "prix_achat"])) {
-    return "PRODUCT";
+    return "PRODUCTS";
   }
 
 

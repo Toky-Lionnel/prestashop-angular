@@ -35,6 +35,28 @@ export class StocksService {
       out_of_stock: 2
     };
     const xmlData = buildStockXML(stockData);
+    const response = await api.put(`/api/stock_availables/${id_stock}`, xmlData, {
+      headers: {
+        'Content-Type': 'application/xml'
+      }
+    });
+    return response.data;
+  }
+
+
+  async updateStockWithIdProduct (id_stock : number, idProduct: number, quantity: number, id_product_attribute: number = 0) {
+    const api = this.interceptor.getApi();
+    const stockData: PrestashopStockAvailable = {
+      id: Number(id_stock),
+      id_product: Number(idProduct),
+      id_product_attribute: Number(id_product_attribute),
+      id_shop: 1,
+      id_shop_group: 0,
+      quantity: Number(quantity),
+      depends_on_stock: 0,
+      out_of_stock: 0
+    };
+    const xmlData = buildStockXML(stockData);
 
     console.log(xmlData);
 
@@ -46,5 +68,43 @@ export class StocksService {
     });
     return response.data;
   }
+
+  async getIdStockByProductAndAttribute(id_product: number, id_product_attribute: number): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/stock_availables?filter[id_product]=${id_product}&filter[id_product_attribute]=${id_product_attribute}`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockAvailables = responseData?.prestashop?.stock_availables?.[0]?.stock_available;
+    if (!stockAvailables) return null;
+
+    const stock = Array.isArray(stockAvailables) ? stockAvailables[0] : stockAvailables;
+    const id = stock?.$?.id ?? stock?.id?.[0] ?? null;
+    return id ? Number(id) : null;
+  }
+
+  async createStockForProductAttribute(id_product: number, id_product_attribute: number, quantity: number = 0): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const stockData = {
+      id: null,
+      id_product: id_product,
+      id_product_attribute: id_product_attribute,
+      id_shop: 1,
+      id_shop_group: 0,
+      quantity: quantity,
+      depends_on_stock: 0,
+      out_of_stock: 2
+    };
+    const xmlData = buildStockXML(stockData as any);
+    const response = await api.post('/api/stock_availables', xmlData, {
+      headers: {
+        'Content-Type': 'application/xml'
+      }
+    });
+
+    const responseData = await parseStringPromise(response.data);
+    const id = responseData?.prestashop?.stock_available?.[0]?.id?.[0] ?? responseData?.prestashop?.stock_availables?.[0]?.stock_available?.[0]?.$.id;
+    return id ? Number(id) : null;
+  }
+
 
 }

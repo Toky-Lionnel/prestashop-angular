@@ -53,4 +53,27 @@ export class ProductService {
       return Number(idProduct);
   }
 
+
+  async getIdProductByReference (reference: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[reference]=[${encodeURIComponent(reference)}]&display=[id]`,
+      {
+        responseType: 'text'
+      }
+    );
+
+    const json = await parseStringPromise(response.data);
+    const products = json?.prestashop?.products?.[0];
+    const product = products?.product?.[0];
+    const idProduct = product?.id?.[0];
+
+    if (!idProduct) {
+      console.error('No product found with reference:', reference);
+      return null;
+    }
+
+    return Number(idProduct);
+  }
+
 }

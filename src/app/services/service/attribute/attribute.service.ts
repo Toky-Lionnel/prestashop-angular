@@ -48,6 +48,19 @@ export class AttributeService {
     return id ? Number(id) : null;
   }
 
+  async getProductOptionIdByName(name: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/product_options?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
+      { responseType: 'text' }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const option = responseData?.prestashop?.product_options?.[0]?.product_option?.[0];
+    const id = option?.id?.[0];
+    return id ? Number(id) : null;
+  }
+
 
   async createProductOptionValue(productOptionValue: PrestashopProductOptionValue): Promise<number | null> {
     const api = this.interceptor.getApi();
@@ -60,6 +73,32 @@ export class AttributeService {
 
     const responseData = await parseStringPromise(response.data);
     const id = responseData?.prestashop?.product_option_value?.[0]?.id?.[0];
+    return id ? Number(id) : null;
+  }
+
+  async getProductOptionValueIdByName(id_attribute_group: number, name: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/product_option_values?filter[id_attribute_group]=${id_attribute_group}&filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
+      { responseType: 'text' }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const pov = responseData?.prestashop?.product_option_values?.[0]?.product_option_value?.[0];
+    const id = pov?.id?.[0];
+    return id ? Number(id) : null;
+  }
+
+  async getCombinationIdByReference(id_product: number, reference: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/combinations?filter[id_product]=${id_product}&filter[reference]=[${encodeURIComponent(reference)}]&display=[id]`,
+      { responseType: 'text' }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const combination = responseData?.prestashop?.combinations?.[0]?.combination?.[0];
+    const id = combination?.id?.[0];
     return id ? Number(id) : null;
   }
 

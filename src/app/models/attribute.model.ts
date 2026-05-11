@@ -12,11 +12,15 @@ export interface PrestashopProductOptionValue {
 }
 
 export interface PrestashopProductOptionValueAssociation {
-  product_option_value: PrestashopProductOptionValue[];
+  product_option_value: PrestashopProductOptionValueRef[];
 }
 
 export interface PrestashopCombinationAssociations {
   product_option_values: PrestashopProductOptionValueAssociation;
+}
+
+export interface PrestashopProductOptionValueRef {
+  id: number;
 }
 
 export interface PrestashopCombination {
@@ -43,8 +47,6 @@ export interface PrestashopProductOption {
 export interface PrestashopProductOptionValue {
   id?: number | null;
   id_attribute_group: number;
-  color?: string;
-  position: number;
   name: PrestashopLocalizedField;
   line_number?: number;
 }
@@ -95,12 +97,6 @@ const buildLocalizedFieldXML = (fieldName: string, field: PrestashopLocalizedFie
 };
 
 
-
-/**
- * Constructs XML representation of a PrestashopCombination object
- * @param data - The combination object to convert
- * @returns XML string representation
- */
 export function buildCombinationXML(data: PrestashopCombination): string {
   const productOptionValues = data.associations.product_option_values.product_option_value
     .map((pov) => `        <product_option_value>\n <id>${escapeCDATA(Number(pov.id))}</id>\n        </product_option_value>`)
@@ -125,11 +121,7 @@ ${productOptionValues}
 </prestashop>`;
 }
 
-/**
- * Constructs XML representation of a PrestashopProductOption object
- * @param data - The product option object to convert
- * @returns XML string representation
- */
+
 export function buildProductOptionXML(data: PrestashopProductOption): string {
   const nameXML = buildLocalizedFieldXML('name', data.name);
   const publicNameXML = buildLocalizedFieldXML('public_name', data.public_name);
@@ -146,22 +138,16 @@ ${publicNameXML}
 </prestashop>`;
 }
 
-/**
- * Constructs XML representation of a PrestashopProductOptionValue object
- * @param data - The product option value object to convert
- * @returns XML string representation
- */
+
+
 export function buildProductOptionValueXML(data: PrestashopProductOptionValue): string {
   const nameXML = buildLocalizedFieldXML('name', data.name);
 
-  const colorTag = data.color ? `    <color><![CDATA[${escapeCDATA(data.color)}]]></color>\n` : '';
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
+return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
   <product_option_value>
     <id_attribute_group><![CDATA[${escapeCDATA(data.id_attribute_group)}]]></id_attribute_group>
-${colorTag}    <position><![CDATA[${escapeCDATA(data.position)}]]></position>
-${nameXML}
+      ${nameXML}
   </product_option_value>
 </prestashop>`;
 }

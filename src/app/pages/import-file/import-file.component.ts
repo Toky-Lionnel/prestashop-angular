@@ -24,6 +24,8 @@ import { ReinitialisationService } from '../../services/service/reinitialisation
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
 import { ProductCsvModel, transformProductCsvRowsToModel } from '../../models/product-csv.model';
+import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../models/combination-csv.model';
+import { AttributeFacadeService } from '../../services/facade/attributeFacade/attribute-facade.service';
 
 @Component({
   selector: 'app-import-file',
@@ -56,6 +58,7 @@ export class ImportFileComponent {
   private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
 
   private importFileService : ImportFileService = inject(ImportFileService);
+  private attributeFacadeService : AttributeFacadeService = inject(AttributeFacadeService);
 
   private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
   private sessionService : SessionService = inject(SessionService);
@@ -100,8 +103,14 @@ export class ImportFileComponent {
     try {
 
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(backendData.data));
-      await this.productFacadeService.importProductsBase(productsCSV);
+
+      if (backendData.table_name.toLowerCase() === 'products') {
+          const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(backendData.data));
+          await this.productFacadeService.importProductsBase(productsCSV);
+      } else {
+        const combinationsCSV : CombinationCsvModel [] = transformCombinationCsvRowsToModel(JSON.parse(backendData.data));
+        await this.attributeFacadeService.importProductCombinations(combinationsCSV);
+      }
 
 
       this.messageService.add({
