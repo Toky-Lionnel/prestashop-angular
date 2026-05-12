@@ -28,6 +28,7 @@ import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../m
 import { AttributeFacadeService } from '../../services/facade/attributeFacade/attribute-facade.service';
 import { CustomerCsvModel, transformCustomerCsvRowsToModel } from '../../models/customer-csv.model';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/cart-csv.model';
+import { TaxService } from '../../services/service/tax/tax.service';
 
 @Component({
   selector: 'app-import-file',
@@ -65,6 +66,7 @@ export class ImportFileComponent {
   private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
   private sessionService : SessionService = inject(SessionService);
   private router: Router = inject(Router);
+  private taxService : TaxService = inject(TaxService);
 
   constructor() {}
 

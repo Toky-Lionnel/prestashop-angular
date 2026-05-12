@@ -5,6 +5,7 @@ import { AttributeService } from '../../service/attribute/attribute.service';
 import { ProductService } from '../../service/product/product.service';
 import { PrestashopCombination, PrestashopProductOption, PrestashopProductOptionValue } from '../../../models/attribute.model';
 import { AttributeModel, extractUniqueAttributes } from '../../../models/attribute-csv.model';
+import { TaxService } from '../../service/tax/tax.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,7 @@ export class AttributeFacadeService {
   private stocksService : StocksService = inject(StocksService);
   private attributeService : AttributeService = inject(AttributeService);
   private productService : ProductService = inject(ProductService);
-
+  private taxService : TaxService = inject(TaxService);
 
   async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[]) {
     for (const combo of combinations) {
@@ -129,7 +130,7 @@ export class AttributeFacadeService {
           id_product: idProduct,
           reference: combo.reference,
           wholesale_price: 0,
-          price: combo.prix_vente_ttc,
+          price: Number((await this.calculDifferenceHorsTaxe(idProduct, combo.prix_vente_ttc)).toFixed(3)),
           minimal_quantity: 1,
           default_on: 0,
           associations: {
@@ -159,10 +160,32 @@ export class AttributeFacadeService {
           };
       }
     }
-
-
-
   }
 
+  async calculDifferenceHorsTaxe(
+    id_product: number,
+    prix_vente_ttc: number
+  ): Promise<number> {
+
+    const taxRate = await this.taxService.getTaxValueByIdProduct(id_product);
+
+    const prixBaseHt =
+      await this.productService.getPrixBaseProductByReference(id_product);
+
+    if (taxRate === null || prixBaseHt === null) {
+      throw new Error(
+        `Failed to retrieve tax rate or base price for product with ID ${id_product}`
+      );
+    }
+
+    // Prix parent TTC
+    const prixBaseTtc = prixBaseHt * (1 + taxRate / 100);
+
+    // Différence HT Prestashop
+    const differenceHt =
+      (prix_vente_ttc - prixBaseTtc) / (1 + taxRate / 100);
+
+    return Number(differenceHt.toFixed(6));
+  }
 }
 

@@ -19,7 +19,7 @@ export interface AddressTransformOptions {
 }
 
 const DEFAULT_ADDRESS_OPTIONS: Required<AddressTransformOptions> = {
-  id_country: 133,
+  id_country: 8,
   alias: 'Adresse',
   address1: '',
   city: 'Antananarivo'
