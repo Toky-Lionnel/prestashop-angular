@@ -8,7 +8,7 @@ import { BackendData } from '../../utils/interface';
 import { transformCSVtoBackend } from '../../utils/parse-csv.utils';
 import { PrestashopProduct ,transformProductRowsToModel } from '../../models/product.model';
 import { ProductFacadeService } from '../../services/facade/productFacade/product-facade.service';
-import { PrestashopCart, transformParsedRowsToCartModels } from '../../models/cart.model';
+import { PrestashopCart, transformCartCsvRowsToPrestashopCarts } from '../../models/cart.model';
 import { CartService } from '../../services/service/cart/cart.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
 import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
@@ -16,13 +16,19 @@ import { PrestashopOrderHistory, transformOrderToOrderHistory } from '../../mode
 import { OrderStateService } from '../../services/service/order-state/order-state.service';
 import { OrderService } from '../../services/service/orders/order.service';
 import { CustomerService } from '../../services/service/customer/customer.service';
-import { PrestashopCustomer, transformParsedCustomersToModels } from '../../models/customer.model';
+import { PrestashopCustomer, transformCustomerCsvToModels, transformParsedCustomersToModels } from '../../models/customer.model';
 import { CustomerFacadeService } from '../../services/facade/customerFacade/customer-facade.service';
 import { ProductService } from '../../services/service/product/product.service';
 import { getErrorsAsHTML } from '../../utils/validation-error-display';
 import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
+import { ProductCsvModel, transformProductCsvRowsToModel } from '../../models/product-csv.model';
+import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../models/combination-csv.model';
+import { AttributeFacadeService } from '../../services/facade/attributeFacade/attribute-facade.service';
+import { CustomerCsvModel, transformCustomerCsvRowsToModel } from '../../models/customer-csv.model';
+import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/cart-csv.model';
+import { TaxService } from '../../services/service/tax/tax.service';
 
 @Component({
   selector: 'app-import-file',
@@ -55,10 +61,12 @@ export class ImportFileComponent {
   private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
 
   private importFileService : ImportFileService = inject(ImportFileService);
+  private attributeFacadeService : AttributeFacadeService = inject(AttributeFacadeService);
 
   private reinitialisationService : ReinitialisationService = inject(ReinitialisationService);
   private sessionService : SessionService = inject(SessionService);
-private router: Router = inject(Router);
+  private router: Router = inject(Router);
+  private taxService : TaxService = inject(TaxService);
 
   constructor() {}
 
@@ -84,6 +92,7 @@ private router: Router = inject(Router);
   }
 
   async importBackFile() {
+
     if (!this.backFile) {
       this.messageService.add({
         severity: 'warn',
@@ -96,11 +105,20 @@ private router: Router = inject(Router);
     this.isLoading = true;
 
     try {
-      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
-      const products: PrestashopProduct[] = transformProductRowsToModel(JSON.parse(backendData.data));
-      const response = await this.productFacadeService.validateProducts(products, backendData.filename);
 
-      this.result = getErrorsAsHTML(response,backendData.filename);
+      const backendData: BackendData = await transformCSVtoBackend(this.backFile);
+
+      if (backendData.table_name.toLowerCase() === 'products') {
+          const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(backendData.data));
+          await this.productFacadeService.importProductsBase(productsCSV);
+      } else if (backendData.table_name.toLowerCase() === 'combinations') {
+        const combinationsCSV : CombinationCsvModel [] = transformCombinationCsvRowsToModel(JSON.parse(backendData.data));
+        await this.attributeFacadeService.importProductCombinations(combinationsCSV);
+      } else if (backendData.table_name.toLowerCase() === 'customers') {
+        const customersCSV : CustomerCsvModel [] = transformCustomerCsvRowsToModel(JSON.parse(backendData.data));
+        await this.orderFacadeService.importOrders(customersCSV);
+      }
+
 
       this.messageService.add({
         severity: 'success',
@@ -139,7 +157,7 @@ private router: Router = inject(Router);
         this.excelFiles.map((f) => transformCSVtoBackend(f as File))
       );
 
-      this.result = await this.importFileService.importData(backendDatas);
+      await this.importFileService.importCSV(backendDatas);
 
       this.messageService.add({
         severity: 'success',

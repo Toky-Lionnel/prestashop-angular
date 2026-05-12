@@ -44,11 +44,31 @@ export class ReinitialisationService {
     await this.deleteAll('/api/products', 'product');
 
     // =========================
+    // CATEGORIES
+    // =========================
+    await this.deleteCategories();
+
+    // =========================
     // CLIENTS
     // =========================
     await this.deleteAll('/api/addresses', 'address');
     await this.deleteAll('/api/messages', 'message');
     await this.deleteAll('/api/customers', 'customer');
+
+
+    // =========================
+    // ATTRIBUTES & COMBINATIONS
+    // =========================
+    await this.deleteAll('/api/combinations', 'combination');
+    await this.deleteAll('/api/product_option_values', 'product_option_value');
+    await this.deleteAll('/api/product_options', 'product_option');
+
+    // =========================
+    // TAXES
+    // =========================
+    await this.deleteAll('/api/tax_rules', 'tax_rule');
+    await this.deleteAll('/api/tax_rule_groups', 'tax_rule_group');
+    await this.deleteAll('/api/taxes', 'tax');
 
     console.log('=== RESET PRESTASHOP END ===');
   }
@@ -132,5 +152,41 @@ export class ReinitialisationService {
    */
   private extractCollectionKey(endpoint: string): string {
     return endpoint.replace('/api/', '');
+  }
+
+  private async deleteCategories (): Promise<void> {
+    const api = this.interceptor.getApi();
+
+    try {
+      const response = await api.get('/api/categories?display=[id]');
+      const parsed = await parseStringPromise(response.data);
+      const categories = parsed?.prestashop?.categories?.[0]?.category || [];
+      const ids: number[] = categories
+        .map((cat: any) => Number(cat.id?.[0]))
+        .filter((id: number) => !isNaN(id) && id > 2); // Ne pas supprimer les catégories par défaut (id 1 et 2)
+
+      console.log(`Suppression de ${ids.length} catégories...`);
+
+      for (const id of ids) {
+        try {
+          await api.delete(`/api/categories/${id}`);
+          console.log(`✓ Catégorie ${id} supprimée`);
+        } catch (error: any) {
+          console.error(`✗ Erreur suppression catégorie ${id}`);
+          if (error.response) {
+            console.error(error.response.data);
+          } else {
+            console.error(error);
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Erreur récupération catégories');
+      if (error.response) {
+        console.error(error.response.data);
+      } else {
+        console.error(error);
+      }
+    }
   }
 }

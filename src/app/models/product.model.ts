@@ -37,6 +37,9 @@ export interface PrestashopProduct {
   price: number;
   quantity: number;
   line_number : number;
+  date_availability?: string;
+  reference?: string;
+  wholesale_price?: number;
   name: PrestashopLocalizedField;
   link_rewrite: PrestashopLocalizedField;
   associations: PrestashopProductAssociations;
@@ -154,6 +157,10 @@ export function buildProductXML(data: PrestashopProduct): string {
     <redirect_type><![CDATA[${escapeCDATA(data.redirect_type)}]]></redirect_type>
 
     <price><![CDATA[${escapeCDATA(data.price)}]]></price>
+    <wholesale_price><![CDATA[${escapeCDATA(data.wholesale_price ?? 0)}]]></wholesale_price>
+
+    <date_availability><![CDATA[${escapeCDATA(data.date_availability ?? '')}]]></date_availability>
+    <reference><![CDATA[${escapeCDATA(data.reference ?? '')}]]></reference>
 
 ${buildLocalizedFieldXML('name', data.name)}
 

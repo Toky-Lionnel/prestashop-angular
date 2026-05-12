@@ -1,3 +1,5 @@
+import { CustomerCsvModel } from './customer-csv.model';
+
 export interface PrestashopCustomer {
   id?: number | null;
   id_default_group: number;
@@ -45,6 +47,42 @@ const toNumber = (value: unknown, fallback: number): number => {
 };
 
 const DEFAULT_PASSWD_HASH = '202cb962ac59075b964b07152d234b70';
+
+const splitFullName = (name: string): { firstname: string; lastname: string } => {
+  const normalizedName = (name || '').trim();
+  if (!normalizedName) {
+    return { firstname: '', lastname: '' };
+  }
+
+  const nameParts = normalizedName.split(/\s+/).filter(Boolean);
+  const firstname = nameParts[0] || normalizedName;
+  const lastname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : firstname;
+
+  return { firstname, lastname };
+};
+
+export function transformCustomerCsvToModel(row: CustomerCsvModel, options: Partial<CustomerTransformOptions> = {}): PrestashopCustomer {
+  const idDefaultGroup = options.id_default_group ?? DEFAULT_CUSTOMER_OPTIONS.id_default_group;
+  const active = options.active ?? DEFAULT_CUSTOMER_OPTIONS.active;
+  const { firstname, lastname } = splitFullName(row.nom);
+
+  return {
+    id: null,
+    id_default_group: idDefaultGroup,
+    firstname,
+    lastname,
+    email: row.email.trim(),
+    passwd: row.pwd?.trim() || DEFAULT_PASSWD_HASH,
+    active,
+    address: row.adresse.trim(),
+    line_number: toNumber(row.line_number ?? 0, 0)
+  };
+}
+
+export function transformCustomerCsvToModels(rows: CustomerCsvModel[], options: Partial<CustomerTransformOptions> = {}): PrestashopCustomer[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => transformCustomerCsvToModel(row, options));
+}
 
 export function transformParsedCustomerToModel(row: any, options: Partial<CustomerTransformOptions> = {}): PrestashopCustomer {
   const idDefaultGroup = options.id_default_group ?? DEFAULT_CUSTOMER_OPTIONS.id_default_group;
