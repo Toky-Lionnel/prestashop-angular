@@ -89,6 +89,19 @@ export class AttributeService {
     return id ? Number(id) : null;
   }
 
+  async getIdAttribute(name: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/product_option_values?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
+      { responseType: 'text' }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const pov = responseData?.prestashop?.product_option_values?.[0]?.product_option_value?.[0];
+    const id = pov?.id?.[0];
+    return id ? Number(id) : null;
+  }
+
   async getCombinationIdByReference(id_product: number, reference: string): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(

@@ -1,6 +1,10 @@
+
+import { CartCsvModel } from './cart-csv.model';
+
 export interface PrestashopCartRow {
   product_name: string;
   id_product: number;
+  product_attribute : string;
   id_product_attribute: number | null;
   id_address_delivery: number;
   quantity: number;
@@ -104,6 +108,7 @@ export function transformParsedRowsToCartModels(rows: any[],options: CartTransfo
     cart.associations.cart_rows.push({
       product_name: row.produit ?? '',
       id_product: 0,
+      product_attribute : '',
       id_product_attribute:
         row.id_product_attribute === '' || row.id_product_attribute === null || row.id_product_attribute === undefined
           ? null
@@ -114,6 +119,52 @@ export function transformParsedRowsToCartModels(rows: any[],options: CartTransfo
   }
 
   return [...cartsByPanier.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, cart]) => ({
+      ...cart,
+      associations: {
+        cart_rows: [...cart.associations.cart_rows]
+      }
+    }));
+}
+
+export function transformCartCsvRowsToPrestashopCarts(rows: CartCsvModel[], options: CartTransformOptions = {}): PrestashopCart[] {
+  const settings = { ...DEFAULT_CART_OPTIONS, ...options };
+  const cartsByGroup = new Map<number, PrestashopCart>();
+
+  for (const row of rows) {
+    const groupId = toNumber(row.achat_group_id, 0);
+
+    if (!cartsByGroup.has(groupId)) {
+      cartsByGroup.set(groupId, {
+        id: null,
+        id_currency: settings.id_currency,
+        id_lang: settings.id_lang,
+        id_customer: settings.id_customer,
+        id_address_delivery: settings.id_address_delivery,
+        id_address_invoice: settings.id_address_invoice,
+        order_state: row.etat,
+        customer_email: row.email,
+        date_add: row.date,
+        line_number: toNumber(row.line_number, 0),
+        associations: {
+          cart_rows: []
+        }
+      });
+    }
+
+    const cart = cartsByGroup.get(groupId)!;
+    cart.associations.cart_rows.push({
+      product_name: row.reference,
+      id_product: 0,
+      product_attribute: row.attribute || '',
+      id_product_attribute: null,
+      id_address_delivery: settings.id_address_delivery,
+      quantity: toNumber(row.qte, settings.default_quantity)
+    });
+  }
+
+  return [...cartsByGroup.entries()]
     .sort((a, b) => a[0] - b[0])
     .map(([, cart]) => ({
       ...cart,

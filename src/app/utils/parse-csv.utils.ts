@@ -133,6 +133,14 @@ function detectTableName(headers: string[]): string {
     return "PRODUCTS";
   }
 
+  if (hasHeaders(["reference", "karazany", "stock_initial"])) {
+    return "COMBINATIONS";
+  }
+
+  if (hasHeaders(["date", "nom", "email", "pwd", "adresse", "achat", "etat"])) {
+    return "CUSTOMERS";
+  }
+
 
 
   return "EXPENSE";

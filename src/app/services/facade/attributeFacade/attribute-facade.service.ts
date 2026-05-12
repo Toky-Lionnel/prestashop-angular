@@ -147,8 +147,7 @@ export class AttributeFacadeService {
 
         await this.attributeService.createCombination(combinationData);
 
-        const idStock = await this.stocksService.getIdStockProductsId(idProduct);
-        await this.stocksService.updateStockWithIdProduct(idStock, idProduct, combo.stock_initial, idOptionValue);
+        await this.stocksService.createStockForProductAttribute(idProduct, idOptionValue, combo.stock_initial);
       }
     }
 

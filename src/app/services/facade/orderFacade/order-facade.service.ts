@@ -1,15 +1,19 @@
 import { inject, Injectable } from '@angular/core';
 import { OrderService } from '../../service/orders/order.service';
 import { CartService } from '../../service/cart/cart.service';
-import { PrestashopCart } from '../../../models/cart.model';
+import { PrestashopCart, transformCartCsvRowsToPrestashopCarts } from '../../../models/cart.model';
 import { PrestashopOrder, transformCartToOrder } from '../../../models/order.model';
 import { OrderStateService } from '../../service/order-state/order-state.service';
 import { PrestashopOrderHistory, transformOrderToOrderHistory } from '../../../models/order-history.model';
 import { CustomerService } from '../../service/customer/customer.service';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 import { PrestashopProduct } from '../../../models/product.model';
-import { PrestashopCustomer } from '../../../models/customer.model';
+import { PrestashopCustomer, transformCustomerCsvToModels } from '../../../models/customer.model';
 import { ProductService } from '../../service/product/product.service';
+import { AttributeService } from '../../service/attribute/attribute.service';
+import { CustomerCsvModel, uniqueCustomerCsvRows } from '../../../models/customer-csv.model';
+import { CustomerFacadeService } from '../customerFacade/customer-facade.service';
+import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../../models/cart-csv.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,8 +25,24 @@ export class OrderFacadeService {
   private orderHistoryService: OrderStateService = inject(OrderStateService);
   private customerService : CustomerService = inject(CustomerService);
   private productService : ProductService = inject(ProductService);
+  private attributeService : AttributeService = inject(AttributeService);
+
+  private customerFacade : CustomerFacadeService = inject(CustomerFacadeService);
 
   constructor() { }
+
+  async importOrders (customers : CustomerCsvModel []) {
+
+    const uniqueCustomers : CustomerCsvModel [] = uniqueCustomerCsvRows(customers);
+    const customersModel : PrestashopCustomer [] = transformCustomerCsvToModels(uniqueCustomers);
+    await this.customerFacade.importCustomers(customersModel);
+
+    const cartsCSV: CartCsvModel [] = transformCustomersCsvToCartCsvRows(customers);
+    const cartsPrestashop : PrestashopCart [] = transformCartCsvRowsToPrestashopCarts(cartsCSV);
+
+    await this.createOrder(cartsPrestashop);
+  }
+
 
   async createOrder (carts: PrestashopCart []) : Promise<void> {
 
@@ -43,11 +63,21 @@ export class OrderFacadeService {
         cart.id_customer = idCustomer;
 
         for (const row of cart.associations.cart_rows) {
-          const idProduct = await this.productService.getIdProductByName(row.product_name);
+          const idProduct = await this.productService.getIdProductByReference(row.product_name);
           if (!idProduct) {
             throw new Error(`Cannot create order: Product not found for cart line with product name ${row.product_name}`);
           }
           row.id_product = idProduct;
+
+          let idProductAttribute: number | null = 0;
+
+          if ((row.product_attribute ?? '') !== '') {
+            idProductAttribute = await this.attributeService.getIdAttribute(row.product_attribute);
+            if (!idProductAttribute) {
+              throw new Error(`Cannot create order: Combination not found for cart line with product name ${row.product_name} and attribute ${row.product_attribute}`);
+            }
+          }
+          row.id_product_attribute = idProductAttribute ?? 0;
         }
 
         const idCart = await this.cartService.createCart(cart);
