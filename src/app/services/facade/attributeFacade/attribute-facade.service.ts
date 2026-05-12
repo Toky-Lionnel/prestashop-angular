@@ -27,10 +27,6 @@ export class AttributeFacadeService {
     }
   }
 
-
-
-
-
   async importProductOption(attribute: AttributeModel) : Promise<number | null> {
     const idOption = await this.attributeService.getProductOptionIdByName(attribute.specificite);
     if (idOption) {
@@ -145,9 +141,22 @@ export class AttributeFacadeService {
           }
         };
 
-        await this.attributeService.createCombination(combinationData);
 
-        await this.stocksService.createStockForProductAttribute(idProduct, idOptionValue, combo.stock_initial);
+        const createdCombinationId = await this.attributeService.createCombination(combinationData);
+          if (!createdCombinationId) {
+            continue;
+          }
+
+          let idStock = await this.stocksService.getIdStockByProductAndAttribute(
+              idProduct,createdCombinationId
+            );
+
+
+          if (idStock) {
+            await this.stocksService.updateStockWithIdProduct(
+              idStock,idProduct,combo.stock_initial,createdCombinationId
+            );
+          };
       }
     }
 

@@ -82,29 +82,6 @@ export class StocksService {
     return id ? Number(id) : null;
   }
 
-  async createStockForProductAttribute(id_product: number, id_product_attribute: number, quantity: number = 0): Promise<number | null> {
-    const api = this.interceptor.getApi();
-    const stockData = {
-      id: null,
-      id_product: id_product,
-      id_product_attribute: id_product_attribute,
-      id_shop: 1,
-      id_shop_group: 0,
-      quantity: quantity,
-      depends_on_stock: 0,
-      out_of_stock: 2
-    };
-    const xmlData = buildStockXML(stockData as any);
-    const response = await api.post('/api/stock_availables', xmlData, {
-      headers: {
-        'Content-Type': 'application/xml'
-      }
-    });
-
-    const responseData = await parseStringPromise(response.data);
-    const id = responseData?.prestashop?.stock_available?.[0]?.id?.[0] ?? responseData?.prestashop?.stock_availables?.[0]?.stock_available?.[0]?.$.id;
-    return id ? Number(id) : null;
-  }
 
 
 }

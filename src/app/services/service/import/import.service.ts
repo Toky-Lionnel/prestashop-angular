@@ -8,6 +8,10 @@ import { PrestashopCustomer, transformParsedCustomersToModels } from '../../../m
 import { PrestashopProduct, transformProductRowsToModel } from '../../../models/product.model';
 import { ImportValidationResult } from '../../../models/validation.model';
 import { getErrorsAsHTML } from '../../../utils/validation-error-display';
+import { ProductCsvModel, transformProductCsvRowsToModel } from '../../../models/product-csv.model';
+import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../../models/combination-csv.model';
+import { CustomerCsvModel, transformCustomerCsvRowsToModel } from '../../../models/customer-csv.model';
+import { AttributeFacadeService } from '../../facade/attributeFacade/attribute-facade.service';
 
 
 @Injectable({
@@ -21,11 +25,40 @@ export class ImportFileService {
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
   private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
+  private attributeFacadeService : AttributeFacadeService = inject(AttributeFacadeService);
 
   async testImportOrder () {
     const backendData : BackendData = { filename : '', 'table_name' : 'Order', 'data' : ''};
     const carts : PrestashopCart[] = transformParsedRowsToCartModels(JSON.parse(backendData.data));
     await this.orderFacadeService.createOrder(carts);
+  }
+
+
+  async importCSV (backendData: BackendData []): Promise<void> {
+      const productData: BackendData | undefined = backendData.find(
+        data => data.table_name.toLowerCase() === 'products'
+      );
+
+      const combinationsData: BackendData | undefined = backendData.find(
+        data => data.table_name.toLowerCase() === 'combinations'
+      );
+
+      const customerData: BackendData | undefined = backendData.find(
+        data => data.table_name.toLowerCase() === 'customers'
+      );
+
+      if (!productData || !combinationsData || !customerData) {
+        throw new Error('Missing required import data');
+      }
+
+      const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(productData.data));
+      await this.productFacadeService.importProductsBase(productsCSV);
+
+      const combinationsCSV : CombinationCsvModel [] = transformCombinationCsvRowsToModel(JSON.parse(combinationsData.data));
+      await this.attributeFacadeService.importProductCombinations(combinationsCSV);
+
+      const customersCSV : CustomerCsvModel [] = transformCustomerCsvRowsToModel(JSON.parse(customerData.data));
+      await this.orderFacadeService.importOrders(customersCSV);
   }
 
 

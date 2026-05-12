@@ -89,19 +89,59 @@ export class AttributeService {
     return id ? Number(id) : null;
   }
 
-  async getIdAttribute(name: string): Promise<number | null> {
+  async getIdCombination( idProduct: number,attributeName: string): Promise<number | null> {
+
     const api = this.interceptor.getApi();
-    const response = await api.get(
-      `/api/product_option_values?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
+
+    const attributeResponse = await api.get(
+      `/api/product_option_values?filter[name][1]=${encodeURIComponent(attributeName)}&display=[id]`,
       { responseType: 'text' }
     );
 
-    const responseData = await parseStringPromise(response.data);
-    const pov = responseData?.prestashop?.product_option_values?.[0]?.product_option_value?.[0];
-    const id = pov?.id?.[0];
-    return id ? Number(id) : null;
+    const attributeData = await parseStringPromise(attributeResponse.data);
+
+    const productOptionValue =
+      attributeData?.prestashop?.product_option_values?.[0]?.product_option_value?.[0];
+
+    const optionValueId = productOptionValue?.id?.[0];
+
+    if (!optionValueId) {
+      return null;
+    }
+
+    const combinationsResponse = await api.get(
+      `/api/combinations?filter[id_product]=${idProduct}&display=full`,
+      { responseType: 'text' }
+    );
+
+    const combinationsData = await parseStringPromise(combinationsResponse.data);
+
+    const combinations =
+      combinationsData?.prestashop?.combinations?.[0]?.combination ?? [];
+
+
+    for (const combination of combinations) {
+
+      const combinationId = combination?.id?.[0];
+
+      const optionValues =
+        combination?.associations?.[0]
+          ?.product_option_values?.[0]
+          ?.product_option_value ?? [];
+
+      const hasAttribute = optionValues.some((value: any) => {
+        return Number(value?.id?.[0]) === Number(optionValueId);
+      });
+
+      if (hasAttribute) {
+        return Number(combinationId);
+      }
+    }
+
+    return null;
   }
 
+  
   async getCombinationIdByReference(id_product: number, reference: string): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(

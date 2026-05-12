@@ -72,7 +72,7 @@ export class OrderFacadeService {
           let idProductAttribute: number | null = 0;
 
           if ((row.product_attribute ?? '') !== '') {
-            idProductAttribute = await this.attributeService.getIdAttribute(row.product_attribute);
+            idProductAttribute = await this.attributeService.getIdCombination(idProduct,row.product_attribute);
             if (!idProductAttribute) {
               throw new Error(`Cannot create order: Combination not found for cart line with product name ${row.product_name} and attribute ${row.product_attribute}`);
             }

@@ -69,18 +69,6 @@ export class ImportFileComponent {
   constructor() {}
 
   async ngOnInit() {
-
-      const states = await this.orderHistoryService.loadOrderStates();
-
-      console.log(states);
-
-
-
-      const idState = this.orderHistoryService.getOrderStateIdByName('paiement accepté');
-
-      console.log(idState);
-
-
   }
 
   async OnReset() {
@@ -126,10 +114,7 @@ export class ImportFileComponent {
         await this.attributeFacadeService.importProductCombinations(combinationsCSV);
       } else if (backendData.table_name.toLowerCase() === 'customers') {
         const customersCSV : CustomerCsvModel [] = transformCustomerCsvRowsToModel(JSON.parse(backendData.data));
-
         await this.orderFacadeService.importOrders(customersCSV);
-
-
       }
 
 
@@ -170,7 +155,7 @@ export class ImportFileComponent {
         this.excelFiles.map((f) => transformCSVtoBackend(f as File))
       );
 
-      this.result = await this.importFileService.importData(backendDatas);
+      await this.importFileService.importCSV(backendDatas);
 
       this.messageService.add({
         severity: 'success',
