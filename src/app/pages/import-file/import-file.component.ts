@@ -186,6 +186,6 @@ export class ImportFileComponent {
     this.sessionService.clear();
 
     // Optionally, navigate to the login page
-    await this.router.navigate(['/login']);
+    await this.router.navigate(['/loginadmin']);
   }
 }

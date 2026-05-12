@@ -33,7 +33,7 @@ export class AuthFacadeService {
       this.sessionService.setUser(email);
 
       this.errorMessage = '';
-      await this.router.navigate(['/import']);
+      await this.router.navigate(['/admin/import']);
       return true;
     } catch (err: any) {
       console.error('Erreur', err);
