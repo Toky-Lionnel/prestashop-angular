@@ -4,13 +4,32 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class SessionService {
+
   private userData: any = null;
+  private customerData: any = null;
 
   constructor() {
     const stored = localStorage.getItem('userData');
     if (stored) {
       this.userData = JSON.parse(stored);
     }
+  }
+
+  setCustomer(customer: any) {
+    this.customerData = {
+      id : customer.id[0],
+      email: customer.email[0],
+    };
+    localStorage.setItem('customerData', JSON.stringify(this.customerData));
+  }
+
+  getCustomer() {
+    return this.customerData;
+  }
+
+  clearCustomer() {
+    this.customerData = null;
+    localStorage.removeItem('customerData');
   }
 
   setUser(email: any) {

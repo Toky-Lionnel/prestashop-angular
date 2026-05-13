@@ -78,6 +78,20 @@ export class CustomerService {
     return Number(id);
   }
 
+
+  async getCustomerByEmail (email: string) : Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/customers?filter[email]=${email}&display=full`, {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const customers = json?.prestashop?.customers?.[0];
+    const customer = customers?.customer?.[0];
+
+    return customer || null;
+  }
+
   async getCustomerById (id: number) : Promise<any | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/customers/${id}`, {

@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { map, Observable } from 'rxjs';
 import { CartItem, UserCartService } from '../../services/service/user-cart/user-cart.service';
 import { Router } from '@angular/router';
+import { SessionService } from '../../services/service/session/session.service';
+import { LoginFrontComponent } from '../login-front/login-front.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-cart',
@@ -14,7 +17,9 @@ import { Router } from '@angular/router';
 export class CartComponent {
 
   private cartService : UserCartService = inject(UserCartService);
+  private sessionService : SessionService = inject(SessionService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   // Données réactives
   cartItems$: Observable<CartItem[]> = this.cartService.cart$;
@@ -45,7 +50,13 @@ export class CartComponent {
   }
 
   checkout(): void {
-    console.log('Passage à la caisse...');
+    // if (!this.sessionService.getCustomer()) {
+    //   alert('Veuillez vous connecter pour passer à la caisse.');
+    //   this.router.navigate(['/login']);
+    //   return;
+    // }
+    // console.log('Passage à la caisse...');
+    this.showLoginForm();
     // Logique de redirection vers le paiement ici
   }
 
@@ -56,4 +67,14 @@ export class CartComponent {
   goToShop() {
     this.router.navigate(['/products']); // Redirige vers l'accueil ou la boutique
   }
+
+
+  showLoginForm () {
+    this.dialog.open(LoginFrontComponent, {
+      width: '500px',
+      data: {},
+      height : '500px',
+    });
+  }
+
 }
