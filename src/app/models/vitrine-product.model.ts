@@ -8,6 +8,45 @@ export interface VitrineProduct {
   tag : string | null;
 }
 
+export interface VitrineProductCategory {
+  id: number;
+  name: string | null;
+}
+
+export interface VitrineProductImage {
+  id: number;
+  url: string | null;
+  legend: string | null;
+}
+
+export interface VitrineCombinationAttribute {
+  attributeId: number | null;
+  attributeName: string | null;
+  groupId: number | null;
+  groupName: string | null;
+}
+
+export interface VitrineProductCombination {
+  id: number;
+  reference: string | null;
+  price: number;
+  wholesalePrice: number | null;
+  minimalQuantity: number;
+  defaultOn: boolean;
+  attributes: VitrineCombinationAttribute[];
+  images: VitrineProductImage[];
+}
+
+export interface VitrineProductDetail extends VitrineProduct {
+  reference: string | null;
+  description: string | null;
+  shortDescription: string | null;
+  availableDate: string | null;
+  categories: VitrineProductCategory[];
+  images: VitrineProductImage[];
+  combinations: VitrineProductCombination[];
+}
+
 const toNumber = (value: unknown, fallback = 0): number => {
   if (value === null || value === undefined || value === '') return fallback;
   const n = Number(value);
@@ -45,6 +84,178 @@ const getAttribute = (node: any, attributeName: string): string => {
   const attributeValue = attributes?.[attributeName];
   return typeof attributeValue === 'string' ? attributeValue : '';
 };
+
+const getLocalizedText = (node: any): string => {
+  const value = first(node);
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+
+  if (typeof value === 'object') {
+    if (value._ !== undefined) return String(value._);
+
+    if (Array.isArray(value.language)) {
+      const firstLanguage = value.language[0];
+      if (firstLanguage === undefined || firstLanguage === null) return '';
+      if (typeof firstLanguage === 'string') return firstLanguage;
+      if (firstLanguage._ !== undefined) return String(firstLanguage._);
+      if (firstLanguage.value !== undefined) return String(firstLanguage.value);
+      return String(firstLanguage);
+    }
+  }
+
+  return String(value);
+};
+
+const buildProductMediaUrl = (productId: number, imageId: number, imageNode: any): string | null => {
+  const href = getAttribute(imageNode, 'xlink:href');
+  if (typeof href === 'string' && href.trim() !== '') {
+    return href;
+  }
+
+  if (productId <= 0 || imageId <= 0) return null;
+
+  return `/api/images/products/${productId}/${imageId}`;
+};
+
+const getCategoryNodes = (product: any): any[] => {
+  const associations = first(product?.associations);
+  const categories = first(associations?.categories);
+  const categoryNodes = categories?.category ?? [];
+  return Array.isArray(categoryNodes) ? categoryNodes : [categoryNodes];
+};
+
+export function mapPrestashopProductToDetail(
+  product: any,
+  options: {
+    categoryNameById?: Map<number, string>;
+    images?: VitrineProductImage[];
+    combinations?: VitrineProductCombination[];
+  } = {}
+): VitrineProductDetail {
+  const id = toNumber(getText(product?.id), 0);
+  const name = getText(product?.name);
+  const price = toNumber(getText(product?.price), 0);
+  const categoryId = toNumber(getText(product?.id_category_default), 0);
+  const categoryName = options.categoryNameById?.get(categoryId) ?? null;
+  const imageUrl = buildProductImageUrl(product);
+  const tag = buildTag(getText(product?.available_date));
+
+  const categories = getCategoryNodes(product)
+    .filter(Boolean)
+    .map((category: any) => {
+      const categoryIdValue = toNumber(getText(category?.id), 0);
+      const resolvedName = options.categoryNameById?.get(categoryIdValue) ?? (getLocalizedText(category?.name) || null);
+
+      return {
+        id: categoryIdValue,
+        name: resolvedName
+      } as VitrineProductCategory;
+    })
+    .filter((category) => category.id > 0);
+
+  return {
+    id,
+    name,
+    imageUrl,
+    price,
+    categoryId,
+    categoryName,
+    tag,
+    reference: getText(product?.reference) || null,
+    description: getLocalizedText(product?.description) || null,
+    shortDescription: getLocalizedText(product?.description_short) || null,
+    availableDate: getText(product?.available_date) || null,
+    categories,
+    images: options.images ?? (imageUrl ? [{ id: 0, url: imageUrl, legend: null }] : []),
+    combinations: options.combinations ?? []
+  };
+}
+
+export function mapPrestashopProductImagesToVitrineImages(productId: number, imagesNode: any): VitrineProductImage[] {
+  const imageEntries = first(imagesNode?.prestashop?.images)?.image
+    ?? first(imagesNode?.prestashop?.image)?.image
+    ?? imagesNode?.prestashop?.images?.[0]?.image
+    ?? [];
+
+  const normalizedEntries = Array.isArray(imageEntries) ? imageEntries : [imageEntries];
+
+  return normalizedEntries
+    .filter(Boolean)
+    .map((image: any) => {
+      const id = toNumber(getText(image?.id), 0);
+      const legend = getLocalizedText(image?.legend) || null;
+
+      return {
+        id,
+        url: buildProductMediaUrl(productId, id, image),
+        legend
+      } as VitrineProductImage;
+    })
+    .filter((image) => image.id > 0 && image.url !== null);
+}
+
+export function mapPrestashopCombinationImagesToVitrineImages(productId: number, combination: any): VitrineProductImage[] {
+  const imageEntries = combination?.associations?.[0]?.images?.[0]?.image
+    ?? combination?.associations?.[0]?.images?.[0]?.img
+    ?? combination?.associations?.[0]?.images?.[0]?.id
+    ?? [];
+
+  const normalizedEntries = Array.isArray(imageEntries) ? imageEntries : [imageEntries];
+
+  return normalizedEntries
+    .filter(Boolean)
+    .map((image: any) => {
+      const id = toNumber(getText(image?.id ?? image), 0);
+      const legend = getLocalizedText(image?.legend) || null;
+
+      return {
+        id,
+        url: buildProductMediaUrl(productId, id, image),
+        legend
+      } as VitrineProductImage;
+    })
+    .filter((image) => image.id > 0 && image.url !== null);
+}
+
+export function mapPrestashopCombinationToVitrineCombination(
+  productId: number,
+  combination: any,
+  attributeNameById: Map<number, { attributeName: string; groupName: string | null }>
+): VitrineProductCombination {
+  const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
+  const normalizedValues = Array.isArray(optionValues) ? optionValues : [optionValues];
+
+  const attributes = normalizedValues
+    .filter(Boolean)
+    .map((value: any) => {
+      const attributeId = toNumber(getText(value?.id), 0);
+      const attributeData = attributeNameById.get(attributeId);
+
+      return {
+        attributeId,
+        attributeName: attributeData?.attributeName ?? (getText(value?.name) || null),
+        groupId: null,
+        groupName: attributeData?.groupName ?? null
+      } as VitrineCombinationAttribute;
+    })
+    .filter((attribute) => (attribute.attributeId ?? 0) > 0);
+
+  const combinationId = toNumber(getText(combination?.id), 0);
+
+  return {
+    id: combinationId,
+    reference: getText(combination?.reference) || null,
+    price: toNumber(getText(combination?.price), 0),
+    wholesalePrice: (() => {
+      const value = getText(combination?.wholesale_price);
+      return value === '' ? null : toNumber(value, 0);
+    })(),
+    minimalQuantity: toNumber(getText(combination?.minimal_quantity), 1),
+    defaultOn: toNumber(getText(combination?.default_on), 0) === 1,
+    attributes,
+    images: mapPrestashopCombinationImagesToVitrineImages(productId, combination)
+  };
+}
 
 const buildProductImageUrl = (product: any): string | null => {
   const defaultImage = first(product?.id_default_image);

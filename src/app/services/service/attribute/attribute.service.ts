@@ -10,10 +10,27 @@ import {
 } from '../../../models/attribute.model';
 import { parseStringPromise } from 'xml2js';
 
+export interface AttributeOptionLookup {
+  id: number;
+  groupType: string;
+  name: string;
+  publicName: string;
+}
+
+export interface AttributeValueLookup {
+  id: number;
+  idAttributeGroup: number;
+  name: string;
+  groupName: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AttributeService {
+
+  private optionLookupCache = new Map<number, Promise<AttributeOptionLookup | null>>();
+  private optionValueLookupCache = new Map<number, Promise<AttributeValueLookup | null>>();
 
   private interceptor: AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
 
@@ -89,6 +106,77 @@ export class AttributeService {
     return id ? Number(id) : null;
   }
 
+  async getProductOptionById(id: number): Promise<AttributeOptionLookup | null> {
+    if (this.optionLookupCache.has(id)) {
+      return this.optionLookupCache.get(id)!;
+    }
+
+    const lookupPromise = (async () => {
+      const api = this.interceptor.getApi();
+      const response = await api.get(
+        `/api/product_options?filter[id]=[${id}]&display=full`,
+        { responseType: 'text' }
+      );
+
+      const responseData = await parseStringPromise(response.data);
+      const option = responseData?.prestashop?.product_options?.[0]?.product_option?.[0];
+      const optionId = Number(option?.id?.[0] ?? id);
+
+      if (!optionId) {
+        return null;
+      }
+
+      const nameEntry = option?.name?.[0]?.language?.[0];
+      const publicNameEntry = option?.public_name?.[0]?.language?.[0];
+
+      return {
+        id: optionId,
+        groupType: String(option?.group_type?.[0] ?? ''),
+        name: String(nameEntry?.value ?? nameEntry?._ ?? nameEntry ?? '').trim(),
+        publicName: String(publicNameEntry?.value ?? publicNameEntry?._ ?? publicNameEntry ?? '').trim()
+      };
+    })();
+
+    this.optionLookupCache.set(id, lookupPromise);
+    return lookupPromise;
+  }
+
+  async getProductOptionValueById(id: number): Promise<AttributeValueLookup | null> {
+    if (this.optionValueLookupCache.has(id)) {
+      return this.optionValueLookupCache.get(id)!;
+    }
+
+    const lookupPromise = (async () => {
+      const api = this.interceptor.getApi();
+      const response = await api.get(
+        `/api/product_option_values?filter[id]=[${id}]&display=full`,
+        { responseType: 'text' }
+      );
+
+      const responseData = await parseStringPromise(response.data);
+      const optionValue = responseData?.prestashop?.product_option_values?.[0]?.product_option_value?.[0];
+      const optionValueId = Number(optionValue?.id?.[0] ?? id);
+
+      if (!optionValueId) {
+        return null;
+      }
+
+      const nameEntry = optionValue?.name?.[0]?.language?.[0];
+      const groupId = Number(optionValue?.id_attribute_group?.[0] ?? 0);
+      const optionGroup = groupId > 0 ? await this.getProductOptionById(groupId) : null;
+
+      return {
+        id: optionValueId,
+        idAttributeGroup: groupId,
+        name: String(nameEntry?.value ?? nameEntry?._ ?? nameEntry ?? '').trim(),
+        groupName: optionGroup?.publicName || optionGroup?.name || null
+      };
+    })();
+
+    this.optionValueLookupCache.set(id, lookupPromise);
+    return lookupPromise;
+  }
+
   async getIdCombination( idProduct: number,attributeName: string): Promise<number | null> {
 
     const api = this.interceptor.getApi();
@@ -141,7 +229,7 @@ export class AttributeService {
     return null;
   }
 
-  
+
   async getCombinationIdByReference(id_product: number, reference: string): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(

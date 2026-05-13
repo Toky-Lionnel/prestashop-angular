@@ -37,6 +37,11 @@ export class ProductListComponent {
       this.isLoading = false;
     }
 
+    const val = await this.productService.getDetailedVitrineProducts();
+
+    console.log(val);
+
+
   }
 
 

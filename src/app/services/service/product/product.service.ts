@@ -1,11 +1,19 @@
-import { Injectable , inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
-import { PrestashopProduct, buildProductXML  } from '../../../models/product.model';
-import { mapPrestashopGetAllResponseToVitrine, VitrineProduct } from '../../../models/vitrine-product.model';
+import { PrestashopProduct, buildProductXML } from '../../../models/product.model';
+import {
+  mapPrestashopCombinationToVitrineCombination,
+  mapPrestashopGetAllResponseToVitrine,
+  mapPrestashopProductImagesToVitrineImages,
+  mapPrestashopProductToDetail,
+  VitrineProduct,
+  VitrineProductDetail
+} from '../../../models/vitrine-product.model';
 import { parseStringPromise } from 'xml2js';
+import { CategoriesService } from '../categories/categories.service';
+import { AttributeService } from '../attribute/attribute.service';
 
 const VITRINE_DISPLAY = '[id,name,price,id_default_image,id_category_default,available_date]';
-
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +22,13 @@ export class ProductService {
 
   constructor() { }
 
-  private interceptor : AxiosAuthInterceptor = inject (AxiosAuthInterceptor);
+  private interceptor: AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
+  private categoriesService: CategoriesService = inject(CategoriesService);
+  private attributeService: AttributeService = inject(AttributeService);
 
-  async createProduct (product: PrestashopProduct) {
+  async createProduct(product: PrestashopProduct) {
     const api = this.interceptor.getApi();
     const productXML = buildProductXML(product);
-    // console.log(productXML);
 
     const response = await api.post('/api/products', productXML, {
       headers: {
@@ -33,31 +42,29 @@ export class ProductService {
     return id;
   }
 
-
-  async getIdProductByName (name: string): Promise<number | null> {
-      const api = this.interceptor.getApi();
-      const response = await api.get(
-        `/api/products?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
-        {
-          responseType: 'text'
-        }
-      );
-
-      const json = await parseStringPromise(response.data);
-      const products = json?.prestashop?.products?.[0];
-      const product = products?.product?.[0];
-      const idProduct = product?.id?.[0];
-
-      if (!idProduct) {
-        console.error('No product found with name:', name);
-        return null;
+  async getIdProductByName(name: string): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
+      {
+        responseType: 'text'
       }
+    );
 
-      return Number(idProduct);
+    const json = await parseStringPromise(response.data);
+    const products = json?.prestashop?.products?.[0];
+    const product = products?.product?.[0];
+    const idProduct = product?.id?.[0];
+
+    if (!idProduct) {
+      console.error('No product found with name:', name);
+      return null;
+    }
+
+    return Number(idProduct);
   }
 
-
-  async getIdProductByReference (reference: string): Promise<number | null> {
+  async getIdProductByReference(reference: string): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(
       `/api/products?filter[reference]=[${encodeURIComponent(reference)}]&display=[id]`,
@@ -79,8 +86,7 @@ export class ProductService {
     return Number(idProduct);
   }
 
-
-  async getPrixBaseProductByReference (idProduct: number): Promise<number | null> {
+  async getPrixBaseProductByReference(idProduct: number): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(
       `/api/products?filter[id]=[${idProduct}]&display=[price]`,
@@ -102,7 +108,7 @@ export class ProductService {
     return Number(price);
   }
 
-  async getAllRawProducts (): Promise<any[]> {
+  async getAllRawProducts(): Promise<any[]> {
     const api = this.interceptor.getApi();
     const response = await api.get('/api/products', {
       params: {
@@ -114,7 +120,6 @@ export class ProductService {
     const json = await parseStringPromise(response.data);
     return json?.prestashop?.products?.[0]?.product ?? [];
   }
-
 
   async getAllVitrineProducts(
     name: string | null = null,
@@ -151,4 +156,132 @@ export class ProductService {
     return mapPrestashopGetAllResponseToVitrine(json);
   }
 
+  async getDetailedVitrineProducts(
+    name: string | null = null,
+    priceMin: number | null = null,
+    priceMax: number | null = null,
+    categoryId: number | null = null
+  ): Promise<VitrineProductDetail[]> {
+    const summaries = await this.getAllVitrineProducts(null, priceMin, priceMax, categoryId);
+    const filteredSummaries = name !== null && name.trim() !== ''
+      ? summaries.filter((product) => product.name.toLowerCase().includes(name.trim().toLowerCase()))
+      : summaries;
+
+    const categories = await this.categoriesService.getAll();
+    const categoryNameById = new Map(categories.map((category) => [category.id, category.name] as const));
+
+    return Promise.all(
+      filteredSummaries.map(async (summary) => {
+        const detail = await this.getProductDetailById(summary.id, categoryNameById);
+
+        if (!detail) {
+          return {
+            ...summary,
+            reference: null,
+            description: null,
+            shortDescription: null,
+            availableDate: null,
+            categories: [],
+            images: summary.imageUrl ? [{ id: 0, url: summary.imageUrl, legend: null }] : [],
+            combinations: []
+          } as VitrineProductDetail;
+        }
+
+        return {
+          ...detail,
+          tag: summary.tag,
+          categoryName: detail.categoryName ?? summary.categoryName
+        };
+      })
+    );
+  }
+
+  async getProductDetailById(
+    idProduct: number,
+    categoryNameById?: Map<number, string>
+  ): Promise<VitrineProductDetail | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[id]=[${idProduct}]&display=full`,
+      {
+        responseType: 'text'
+      }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const product = responseData?.prestashop?.products?.[0]?.product?.[0];
+
+    if (!product) {
+      return null;
+    }
+
+    const categoryMap = categoryNameById ?? new Map((await this.categoriesService.getAll()).map((category) => [category.id, category.name] as const));
+
+    const imagesResponse = await api.get(`/api/images/products/${idProduct}`, {
+      responseType: 'text'
+    });
+    const imagesData = await parseStringPromise(imagesResponse.data);
+    const images = mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
+
+    const combinationsResponse = await api.get(`/api/combinations?filter[id_product]=${idProduct}&display=full`, {
+      responseType: 'text'
+    });
+    const combinationsData = await parseStringPromise(combinationsResponse.data);
+    const rawCombinations = combinationsData?.prestashop?.combinations?.[0]?.combination ?? [];
+    const combinationsArray = Array.isArray(rawCombinations) ? rawCombinations : [rawCombinations];
+
+    const attributeValueIds = new Set<number>();
+    for (const combination of combinationsArray.filter(Boolean)) {
+      const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
+      const valuesArray = Array.isArray(optionValues) ? optionValues : [optionValues];
+
+      for (const value of valuesArray.filter(Boolean)) {
+        const valueId = Number(value?.id?.[0] ?? 0);
+        if (valueId > 0) {
+          attributeValueIds.add(valueId);
+        }
+      }
+    }
+
+    const attributeLookupEntries = await Promise.all(
+      Array.from(attributeValueIds).map(async (valueId) => {
+        const lookup = await this.attributeService.getProductOptionValueById(valueId);
+        return lookup ? [valueId, lookup] as const : null;
+      })
+    );
+
+    const attributeLookupById = new Map<number, any>();
+    for (const entry of attributeLookupEntries) {
+      if (entry !== null) {
+        attributeLookupById.set(entry[0], entry[1]);
+      }
+    }
+
+    const combinations = combinationsArray
+      .filter(Boolean)
+      .map((combination: any) => {
+        const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
+        const valuesArray = Array.isArray(optionValues) ? optionValues : [optionValues];
+
+        const attributeNameById = new Map<number, { attributeName: string; groupName: string | null }>();
+        for (const value of valuesArray.filter(Boolean)) {
+          const valueId = Number(value?.id?.[0] ?? 0);
+          const attributeLookup = attributeLookupById.get(valueId);
+          if (valueId > 0 && attributeLookup) {
+            attributeNameById.set(valueId, {
+              attributeName: attributeLookup.name,
+              groupName: attributeLookup.groupName
+            });
+          }
+        }
+
+        return mapPrestashopCombinationToVitrineCombination(idProduct, combination, attributeNameById);
+      });
+
+    return mapPrestashopProductToDetail(product, {
+      categoryNameById: categoryMap,
+      images,
+      combinations
+    });
+  }
 }
