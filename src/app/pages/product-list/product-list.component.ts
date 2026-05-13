@@ -98,13 +98,12 @@ export class ProductListComponent {
 
 
   async openProductSheet(product: VitrineProduct) {
-
     const productDetail = await this.productService.getProductDetailById(product.id);
 
     this.dialog.open(ProductVitrineComponent, {
       data: productDetail, // On passe l'objet product au composant
       width: '1200px', // Largeur de la popup
-      maxWidth: '95vw',
+      maxWidth: '100vw',
       maxHeight: '90vh',
       panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
     });

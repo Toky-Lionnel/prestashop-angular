@@ -1,17 +1,14 @@
 <article class="sheet">
-  <!-- Header avec actions (bouton fermer si nécessaire) -->
   <header class="sheet__header">
     <div class="sheet__title-area">
       <span class="sheet__eyebrow">Fiche produit</span>
       <h3 class="sheet__title">{{ product.name }}</h3>
-      <p class="sheet__description">
-        {{ product.description || 'Aucune description disponible pour ce produit.' }}
-      </p>
+      <p class="sheet__description" [innerHTML]="product.description || 'Aucune description disponible.'"></p>
     </div>
 
     <div class="sheet__price-card">
-      <span class="sheet__price-label">Prix de base</span>
-      <span class="sheet__price">{{ product.price | number:'1.2-2' }}€</span>
+      <span class="sheet__price-label">Prix</span>
+      <span class="sheet__price">{{ currentPrice | number:'1.2-2' }} €</span>
       <span class="sheet__tag" [ngClass]="'sheet__tag--' + (product.tag || 'neutral')">
         {{ product.tag === 'ordinaire' ? 'Produit standard' : product.tag }}
       </span>
@@ -19,12 +16,11 @@
   </header>
 
   <div class="sheet__content">
-    <!-- Galerie Photo -->
     <aside class="sheet__media">
       <div class="sheet__hero">
         <img *ngIf="featuredImageUrl; else noImage" [src]="featuredImageUrl" [alt]="product.name" />
         <ng-template #noImage>
-          <div class="sheet__empty-image"><span>📷</span> Image indisponible</div>
+          <div class="sheet__empty-image">Image indisponible</div>
         </ng-template>
       </div>
 
@@ -34,16 +30,34 @@
           class="sheet__thumbnail"
           *ngFor="let image of product.images; trackBy: trackById"
           [class.is-active]="image.url === featuredImageUrl"
+          (click)="selectImage(image.url)"
         >
-          <img *ngIf="image.url; else thumbFallback" [src]="image.url" [alt]="image.legend" />
+          <img *ngIf="image.url; else thumbFallback" [src]="image.url" [alt]="image.legend || product.name" />
           <ng-template #thumbFallback>
             <div class="sheet__thumbnail-fallback">N/A</div>
           </ng-template>
         </button>
       </div>
+
+      <div class="sheet__purchase-box">
+        <div class="sheet__quantity-field">
+          <label for="quantity">Quantité</label>
+          <input
+            id="quantity"
+            type="number"
+            min="1"
+            [ngModel]="quantity"
+            (ngModelChange)="updateQuantity($event)"
+            name="quantity"
+          />
+        </div>
+
+        <button type="button" class="sheet__add-cart" (click)="addToCart()">
+          Ajouter au panier
+        </button>
+      </div>
     </aside>
 
-    <!-- Détails Techniques -->
     <section class="sheet__details">
       <div class="sheet__stats">
         <div class="stat-card">
@@ -58,51 +72,57 @@
           </div>
           <ng-template #noCategory><span class="stat-card__value">Aucune</span></ng-template>
         </div>
-
-        <div class="stat-card stat-card--summary">
-          <div class="stat-sub">
-            <span class="stat-card__label">Variantes</span>
-            <span class="stat-card__value">{{ product.combinations.length }}</span>
-          </div>
-          <div class="stat-separator"></div>
-          <div class="stat-sub">
-            <span class="stat-card__label">Médias</span>
-            <span class="stat-card__value">{{ product.images.length }}</span>
-          </div>
-        </div>
       </div>
 
       <div class="sheet__info-box">
         <h4>À propos du produit</h4>
-        <p class="sheet__short-desc">{{ product.shortDescription || 'Aucune description courte.' }}</p>
+        <p class="sheet__short-desc" [innerHTML]="product.shortDescription || 'Aucune description courte.'"></p>
       </div>
 
-      <div class="sheet__section">
+      <div class="sheet__section" *ngIf="product.combinations.length > 0; else noCombination">
         <div class="sheet__section-header">
-          <h4>Variantes & Combinaisons</h4>
-          <span class="sheet__count">{{ product.combinations.length }} disponibles</span>
+          <h4>Choisir une combinaison</h4>
+          <span class="sheet__count">{{ product.combinations.length }} disponible(s)</span>
         </div>
 
-        <div class="combination-grid" *ngIf="product.combinations.length > 0; else empty">
-          <div class="combo-item" *ngFor="let combo of product.combinations; trackBy: trackById">
-            <div class="combo-item__main">
-              <span class="combo-item__ref">{{ combo.reference || 'Sans réf.' }}</span>
-              <div class="combo-item__meta">
-                <span class="combo-item__qty">Min: {{ combo.minimalQuantity }}</span>
-                <span class="combo-item__default" *ngIf="combo.defaultOn">★ Par défaut</span>
+        <div class="combination-grid">
+          <label class="combo-item" *ngFor="let combo of product.combinations; trackBy: trackById">
+            <input
+              type="radio"
+              name="selectedCombination"
+              class="combo-item__radio"
+              [value]="combo.id"
+              [checked]="selectedCombinationId === combo.id"
+              (change)="selectCombination(combo.id)"
+            />
+
+            <div class="combo-item__body">
+              <div class="combo-item__main">
+                <span class="combo-item__ref">{{ combo.reference || 'Sans réf.' }}</span>
+                <div class="combo-item__meta">
+                  <span class="combo-item__qty">Min: {{ combo.minimalQuantity }}</span>
+                  <span class="combo-item__default" *ngIf="combo.defaultOn">Par défaut</span>
+                </div>
+              </div>
+
+              <div class="combo-item__price">{{ combo.price | number:'1.2-2' }} €</div>
+
+              <div class="combo-item__attributes" *ngIf="combo.attributes.length > 0">
+                <span class="attr-tag" *ngFor="let attr of combo.attributes">
+                  <b>{{ attr.groupName || 'Attribut' }}:</b> {{ attr.attributeName || '—' }}
+                </span>
               </div>
             </div>
-            <div class="combo-item__price">{{ combo.price | number:'1.2-2' }}€</div>
-
-            <div class="combo-item__attributes" *ngIf="combo.attributes.length > 0">
-              <span class="attr-tag" *ngFor="let attr of combo.attributes">
-                <b>{{ attr.groupName }}:</b> {{ attr.attributeName }}
-              </span>
-            </div>
-          </div>
+          </label>
         </div>
-        <ng-template #empty><p class="empty-state">Aucune variante.</p></ng-template>
       </div>
+
+      <ng-template #noCombination>
+        <div class="sheet__info-box">
+          <h4>Aucune combinaison</h4>
+          <p class="sheet__short-desc">Ce produit n'a pas de variante. Vous pouvez l'ajouter directement au panier.</p>
+        </div>
+      </ng-template>
     </section>
   </div>
 </article>
