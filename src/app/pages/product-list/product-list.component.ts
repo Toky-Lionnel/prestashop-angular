@@ -4,11 +4,12 @@ import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { ProductService } from '../../services/service/product/product.service';
 import { CategoriesService, CategoryOption } from '../../services/service/categories/categories.service';
 import { VitrineProduct } from '../../models/vitrine-product.model';
-
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ProductVitrineComponent } from '../../components/product-vitrine/product-vitrine.component';
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -21,6 +22,8 @@ export class ProductListComponent {
   private productService: ProductService = inject(ProductService);
   private categoriesService: CategoriesService = inject(CategoriesService);
   private formBuilder: FormBuilder = inject(FormBuilder);
+
+  private dialog = inject(MatDialog);
 
   searchForm = this.formBuilder.group({
     name: [''],
@@ -36,12 +39,6 @@ export class ProductListComponent {
     } finally {
       this.isLoading = false;
     }
-
-    const val = await this.productService.getDetailedVitrineProducts();
-
-    console.log(val);
-
-
   }
 
 
@@ -97,6 +94,20 @@ export class ProductListComponent {
 
     const parsed = Number(trimmed.replace(',', '.'));
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+
+  async openProductSheet(product: VitrineProduct) {
+
+    const productDetail = await this.productService.getProductDetailById(product.id);
+
+    this.dialog.open(ProductVitrineComponent, {
+      data: productDetail, // On passe l'objet product au composant
+      width: '1200px', // Largeur de la popup
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
+    });
   }
 
 

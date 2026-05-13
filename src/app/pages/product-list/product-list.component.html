@@ -57,7 +57,7 @@
 	</div>
 
 	<section class="product-grid" *ngIf="!isLoading && productsVitrine.length > 0">
-		<article class="product-card" *ngFor="let product of productsVitrine">
+		<article class="product-card" *ngFor="let product of productsVitrine" clickable (click)="openProductSheet(product)">
 			<div class="product-media">
 				<img
 					*ngIf="product.imageUrl; else noImage"

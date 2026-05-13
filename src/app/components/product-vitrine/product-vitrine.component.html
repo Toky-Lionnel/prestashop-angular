@@ -1,32 +1,30 @@
 <article class="sheet">
+  <!-- Header avec actions (bouton fermer si nécessaire) -->
   <header class="sheet__header">
-    <div>
-      <p class="sheet__eyebrow">Fiche produit</p>
-      <h3>{{ product.name }}</h3>
+    <div class="sheet__title-area">
+      <span class="sheet__eyebrow">Fiche produit</span>
+      <h3 class="sheet__title">{{ product.name }}</h3>
       <p class="sheet__description">
         {{ product.description || 'Aucune description disponible pour ce produit.' }}
       </p>
     </div>
 
-    <div class="sheet__price-block">
+    <div class="sheet__price-card">
       <span class="sheet__price-label">Prix de base</span>
-      <span class="sheet__price">{{ product.price | number:'1.2-2' }} €</span>
-      <span class="sheet__tag" [ngClass]="{
-        'sheet__tag--hot': product.tag === 'HOT',
-        'sheet__tag--new': product.tag === 'NEW',
-        'sheet__tag--neutral': product.tag === 'ordinaire'
-      }">
+      <span class="sheet__price">{{ product.price | number:'1.2-2' }}€</span>
+      <span class="sheet__tag" [ngClass]="'sheet__tag--' + (product.tag || 'neutral')">
         {{ product.tag === 'ordinaire' ? 'Produit standard' : product.tag }}
       </span>
     </div>
   </header>
 
   <div class="sheet__content">
-    <section class="sheet__media">
+    <!-- Galerie Photo -->
+    <aside class="sheet__media">
       <div class="sheet__hero">
         <img *ngIf="featuredImageUrl; else noImage" [src]="featuredImageUrl" [alt]="product.name" />
         <ng-template #noImage>
-          <div class="sheet__empty-image">Image indisponible</div>
+          <div class="sheet__empty-image"><span>📷</span> Image indisponible</div>
         </ng-template>
       </div>
 
@@ -35,90 +33,75 @@
           type="button"
           class="sheet__thumbnail"
           *ngFor="let image of product.images; trackBy: trackById"
-          [title]="image.legend || product.name"
+          [class.is-active]="image.url === featuredImageUrl"
         >
-          <img *ngIf="image.url; else thumbFallback" [src]="image.url" [alt]="image.legend || product.name" />
+          <img *ngIf="image.url; else thumbFallback" [src]="image.url" [alt]="image.legend" />
           <ng-template #thumbFallback>
-            <span class="sheet__thumbnail-fallback">Aperçu</span>
+            <div class="sheet__thumbnail-fallback">N/A</div>
           </ng-template>
         </button>
       </div>
-    </section>
+    </aside>
 
+    <!-- Détails Techniques -->
     <section class="sheet__details">
-      <div class="sheet__blocks">
-        <div class="sheet__block">
-          <span class="sheet__label">Référence</span>
-          <strong>{{ product.reference || 'Non renseignée' }}</strong>
+      <div class="sheet__stats">
+        <div class="stat-card">
+          <span class="stat-card__label">Référence</span>
+          <span class="stat-card__value">{{ product.reference || '—' }}</span>
         </div>
 
-        <div class="sheet__block">
-          <span class="sheet__label">Catégories</span>
+        <div class="stat-card">
+          <span class="stat-card__label">Catégories</span>
           <div class="sheet__badges" *ngIf="product.categories.length > 0; else noCategory">
-            <span class="sheet__badge" *ngFor="let category of product.categories; trackBy: trackById">
-              {{ category.name || ('Catégorie #' + category.id) }}
-            </span>
+            <span class="badge" *ngFor="let cat of product.categories; trackBy: trackById">{{ cat.name }}</span>
           </div>
-          <ng-template #noCategory>
-            <strong>Sans catégorie</strong>
-          </ng-template>
+          <ng-template #noCategory><span class="stat-card__value">Aucune</span></ng-template>
         </div>
 
-        <div class="sheet__block sheet__block--split">
-          <div>
-            <span class="sheet__label">Combinaisons</span>
-            <strong>{{ product.combinations.length }}</strong>
+        <div class="stat-card stat-card--summary">
+          <div class="stat-sub">
+            <span class="stat-card__label">Variantes</span>
+            <span class="stat-card__value">{{ product.combinations.length }}</span>
           </div>
-          <div>
-            <span class="sheet__label">Images</span>
-            <strong>{{ product.images.length }}</strong>
+          <div class="stat-separator"></div>
+          <div class="stat-sub">
+            <span class="stat-card__label">Médias</span>
+            <span class="stat-card__value">{{ product.images.length }}</span>
           </div>
         </div>
       </div>
 
-      <div class="sheet__section">
-        <h4>Description courte</h4>
-        <p>{{ product.shortDescription || 'Aucune description courte disponible.' }}</p>
+      <div class="sheet__info-box">
+        <h4>À propos du produit</h4>
+        <p class="sheet__short-desc">{{ product.shortDescription || 'Aucune description courte.' }}</p>
       </div>
 
       <div class="sheet__section">
-        <h4>Toutes les combinaisons</h4>
+        <div class="sheet__section-header">
+          <h4>Variantes & Combinaisons</h4>
+          <span class="sheet__count">{{ product.combinations.length }} disponibles</span>
+        </div>
 
-        <div class="combination-list" *ngIf="product.combinations.length > 0; else noCombination">
-          <article class="combination-card" *ngFor="let combination of product.combinations; trackBy: trackById">
-            <div class="combination-card__header">
-              <div>
-                <p class="combination-card__title">{{ combination.reference || 'Combinaison sans référence' }}</p>
-                <p class="combination-card__subtitle">
-                  Quantité minimale: {{ combination.minimalQuantity }}
-                  <span *ngIf="combination.defaultOn"> · combinaison par défaut</span>
-                </p>
+        <div class="combination-grid" *ngIf="product.combinations.length > 0; else empty">
+          <div class="combo-item" *ngFor="let combo of product.combinations; trackBy: trackById">
+            <div class="combo-item__main">
+              <span class="combo-item__ref">{{ combo.reference || 'Sans réf.' }}</span>
+              <div class="combo-item__meta">
+                <span class="combo-item__qty">Min: {{ combo.minimalQuantity }}</span>
+                <span class="combo-item__default" *ngIf="combo.defaultOn">★ Par défaut</span>
               </div>
-
-              <strong class="combination-card__price">{{ combination.price | number:'1.2-2' }} €</strong>
             </div>
+            <div class="combo-item__price">{{ combo.price | number:'1.2-2' }}€</div>
 
-            <div class="combination-card__attributes" *ngIf="combination.attributes.length > 0">
-              <span class="combination-chip" *ngFor="let attribute of combination.attributes">
-                <strong>{{ attribute.groupName || 'Attribut' }}:</strong>
-                {{ attribute.attributeName || ('#' + attribute.attributeId) }}
+            <div class="combo-item__attributes" *ngIf="combo.attributes.length > 0">
+              <span class="attr-tag" *ngFor="let attr of combo.attributes">
+                <b>{{ attr.groupName }}:</b> {{ attr.attributeName }}
               </span>
             </div>
-
-            <div class="combination-card__images" *ngIf="combination.images.length > 0">
-              <figure class="combination-card__image" *ngFor="let image of combination.images; trackBy: trackById">
-                <img *ngIf="image.url; else combinationFallback" [src]="image.url" [alt]="image.legend || combination.reference || product.name" />
-                <ng-template #combinationFallback>
-                  <div class="combination-card__image-fallback">Image</div>
-                </ng-template>
-              </figure>
-            </div>
-          </article>
+          </div>
         </div>
-
-        <ng-template #noCombination>
-          <p class="sheet__empty-copy">Aucune combinaison disponible pour ce produit.</p>
-        </ng-template>
+        <ng-template #empty><p class="empty-state">Aucune variante.</p></ng-template>
       </div>
     </section>
   </div>
