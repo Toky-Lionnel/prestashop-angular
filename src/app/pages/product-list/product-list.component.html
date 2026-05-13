@@ -1,0 +1,91 @@
+<section class="catalog-shell">
+	<header class="catalog-header">
+		<div>
+			<p class="eyebrow">Catalogue produits</p>
+			<h1>Produits vitrine</h1>
+			<p class="subtitle">Une sélection claire des produits disponibles, avec image, prix et catégorie.</p>
+		</div>
+
+		<div class="catalog-count" *ngIf="!isLoading">
+			{{ productsVitrine.length }} produit{{ productsVitrine.length > 1 ? 's' : '' }}
+		</div>
+	</header>
+
+	<form class="catalog-filters" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+		<div class="filter-field">
+			<label for="name">Nom</label>
+			<input id="name" type="text" formControlName="name" placeholder="Rechercher un produit" />
+		</div>
+
+		<div class="filter-field">
+			<label for="priceMin">Prix minimum</label>
+			<input id="priceMin" type="text" formControlName="priceMin" placeholder="Ex: 10" />
+		</div>
+
+		<div class="filter-field">
+			<label for="priceMax">Prix maximum</label>
+			<input id="priceMax" type="text" formControlName="priceMax" placeholder="Ex: 50" />
+		</div>
+
+		<div class="filter-field">
+			<label for="categoryId">Catégorie</label>
+			<select id="categoryId" formControlName="categoryId">
+				<option value="">Toutes les catégories</option>
+				<option *ngFor="let category of categories" [value]="category.id">
+					{{ category.name }}
+				</option>
+			</select>
+		</div>
+
+		<div class="filter-actions">
+			<button type="submit" class="search-button">Valider la recherche</button>
+			<button type="button" class="reset-button" (click)="onReset()">Réinitialiser</button>
+		</div>
+	</form>
+
+	<div class="loading-state" *ngIf="isLoading">
+		<div class="loading-card" *ngFor="let _ of [1, 2, 3, 4]">
+			<div class="skeleton image"></div>
+			<div class="skeleton line short"></div>
+			<div class="skeleton line"></div>
+		</div>
+	</div>
+
+	<div class="empty-state" *ngIf="!isLoading && productsVitrine.length === 0">
+		<h2>Aucun produit à afficher</h2>
+		<p>Affinez ou modifiez vos critères de recherche pour trouver un produit.</p>
+	</div>
+
+	<section class="product-grid" *ngIf="!isLoading && productsVitrine.length > 0">
+		<article class="product-card" *ngFor="let product of productsVitrine">
+			<div class="product-media">
+				<img
+					*ngIf="product.imageUrl; else noImage"
+					[src]="product.imageUrl"
+					[alt]="product.name"
+				/>
+				<ng-template #noImage>
+					<div class="image-placeholder">Image indisponible</div>
+				</ng-template>
+			</div>
+
+			<div class="product-body">
+				<div class="product-meta">
+					<span
+						class="product-tag"
+						[ngClass]="{
+							'product-tag--hot': product.tag === 'HOT',
+							'product-tag--new': product.tag === 'NEW',
+							'product-tag--normal': product.tag === 'ordinaire'
+						}"
+					>
+						{{ product.tag !== 'ordinaire' ? product.tag : product.categoryName }}
+					</span>
+					<span class="product-price">{{ product.price | number:'1.2-2' }} €</span>
+				</div>
+
+				<h3>{{ product.name }}</h3>
+			</div>
+		</article>
+	</section>
+</section>

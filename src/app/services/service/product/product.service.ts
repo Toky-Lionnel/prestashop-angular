@@ -1,7 +1,10 @@
 import { Injectable , inject } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { PrestashopProduct, buildProductXML  } from '../../../models/product.model';
+import { mapPrestashopGetAllResponseToVitrine, VitrineProduct } from '../../../models/vitrine-product.model';
 import { parseStringPromise } from 'xml2js';
+
+const VITRINE_DISPLAY = '[id,name,price,id_default_image,id_category_default,available_date]';
 
 
 @Injectable({
@@ -97,6 +100,55 @@ export class ProductService {
     }
 
     return Number(price);
+  }
+
+  async getAllRawProducts (): Promise<any[]> {
+    const api = this.interceptor.getApi();
+    const response = await api.get('/api/products', {
+      params: {
+        display: VITRINE_DISPLAY
+      },
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    return json?.prestashop?.products?.[0]?.product ?? [];
+  }
+
+
+  async getAllVitrineProducts(
+    name: string | null = null,
+    priceMin: number | null = null,
+    priceMax: number | null = null,
+    categoryId: number | null = null
+  ): Promise<VitrineProduct[]> {
+    const api = this.interceptor.getApi();
+    const params: Record<string, string> = {
+      display: VITRINE_DISPLAY
+    };
+
+    if (name !== null && name.trim() !== '') {
+      params['filter[name]'] = `[%${name.trim()}]`;
+    }
+
+    if (priceMin !== null || priceMax !== null) {
+      const min = priceMin !== null ? priceMin : '';
+      const max = priceMax !== null ? priceMax : '';
+      params['filter[price]'] = `[${min},${max}]`;
+    }
+
+    if (categoryId !== null) {
+      params['filter[id_category_default]'] = `[${categoryId}]`;
+    }
+
+    const response = await api.get('/api/products', {
+      params,
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+
+    return mapPrestashopGetAllResponseToVitrine(json);
   }
 
 }
