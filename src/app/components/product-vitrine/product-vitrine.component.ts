@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Input, Optional } from '@angular/core';
+import { Component, inject, Inject, Input, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { VitrineProductCombination, VitrineProductDetail } from '../../models/vitrine-product.model';
+import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 
 @Component({
   selector: 'app-product-vitrine',
@@ -12,6 +13,7 @@ import { VitrineProductCombination, VitrineProductDetail } from '../../models/vi
   styleUrls: ['./product-vitrine.component.scss']
 })
 export class ProductVitrineComponent {
+
   private _product: VitrineProductDetail = {
     id: 0,
     name: '',
@@ -31,6 +33,12 @@ export class ProductVitrineComponent {
   selectedImageUrl: string | null = null;
   selectedCombinationId: number | null = null;
   quantity = 1;
+
+
+
+  private userCartService : UserCartService = inject(UserCartService);
+
+
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
     if (data) {
@@ -78,12 +86,17 @@ export class ProductVitrineComponent {
     this.quantity = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
   }
 
+  // TODO : prix and image should be those of the combination if they exist, not the product ones
   addToCart(): void {
-    console.log('addToCart', {
+    this.userCartService.addItem({
       productId: this.product.id,
-      combinationId: this.selectedCombination?.id ?? null,
-      quantity: this.quantity
+      attributeId: this.selectedCombination?.id ?? 0,
+      productNameWithAttribute: `${this.product.name}${this.selectedCombination ? ' - ' + this.selectedCombination.attributes.map(attr => attr.attributeName).join(', ') : ''}`,
+      quantity: this.quantity,
+      price: this.product.price,
+      image: this.featuredImageUrl
     });
+    alert('Produit ajouté au panier !');
   }
 
   trackById(_: number, item: { id: number }): number {

@@ -1,3 +1,56 @@
+.header-top {
+	display: flex;
+	justify-content: flex-end;
+	padding: 1rem 2rem;
+	background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.btn-cart {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1.25rem;
+	font-size: 1rem;
+	font-weight: 600;
+	color: white;
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+	transition: all 0.3s ease;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+		background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+	}
+
+	&:active {
+		transform: translateY(0);
+		box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+	}
+
+	.cart-label {
+		font-size: 1rem;
+	}
+
+	.cart-badge {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 24px;
+		height: 24px;
+		padding: 0 6px;
+		font-size: 0.75rem;
+		font-weight: 700;
+		background: rgba(255, 255, 255, 0.25);
+		border-radius: 12px;
+		margin-left: 0.25rem;
+	}
+}
+
 .catalog-shell {
 	min-height: 100%;
 	padding: 2rem;

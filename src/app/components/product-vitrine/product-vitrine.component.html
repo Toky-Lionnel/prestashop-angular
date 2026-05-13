@@ -79,7 +79,7 @@
         <p class="sheet__short-desc" [innerHTML]="product.shortDescription || 'Aucune description courte.'"></p>
       </div>
 
-      <div class="sheet__section" *ngIf="product.combinations.length > 0; else noCombination">
+      <div class="sheet__section" *ngIf="product.combinations.length > 0;">
         <div class="sheet__section-header">
           <h4>Choisir une combinaison</h4>
           <span class="sheet__count">{{ product.combinations.length }} disponible(s)</span>
@@ -117,12 +117,6 @@
         </div>
       </div>
 
-      <ng-template #noCombination>
-        <div class="sheet__info-box">
-          <h4>Aucune combinaison</h4>
-          <p class="sheet__short-desc">Ce produit n'a pas de variante. Vous pouvez l'ajouter directement au panier.</p>
-        </div>
-      </ng-template>
     </section>
   </div>
 </article>

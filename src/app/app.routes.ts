@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthGuard } from './guards/auth.guard';
 import { ProductListComponent } from './pages/product-list/product-list.component';
+import { CartPageComponent } from './pages/cart-page/cart-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'loginadmin', pathMatch: 'full' },
@@ -10,6 +11,9 @@ export const routes: Routes = [
   },
   {
     path: 'products', component : ProductListComponent
+  },
+  {
+    path: 'cart', component : CartPageComponent
   },
   {
     path: 'admin',

@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { ProductService } from '../../services/service/product/product.service';
 import { CategoriesService, CategoryOption } from '../../services/service/categories/categories.service';
 import { VitrineProduct } from '../../models/vitrine-product.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ProductVitrineComponent } from '../../components/product-vitrine/product-vitrine.component';
+import { UserCartService } from '../../services/service/user-cart/user-cart.service';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-product-list',
   standalone: true,
@@ -22,8 +24,11 @@ export class ProductListComponent {
   private productService: ProductService = inject(ProductService);
   private categoriesService: CategoriesService = inject(CategoriesService);
   private formBuilder: FormBuilder = inject(FormBuilder);
-
+  private userCartService : UserCartService = inject(UserCartService);
   private dialog = inject(MatDialog);
+  private router : Router = inject(Router);
+
+  cartLength = 0;
 
   searchForm = this.formBuilder.group({
     name: [''],
@@ -34,6 +39,9 @@ export class ProductListComponent {
 
   async ngOnInit () {
     try {
+      this.userCartService.cart$.subscribe(cart => {
+        this.cartLength = cart.reduce((sum, item) => sum + item.quantity, 0);
+      });
       this.categories = await this.categoriesService.getAll();
       await this.loadProducts();
     } finally {
@@ -99,7 +107,6 @@ export class ProductListComponent {
 
   async openProductSheet(product: VitrineProduct) {
     const productDetail = await this.productService.getProductDetailById(product.id);
-
     this.dialog.open(ProductVitrineComponent, {
       data: productDetail, // On passe l'objet product au composant
       width: '1200px', // Largeur de la popup
@@ -109,5 +116,8 @@ export class ProductListComponent {
     });
   }
 
+  openCart(): void {
+    this.router.navigate(['/cart']);
+  }
 
 }

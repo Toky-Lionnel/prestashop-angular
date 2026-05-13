@@ -1,4 +1,5 @@
 
+import { CartItem } from '../services/service/user-cart/user-cart.service';
 import { CartCsvModel } from './cart-csv.model';
 
 export interface PrestashopCartRow {
@@ -179,7 +180,7 @@ const escapeCDATA = (value: string | number) => {
 };
 
 const buildCartRowXML = (row: PrestashopCartRow): string => {
-  return `                <cart_row>
+  return `<cart_row>
                     <id_product><![CDATA[${escapeCDATA(row.id_product)}]]></id_product>
                     <id_product_attribute><![CDATA[${escapeCDATA(row.id_product_attribute ?? '')}]]></id_product_attribute>
                     <id_address_delivery><![CDATA[${escapeCDATA(row.id_address_delivery)}]]></id_address_delivery>
@@ -198,6 +199,31 @@ export function buildCartXML(data: PrestashopCart): string {
         <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
         <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
         <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}
+
+
+export function buildUserCartXML(cartItems: CartItem[]): string {
+  const cartRows = cartItems.map((item) => buildCartRowXML({
+    product_name: '',
+    id_product: item.productId,
+    product_attribute: '',
+    id_product_attribute: item.attributeId,
+    id_address_delivery: 0,
+    quantity: item.quantity
+  })).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id_currency><![CDATA[1]]></id_currency>
+        <id_lang><![CDATA[1]]></id_lang>
         <associations>
             <cart_rows>
                 ${cartRows}
