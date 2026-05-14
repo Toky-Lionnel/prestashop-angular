@@ -3,6 +3,7 @@ import { CustomerService } from '../../services/service/customer/customer.servic
 import { CommonModule } from '@angular/common';
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
+import { CartService } from '../../services/service/cart/cart.service';
 
 export interface Customer {
   id: number;
@@ -24,10 +25,10 @@ export class AccueilComponent {
   private customerService : CustomerService = inject(CustomerService);
   private sessionService : SessionService = inject(SessionService);
   private router : Router = inject(Router);
+  private cartService : CartService = inject(CartService);
 
   async ngOnInit() {
     const customersRaw = await this.customerService.getAllCustomers();
-
     if (!customersRaw) {
       console.error('Failed to load customers');
       return;
@@ -38,8 +39,11 @@ export class AccueilComponent {
       email: customer.email[0]
     }));
 
+    const carts = await this.cartService.getCartMapped();
 
-    console.log(this.customers);
+    console.log(carts);
+
+
   }
 
   selectCustomer(customer: Customer | null): void {

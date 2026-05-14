@@ -68,7 +68,7 @@ export class ProductVitrineComponent {
 
   // TODO: fix price display when combination has price 0 but product has price > 0 (should display product price)
   get currentPrice(): number {
-    return this.product.price;
+    return this.product.price ?? this.selectedCombination?.price;
   }
 
   selectImage(url: string | null): void {

@@ -153,7 +153,7 @@ export class OrderService {
 
       // verifier que l'id existe
       if (!id) {
-        console.error('No order found for cart ID:', idCart);
+        console.warn('No order found for cart ID:', idCart);
         return null;
       }
       const fullOrder = await this.getOrderById(id);
@@ -163,8 +163,52 @@ export class OrderService {
       console.error('Error creating order:', error);
       return null;
     }
-
   }
+
+  async getAllOrdersForCart(): Promise<any | null> {
+    const api = this.authInterceptor.getApi();
+    try {
+      const response = await api.get('/api/orders?display=[id,id_cart]', {
+        responseType: 'text'
+      });
+
+      const orderData = await parseStringPromise(response.data);
+      return orderData.prestashop.orders[0].order;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return null;
+    }
+  }
+
+
+
+
+  async verifCart (idCart: number): Promise<any | null> {
+    const api = this.authInterceptor.getApi();
+    try {
+      const response = await api.get('/api/orders?filter[id_cart]=[' + idCart + ']&display=[id]', {
+        responseType: 'text'
+      });
+
+      const orderData = await parseStringPromise(response.data);
+
+      const orders = orderData?.prestashop?.orders?.[0];
+      const order = orders?.order?.[0];
+
+      const id = order?.id?.[0];
+
+      // verifier que l'id existe
+      if (!id) {
+        console.warn('No order found for cart ID:', idCart);
+        return null;
+      }
+      return id;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return null;
+    }
+  }
+
 
 
 
