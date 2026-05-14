@@ -6,6 +6,9 @@ import { CartItem } from '../user-cart/user-cart.service';
 import { OrderService } from '../orders/order.service';
 import { Order } from '../../../models/OrderModel';
 import { CustomerService } from '../customer/customer.service';
+import { ProductService } from '../product/product.service';
+import { TaxService } from '../tax/tax.service';
+import { AttributeService } from '../attribute/attribute.service';
 
 
 @Injectable({
@@ -18,6 +21,9 @@ export class CartService {
   private interceptor : AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
   private orderService : OrderService = inject(OrderService);
   private customerService : CustomerService = inject(CustomerService);
+  private productService : ProductService = inject(ProductService);
+  private taxService : TaxService = inject(TaxService);
+  private attributeService : AttributeService = inject(AttributeService);
 
   /**
    * Extrait la valeur string d'un champ XML2JS (qui est toujours un tableau)
@@ -166,9 +172,9 @@ export class CartService {
   }
 
 
-  async getCartMapped (): Promise<any[] | null> {
+  async getCartMapped (): Promise<Order[]> {
     const carts = await this.getCartNonCommandes() || [];
-    const products = [];
+    const products: Order[] = [];
 
     for (const cart of carts) {
       const mappedCart = await this.mapOrder(cart);
@@ -187,20 +193,17 @@ export class CartService {
       email = customer?.email[0] || 'Anonyme';
     }
 
-    console.log(o.associations[0].cart_rows[0].cart_row);
-
-
     return {
       id: Number(o.id),
       total_paid: Number(o.total_paid),
       date_add: o.date_add,
       customer_email: email,
       recent_statut: 'Non commandé',
-      products: this.mapProducts(o.associations[0].cart_rows[0].cart_row)
+      products: await this.mapProducts(o.associations[0].cart_rows[0].cart_row)
     };
   }
 
-  private mapProducts(rows: any): any[] {
+  private async mapProducts(rows: any): Promise<any[]> {
     if (!rows) return [];
 
     const list = Array.isArray(rows) ? rows : [rows];
@@ -208,16 +211,61 @@ export class CartService {
 
     for (let i = 0; i < list.length; i++) {
       const p = list[i];
+      // const detail = await this.getProductNameAndCombinationAndPriceTTC(Number(p.id_product[0]._), Number(p.id_product_attribute[0]._));
 
       products.push({
         product_id: Number(p.id_product[0]._),
-        product_name: p.product_name,
-        product_price: Number(p.product_price),
+        product_name: Number(p.id_product_attribute[0]._) ,
+        product_price: 0,
         quantity: Number(p.quantity[0])
       });
     }
-
     return products;
+  }
+
+
+  async getProductNameAndCombinationAndPriceTTC(id_product: number, id_product_attribute: number): Promise<{ productName: string | null; combinationName: string | null; price_ttc: number | null }> {
+    try {
+      const detail = await this.productService.getProductDetailById(id_product);
+      if (!detail) return { productName: null, combinationName: null, price_ttc: null };
+
+      const basePriceHt = Number(detail.price ?? 0);
+      const taxRate = await this.taxService.getTaxValueByIdProduct(id_product).catch(() => null);
+
+      let combinationName: string | null = null;
+      let priceHt = basePriceHt;
+
+      if (id_product_attribute && id_product_attribute !== 0) {
+        const combo = (detail.combinations || []).find(c => Number(c.id) === Number(id_product_attribute));
+        if (combo) {
+          // Construire le nom de la combinaison à partir des attributs
+          if (Array.isArray(combo.attributes) && combo.attributes.length > 0) {
+            combinationName = combo.attributes
+              .map((a: any) => (a.groupName ? `${a.groupName}: ${a.attributeName}` : `${a.attributeName}`))
+              .join(' / ');
+          }
+
+          // Dans PrestaShop la valeur `combination.price` est l'impact sur le prix produit (H.T.)
+          const comboPriceImpact = Number((combo.price ?? 0));
+          priceHt = basePriceHt + comboPriceImpact;
+        }
+      }
+
+      if (priceHt === null || priceHt === undefined) return { productName: detail.name ?? null, combinationName, price_ttc: null };
+
+      const priceTtc = taxRate === null || taxRate === undefined
+        ? null
+        : Number((priceHt * (1 + Number(taxRate) / 100)).toFixed(3));
+
+      return {
+        productName: detail.name ?? null,
+        combinationName,
+        price_ttc: priceTtc
+      };
+    } catch (error) {
+      console.error('Error getting product name/combination/price TTC:', error);
+      return { productName: null, combinationName: null, price_ttc: null };
+    }
   }
 
 }

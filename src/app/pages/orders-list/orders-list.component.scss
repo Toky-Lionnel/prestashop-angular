@@ -103,57 +103,180 @@
 	}
 }
 
-.order-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-	gap: 1rem;
-	align-items: start;
-}
-
-.order-card {
+.table-shell {
 	background: var(--card-bg);
 	border: 1px solid rgba(216, 226, 241, 0.9);
 	border-radius: 20px;
 	box-shadow: var(--shadow);
-	padding: 1.1rem;
-	display: grid;
-	gap: 1rem;
-	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+	overflow: hidden;
+}
 
-	&:hover {
-		transform: translateY(-2px);
-		box-shadow: var(--shadow-strong);
-		border-color: rgba(0, 86, 216, 0.18);
-	}
+.orders-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: transparent;
 
-	&__eyebrow {
-		margin: 0 0 0.2rem;
-		font-size: 0.77rem;
-		font-weight: 700;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--text-muted);
-	}
+	thead {
+		background: rgba(247, 250, 255, 0.96);
 
-	&__header {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 0.75rem;
-
-		h2 {
-			margin: 0;
-			color: var(--text-main);
-			font-size: 1.12rem;
-			letter-spacing: -0.01em;
+		th {
+			padding: 0.95rem 1rem;
+			text-align: left;
+			font-size: 0.78rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--text-muted);
+			border-bottom: 1px solid var(--border);
 		}
 	}
 
-	&__meta-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.75rem;
+	tbody tr.orders-table__row {
+		border-bottom: 1px solid rgba(216, 226, 241, 0.75);
+		transition: background 0.2s ease;
+
+		&:hover {
+			background: #f8fbff;
+		}
+
+		td {
+			padding: 1rem;
+			vertical-align: top;
+			color: var(--text-main);
+		}
 	}
+}
+
+.type-cell {
+	display: grid;
+	gap: 0.55rem;
+	justify-items: start;
+}
+
+.order-kind {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.34rem 0.65rem;
+	border-radius: 999px;
+	font-size: 0.74rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--accent);
+	background: var(--accent-soft);
+
+	&--cart {
+		color: var(--secondary);
+		background: var(--secondary-bg);
+	}
+}
+
+.details-button,
+.row-actions button {
+	border-radius: 12px;
+	border: 1px solid var(--border);
+	font-size: 0.9rem;
+	min-height: 40px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.details-button {
+	padding: 0 0.9rem;
+	color: var(--accent-strong);
+	background: #fff;
+
+	&:hover {
+		transform: translateY(-1px);
+		border-color: rgba(0, 86, 216, 0.22);
+		box-shadow: 0 10px 22px rgba(18, 43, 77, 0.08);
+	}
+
+	&--standalone {
+		width: max-content;
+	}
+}
+
+.order-reference {
+	font-size: 1rem;
+	letter-spacing: -0.02em;
+}
+
+.table-amount {
+	font-weight: 700;
+
+	&--muted {
+		color: var(--text-muted);
+	}
+}
+
+.row-actions {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 0.55rem;
+
+	select,
+	button {
+		border-radius: 12px;
+		border: 1px solid var(--border);
+		font-size: 0.9rem;
+		min-height: 40px;
+	}
+
+	select {
+		padding: 0 0.8rem;
+		background: #fff;
+		color: var(--text-main);
+	}
+
+	button {
+		padding: 0 1rem;
+		background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+		border-color: var(--accent);
+		color: #fff;
+		font-weight: 700;
+		box-shadow: 0 10px 24px rgba(0, 86, 216, 0.18);
+
+		&:hover:not(:disabled) {
+			transform: translateY(-1px);
+			box-shadow: 0 12px 28px rgba(0, 86, 216, 0.24);
+		}
+
+		&:disabled {
+			opacity: 0.72;
+			cursor: default;
+			box-shadow: none;
+		}
+	}
+}
+
+.order-details-row {
+	background: #f8fbff;
+
+	td {
+		padding: 0 1rem 1rem;
+	}
+}
+
+.order-details-panel {
+	padding: 0.95rem 1rem 1rem;
+	background: #fff;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	display: grid;
+	gap: 0.85rem;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .badge-status {
@@ -396,16 +519,26 @@
 		padding: 1.1rem;
 	}
 
-	.page-hero__stats,
-	.order-card__meta-grid,
-	.action-row {
+	.page-hero__stats {
 		grid-template-columns: 1fr;
 	}
 
-	.order-card__header,
-	.section-title {
-		align-items: flex-start;
-		flex-direction: column;
+	.orders-table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
+
+		thead,
+		tbody,
+		tr,
+		th,
+		td {
+			display: revert;
+		}
+
+		tbody tr.orders-table__row td {
+			white-space: normal;
+		}
 	}
 
 	.badge-status {

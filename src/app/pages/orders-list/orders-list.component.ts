@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { OrderStateService } from '../../services/service/order-state/order-state.service';
 import { transformToOrderHistory } from '../../models/order-history.model';
 import { FormsModule } from '@angular/forms';
+import { CartService } from '../../services/service/cart/cart.service';
 
 @Component({
   selector: 'app-orders-list',
@@ -19,13 +20,17 @@ export class OrdersListComponent {
   pendingValidation: Record<number, boolean> = {};
   successMessageByOrder: Record<number, string> = {};
   errorMessageByOrder: Record<number, string> = {};
+  expandedOrderId: number | null = null;
 
   private orderService: OrderService = inject(OrderService);
   private orderStateService: OrderStateService = inject(OrderStateService);
+  private cartService: CartService = inject(CartService);
 
   async ngOnInit() {
     this.orderStates = await this.orderStateService.loadOrderStates();
+    const carts : Order [] = await this.cartService.getCartMapped();
     this.orders = await this.orderService.getOrdersFull();
+    this.orders = [...this.orders, ...carts];
     this.initializeSelectedStates();
   }
 
@@ -80,15 +85,23 @@ export class OrdersListComponent {
     }
   }
 
-    getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-      const normalizedStatus = status?.toLowerCase() ?? '';
+  toggleOrderDetails(orderId: number): void {
+    this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+  }
 
-      if (normalizedStatus.includes('livr') || normalizedStatus.includes('complet')) return 'success';
-      if (normalizedStatus.includes('cours') || normalizedStatus.includes('expédi') || normalizedStatus.includes('transit')) return 'info';
-      if (normalizedStatus.includes('attente') || normalizedStatus.includes('paiement')) return 'warn';
-      if (normalizedStatus.includes('annul') || normalizedStatus.includes('refus') || normalizedStatus.includes('erreur')) return 'danger';
+  isCart(order: Order): boolean {
+    return order.recent_statut === 'Non commandé';
+  }
 
-      return 'secondary';
-    }
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    const normalizedStatus = status?.toLowerCase() ?? '';
+
+    if (normalizedStatus.includes('livr') || normalizedStatus.includes('complet')) return 'success';
+    if (normalizedStatus.includes('cours') || normalizedStatus.includes('expédi') || normalizedStatus.includes('transit')) return 'info';
+    if (normalizedStatus.includes('attente') || normalizedStatus.includes('paiement')) return 'warn';
+    if (normalizedStatus.includes('annul') || normalizedStatus.includes('refus') || normalizedStatus.includes('erreur')) return 'danger';
+
+    return 'secondary';
+  }
 
 }

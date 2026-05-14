@@ -278,9 +278,6 @@ export class ProductService {
         return mapPrestashopCombinationToVitrineCombination(idProduct, combination, attributeNameById);
       });
 
-    console.log(combinations);
-
-
     return mapPrestashopProductToDetail(product, {
       categoryNameById: categoryMap,
       images,

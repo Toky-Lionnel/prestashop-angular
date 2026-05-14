@@ -13,69 +13,70 @@
         <span class="stat-card__label">Commandes</span>
         <strong class="stat-card__value">{{ orders.length }}</strong>
       </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Statut actif</span>
-        <strong class="stat-card__value">{{ orders.length > 0 ? 'En suivi' : 'Aucune' }}</strong>
-      </div>
     </div>
   </header>
 
-  <div class="order-grid" *ngIf="orders.length > 0; else emptyState">
-    <article class="order-card" *ngFor="let order of orders">
-      <div class="order-card__header">
-        <div>
-          <p class="order-card__eyebrow">Commande</p>
-          <h2>#{{ order.id }}</h2>
-        </div>
-        <span class="badge-status badge-status--{{ getStatusSeverity(order.recent_statut) }}">
-          {{ order.recent_statut }}
-        </span>
-      </div>
+  <div class="table-shell" *ngIf="orders.length > 0; else emptyState">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Commande</th>
+          <th>Client</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let order of orders">
+          <tr class="orders-table__row">
+            <td>
+              <div class="type-cell">
+                <span class="order-kind" [class.order-kind--cart]="isCart(order)">
+                  {{ isCart(order) ? 'Panier' : 'Commande' }}
+                </span>
 
-      <div class="order-card__meta-grid">
-        <div class="meta-pill">
-          <span class="meta-pill__label">Total</span>
-          <strong>{{ order.total_paid }}</strong>
-        </div>
-        <div class="meta-pill">
-          <span class="meta-pill__label">Date</span>
-          <strong>{{ order.date_add }}</strong>
-        </div>
-        <div class="meta-pill meta-pill--full">
-          <span class="meta-pill__label">Client</span>
-          <strong>{{ order.customer_email }}</strong>
-        </div>
-      </div>
+              </div>
+            </td>
+            <td>
+              <strong class="order-reference">#{{ order.id }}</strong>
+            </td>
+            <td>{{ order.customer_email }}</td>
+            <td>{{ order.date_add }}</td>
+            <td>
+              <span class="table-amount" *ngIf="!isCart(order)">{{ order.total_paid }}</span>
+              <span class="table-amount table-amount--muted" *ngIf="isCart(order)">-</span>
+            </td>
+            <td>
+              <span class="badge-status badge-status--{{ getStatusSeverity(order.recent_statut) }}">
+                {{ order.recent_statut }}
+              </span>
+            </td>
+            <td>
+              <div class="row-actions" *ngIf="!isCart(order)">
+                <label class="sr-only" [for]="'status-' + order.id">Changer le statut</label>
+                <select [id]="'status-' + order.id" [(ngModel)]="selectedStates[order.id]" [disabled]="pendingValidation[order.id]">
+                  <option *ngFor="let state of orderStates" [ngValue]="state.id">{{ state.names[0].value }}</option>
+                </select>
 
-      <div class="order-card__products">
-        <div class="section-title">
-          <h3>Produits</h3>
-          <span>{{ order.products.length }} article(s)</span>
-        </div>
-        <ul class="product-list">
-          <li *ngFor="let p of order.products">
-            <span class="product-list__name">{{ p.product_name }}</span>
-            <span class="product-list__price">{{ p.quantity }} x {{ p.product_price }}</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="order-card__actions">
-        <label [for]="'status-' + order.id">Changer le statut</label>
-        <div class="action-row">
-          <select [id]="'status-' + order.id" [(ngModel)]="selectedStates[order.id]" [disabled]="pendingValidation[order.id]">
-            <option *ngFor="let state of orderStates" [ngValue]="state.id">{{ state.names[0].value }}</option>
-          </select>
-
-          <button type="button" (click)="onValidate(order)" [disabled]="pendingValidation[order.id]">
-            {{ pendingValidation[order.id] ? 'Mise a jour...' : 'Valider' }}
-          </button>
-        </div>
-
-        <p class="feedback success" *ngIf="successMessageByOrder[order.id]">{{ successMessageByOrder[order.id] }}</p>
-        <p class="feedback error" *ngIf="errorMessageByOrder[order.id]">{{ errorMessageByOrder[order.id] }}</p>
-      </div>
-    </article>
+                <button type="button" (click)="onValidate(order)" [disabled]="pendingValidation[order.id]">
+                  {{ pendingValidation[order.id] ? 'Mise à jour...' : 'Valider' }}
+                </button>
+              </div>
+               <button
+                  *ngIf="isCart(order)"
+                  type="button"
+                  class="details-button"
+                  (click)="toggleOrderDetails(order.id)">
+                  {{ expandedOrderId === order.id ? 'Masquer détails' : 'Voir détails' }}
+                </button>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
   </div>
 
   <ng-template #emptyState>
