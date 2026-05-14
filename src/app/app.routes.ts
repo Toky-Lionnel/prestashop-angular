@@ -39,6 +39,12 @@ export const routes: Routes = [
             import('./pages/import-file/import-file.component')
               .then(m => m.ImportFileComponent)
         },
+        {
+          path : 'dashboard',
+          loadComponent: () =>
+            import('./pages/dashboard/dashboard.component')
+              .then(m => m.DashboardComponent)
+        }
       ]
   },
 

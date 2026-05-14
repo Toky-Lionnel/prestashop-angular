@@ -18,10 +18,10 @@ export class OrderService {
 
   constructor() {}
 
-  async getOrdersFull(): Promise<Order[]> {
+  async getOrdersFull(date?: string): Promise<Order[]> {
     this.orderStateService.loadOrderStates();
 
-    const ids = await this.getOrderIds();
+    const ids = await this.getOrderIds(date);
     const promises: Promise<Order>[] = [];
 
     for (let i = 0; i < ids.length; i++) {
@@ -31,17 +31,28 @@ export class OrderService {
     return Promise.all(promises);
   }
 
-  private async getOrderIds(): Promise<number[]> {
+  private async getOrderIds(date?: string): Promise<number[]> {
     const api = this.authInterceptor.getApi();
 
-    const response = await api.get('/api/orders', {
+    let url = '/api/orders';
+
+    if (date) {
+      url += `?date=1&filter[date_add]=[${date} 00:00:00,${date} 23:59:59]`;
+    }
+
+    const response = await api.get(url, {
       responseType: 'text'
     });
 
     const json = await xmlToJson(response.data);
     const orders = json.prestashop.orders.order;
 
+    if (!orders) {
+      return [];
+    }
+
     const list = Array.isArray(orders) ? orders : [orders];
+
     const ids: number[] = [];
 
     for (let i = 0; i < list.length; i++) {
