@@ -67,7 +67,7 @@ export class CartService {
       const cart = responseData?.prestashop?.cart?.[0];
       return cart?.id?.[0];
     } catch (error) {
-      console.error('Error creating cart:', error);
+      console.error('Error updating cart:', error);
       return null;
     }
   }

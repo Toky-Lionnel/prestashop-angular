@@ -33,6 +33,7 @@ export class SessionService {
     this.cartService.clearCart();
     this.customerData = null;
     localStorage.removeItem('customerData');
+    localStorage.removeItem('cart_id');
   }
 
   setUser(email: any) {
