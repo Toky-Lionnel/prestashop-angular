@@ -85,8 +85,16 @@ export class OrdersListComponent {
     }
   }
 
-  toggleOrderDetails(orderId: number): void {
-    this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+  async toggleOrderDetails(order: Order): Promise<void> {
+    const details = await this.cartService.getCartDetails(order);
+    const products = details.products.map((p) => `Produit: ${p.product_name}, Prix: ${p.product_price}, Quantité: ${p.quantity}`).join('\n');
+
+    if (products.length === 0) {
+      alert(`Aucun produit trouvé pour le panier ${order.id}.`);
+      return;
+    }
+
+    alert(`Détails du panier ${order.id} :\n${products}`);
   }
 
   isCart(order: Order): boolean {

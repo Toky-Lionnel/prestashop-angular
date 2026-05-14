@@ -69,7 +69,7 @@
                   *ngIf="isCart(order)"
                   type="button"
                   class="details-button"
-                  (click)="toggleOrderDetails(order.id)">
+                  (click)="toggleOrderDetails(order)">
                   {{ expandedOrderId === order.id ? 'Masquer détails' : 'Voir détails' }}
                 </button>
             </td>

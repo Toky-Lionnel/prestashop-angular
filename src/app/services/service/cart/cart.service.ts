@@ -224,6 +224,19 @@ export class CartService {
   }
 
 
+  async getCartDetails (o : Order) : Promise<Order> {
+
+    for ( const product of o.products) {
+      const detail = await this.getProductNameAndCombinationAndPriceTTC(Number(product.product_id), Number(product.product_name));
+
+      product.product_name = detail.productName ?? 'Nom non trouvé';
+      product.product_price = detail.price_ttc ?? 0;
+    }
+
+    return o;
+  }
+
+
   async getProductNameAndCombinationAndPriceTTC(id_product: number, id_product_attribute: number): Promise<{ productName: string | null; combinationName: string | null; price_ttc: number | null }> {
     try {
       const detail = await this.productService.getProductDetailById(id_product);
