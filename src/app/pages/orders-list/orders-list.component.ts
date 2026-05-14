@@ -72,7 +72,8 @@ export class OrdersListComponent {
     this.errorMessageByOrder[order.id] = '';
 
     try {
-      const orderHistory = transformToOrderHistory(order.id, selectedStateId, null);
+      const orderHistory = transformToOrderHistory(order.id,selectedStateId, null);
+
       await this.orderStateService.createOrderState(orderHistory);
 
       order.recent_statut = this.getStateLabelById(selectedStateId);

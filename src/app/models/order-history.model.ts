@@ -48,15 +48,15 @@ export function transformOrderToOrderHistory(order : PrestashopOrder): Prestasho
 }
 
 const buildOrderHistoryFieldXML = (fieldName: keyof PrestashopOrderHistory, value: string | number): string => {
-  return `        <${fieldName} format="${fieldName === 'date_add' ? 'isDate' : 'isUnsignedId'}">\n            <![CDATA[${escapeCDATA(value)}]]>\n        </${fieldName}>`;
+  return `<${fieldName} format="${fieldName === 'date_add' ? 'isDate' : 'isUnsignedId'}">\n            <![CDATA[${escapeCDATA(value)}]]>\n        </${fieldName}>`;
 };
 
 export function buildOrderHistoryXML(data: PrestashopOrderHistory): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
     <order_history>
+    ${buildOrderHistoryFieldXML('id_order', data.id_order)}
 ${buildOrderHistoryFieldXML('id_order_state', data.id_order_state)}
-${buildOrderHistoryFieldXML('id_order', data.id_order)}
     </order_history>
 </prestashop>`;
 }

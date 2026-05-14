@@ -109,9 +109,6 @@ export class CartService {
     const api = this.interceptor.getApi();
     const cartXML = buildUserCartXMLUpdate(carts, cartId);
 
-    console.log(cartXML);
-
-
     try {
       const response = await api.put(`/api/carts/${cartId}`, cartXML, {
         headers: {
@@ -152,8 +149,6 @@ export class CartService {
       const orderedId = new Set <number>();
       for (const order of orders) {
         const idCart = order.id_cart[0]._;
-        console.log(idCart);
-
         if (idCart !== null) {
           orderedId.add(idCart);
         }
