@@ -5,6 +5,8 @@ import { firstValueFrom } from "rxjs";
 import { SessionService } from "../../service/session/session.service";
 import { CustomerService } from "../../service/customer/customer.service";
 import bcrypt from 'bcryptjs';
+import { LoginFrontComponent } from "../../../components/login-front/login-front.component";
+import { MatDialogRef } from "@angular/material/dialog";
 
 
 @Injectable({
@@ -75,9 +77,7 @@ export class AuthFacadeService {
       console.log('Email ou mot de passe incorrect.');
       return false;
     }
-
     const passwordHash = customer?.passwd?.[0];
-
     const isPasswordValid = bcrypt.compareSync(password, passwordHash);
 
     if (!isPasswordValid) {

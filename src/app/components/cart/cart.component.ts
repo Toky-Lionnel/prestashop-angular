@@ -5,7 +5,7 @@ import { CartItem, UserCartService } from '../../services/service/user-cart/user
 import { Router } from '@angular/router';
 import { SessionService } from '../../services/service/session/session.service';
 import { LoginFrontComponent } from '../login-front/login-front.component';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-cart',
@@ -15,7 +15,6 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrl: './cart.component.scss'
 })
 export class CartComponent {
-
   private cartService : UserCartService = inject(UserCartService);
   private sessionService : SessionService = inject(SessionService);
   private router = inject(Router);
@@ -75,7 +74,7 @@ export class CartComponent {
   }
 
 
-  // sady mamafa cart no mamafa customer 
+  // sady mamafa cart no mamafa customer
   clearCustomerSession() {
     this.sessionService.clearCustomer();
     alert("Session client effacée !");

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Inject, Input, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { VitrineProductCombination, VitrineProductDetail } from '../../models/vitrine-product.model';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 
@@ -37,7 +37,7 @@ export class ProductVitrineComponent {
 
 
   private userCartService : UserCartService = inject(UserCartService);
-
+  private dialogRef = inject(MatDialogRef<ProductVitrineComponent>);
 
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
@@ -97,6 +97,7 @@ export class ProductVitrineComponent {
       image: this.featuredImageUrl
     });
     alert('Produit ajouté au panier !');
+    this.dialogRef.close();
   }
 
   trackById(_: number, item: { id: number }): number {
