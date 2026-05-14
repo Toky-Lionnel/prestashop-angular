@@ -4,9 +4,10 @@ import { AuthGuard } from './guards/auth.guard';
 import { ProductListComponent } from './pages/product-list/product-list.component';
 import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
+import { AccueilComponent } from './pages/accueil/accueil.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'products', pathMatch: 'full' },
+  { path: '', redirectTo: 'accueil', pathMatch: 'full' },
   {
     path: 'loginadmin', component: LoginComponent ,
   },
@@ -18,6 +19,9 @@ export const routes: Routes = [
   },
   {
     path: 'checkout', component : CheckoutComponent
+  },
+  {
+    path : 'accueil', component : AccueilComponent
   },
   {
     path: 'admin',

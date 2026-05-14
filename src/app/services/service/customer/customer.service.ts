@@ -117,4 +117,15 @@ export class CustomerService {
     return json?.prestashop?.customer?.[0] || null;
   }
 
+  async getAllCustomers() : Promise<any[] | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get('/api/customers?display=[id,email]', {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const customers = json?.prestashop?.customers?.[0]?.customer || [];
+    return customers;
+  }
+
 }

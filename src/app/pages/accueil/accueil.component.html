@@ -1,0 +1,55 @@
+<div class="customer-selection">
+  <header class="header">
+    <h2>Sélection du client</h2>
+    <p>Choisissez un client pour continuer ou restez anonyme.</p>
+  </header>
+
+  <div class="customer-list">
+    <!-- Option Utilisateur Anonyme -->
+    <label class="customer-card anonymous" [class.is-selected]="selectedCustomer === null">
+      <div class="customer-card__content">
+        <input
+          type="radio"
+          name="customer"
+          [value]="null"
+          (change)="selectCustomer(null)"
+          [checked]="selectedCustomer === null">
+        <div class="avatar">👤</div>
+        <div class="info">
+          <span class="name">Utilisateur Anonyme</span>
+          <span class="status">Navigation standard</span>
+        </div>
+      </div>
+      <div class="checkbox-visual"></div>
+    </label>
+
+    <div class="divider"><span>Clients enregistrés</span></div>
+
+    <!-- Liste des clients -->
+    <label
+      *ngFor="let customer of customers"
+      class="customer-card"
+      [class.is-selected]="selectedCustomer?.id === customer.id">
+      <div class="customer-card__content">
+        <input
+          type="radio"
+          name="customer"
+          [value]="customer"
+          (change)="selectCustomer(customer)"
+          [checked]="selectedCustomer?.id === customer.id">
+        <div class="avatar">{{ customer.email[0] | uppercase }}</div>
+        <div class="info">
+          <span class="email">{{ customer.email }}</span>
+          <span class="id">ID: #{{ customer.id }}</span>
+        </div>
+      </div>
+      <div class="checkbox-visual"></div>
+    </label>
+  </div>
+
+  <footer class="actions" *ngIf="selectedCustomer || selectedCustomer === null">
+    <button class="btn-confirm" (click)="confirmSelection()">
+      Confirmer pour {{ selectedCustomer ? selectedCustomer.email : 'Anonyme' }}
+    </button>
+  </footer>
+</div>

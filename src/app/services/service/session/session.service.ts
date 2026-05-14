@@ -25,6 +25,15 @@ export class SessionService {
     localStorage.setItem('customerData', JSON.stringify(this.customerData));
   }
 
+
+  setCustomerData(customer: any) {
+    this.customerData = {
+      id : customer.id,
+      email: customer.email,
+    };
+    localStorage.setItem('customerData', JSON.stringify(this.customerData));
+  }
+
   getCustomer() {
     const data = localStorage.getItem('customerData');
     if (data) {
@@ -39,7 +48,7 @@ export class SessionService {
   }
 
   clearCustomer() {
-    this.cartService.callearCart();
+    this.cartService.clearCart();
     this.customerData = null;
     localStorage.removeItem('customerData');
     localStorage.removeItem('cart_id');
