@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
-import { PrestashopCart, buildCartXML, buildUserCartXML, buildUserCartXMLUpdate } from '../../../models/cart.model';
+import { PrestashopCart, buildCartUpdateXML, buildCartXML, buildUserCartXML, buildUserCartXMLUpdate } from '../../../models/cart.model';
 import { parseStringPromise } from 'xml2js';
 import { CartItem } from '../user-cart/user-cart.service';
 
@@ -34,6 +34,26 @@ export class CartService {
   }
 
 
+  async updateCart(cart: PrestashopCart , cartId: number): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const cartXML = buildCartUpdateXML(cart);
+
+    try {
+      const response = await api.put(`/api/carts/${cartId}`, cartXML, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+      const responseData = await parseStringPromise(response.data);
+      const cart = responseData?.prestashop?.cart?.[0];
+      return cart?.id?.[0];
+    } catch (error) {
+      console.error('Error updating cart:', error);
+      return null;
+    }
+  }
+
+
   async createCartUser(carts : CartItem[]): Promise<number | null> {
     const api = this.interceptor.getApi();
     const cartXML = buildUserCartXML(carts);
@@ -57,6 +77,9 @@ export class CartService {
     const api = this.interceptor.getApi();
     const cartXML = buildUserCartXMLUpdate(carts, cartId);
 
+    console.log(cartXML);
+
+
     try {
       const response = await api.put(`/api/carts/${cartId}`, cartXML, {
         headers: {
@@ -64,6 +87,10 @@ export class CartService {
         }
       });
       const responseData = await parseStringPromise(response.data);
+
+      console.log(`Response data : ${responseData}`);
+
+
       const cart = responseData?.prestashop?.cart?.[0];
       return cart?.id?.[0];
     } catch (error) {

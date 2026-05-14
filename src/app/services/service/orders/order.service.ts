@@ -102,6 +102,9 @@ export class OrderService {
     const api = this.authInterceptor.getApi();
     const orderXML = buildOrderXML(order);
 
+    console.log(orderXML);
+
+
     try {
       const response = await api.post('/api/orders', orderXML, {
         headers: {

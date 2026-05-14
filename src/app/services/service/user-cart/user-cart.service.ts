@@ -60,6 +60,12 @@ export class UserCartService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
+  public clearCartCommande(): void {
+    this.cartSubject.next([]);
+    localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.CART_ID_KEY);
+  }
+
   private getCartId(): number | null {
     const value = localStorage.getItem(this.CART_ID_KEY);
     return value ? Number(value) : null;
@@ -99,7 +105,7 @@ export class UserCartService {
     this.saveCart(cart);
   }
 
-  
+
   clear(): void {
     this.cartSubject.next([]);
     localStorage.removeItem(this.STORAGE_KEY);

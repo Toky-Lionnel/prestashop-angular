@@ -28,7 +28,7 @@ export class LoginFrontComponent {
   constructor(private fb : FormBuilder) {
     this.loginForm = this.fb.group({
       email: ['toky@gmail.com'],
-      password: ['']
+      password: ['dislOcoeur04*']
     });
   }
 

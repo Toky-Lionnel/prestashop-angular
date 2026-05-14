@@ -26,11 +26,20 @@ export class SessionService {
   }
 
   getCustomer() {
+    const data = localStorage.getItem('customerData');
+    if (data) {
+      this.customerData = JSON.parse(data);
+    }
     return this.customerData;
   }
 
+  getCartId() {
+    const cartId = localStorage.getItem('cart_id');
+    return cartId ? parseInt(cartId, 10) : null;
+  }
+
   clearCustomer() {
-    this.cartService.clearCart();
+    this.cartService.callearCart();
     this.customerData = null;
     localStorage.removeItem('customerData');
     localStorage.removeItem('cart_id');
@@ -44,6 +53,10 @@ export class SessionService {
   }
 
   getUser() {
+    const data = localStorage.getItem('userData');
+    if (data) {
+      this.userData = JSON.parse(data);
+    }
     return this.userData;
   }
 

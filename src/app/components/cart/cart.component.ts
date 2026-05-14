@@ -25,6 +25,9 @@ export class CartComponent {
   totalPrice$: Observable<number> = this.cartService.totalPrice$;
   totalCount$: Observable<number> = this.cartService.totalItems$;
 
+  ngOnInit() {
+  }
+
   updateQty(item: CartItem, delta: number): void {
     this.cartService.updateQuantity(item.productId, item.attributeId, delta);
   }

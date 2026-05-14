@@ -208,6 +208,32 @@ export function buildCartXML(data: PrestashopCart): string {
 </prestashop>`;
 }
 
+export function buildCartUpdateXML(data: PrestashopCart): string {
+  const cartRows = data.associations.cart_rows.map((row) => buildCartRowXML(row)).join('\n');
+
+  const dateUpdate = formatPrestashopDate(new Date());
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id><![CDATA[${escapeCDATA(data.id ?? '')}]]></id>
+        <id_currency><![CDATA[${escapeCDATA(data.id_currency)}]]></id_currency>
+        <id_lang><![CDATA[${escapeCDATA(data.id_lang)}]]></id_lang>
+        <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
+        <id_shop>1</id_shop>
+        <id_shop_group>1</id_shop_group>
+        <date_upd><![CDATA[${escapeCDATA(dateUpdate)}]]></date_upd>
+        <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
+        <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}
+
 
 export function buildUserCartXML(cartItems: CartItem[]): string {
   const cartRows = cartItems.map((item) => buildCartRowXML({
@@ -243,12 +269,18 @@ export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): s
     quantity: item.quantity
   })).join('\n');
 
+  const dateUpdate = formatPrestashopDate(new Date());
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
     <cart>
         <id><![CDATA[${cartId}]]></id>
         <id_currency><![CDATA[1]]></id_currency>
+        <id_customer><![CDATA[0]]></id_customer>
+        <id_shop>1</id_shop>
+        <id_shop_group>1</id_shop_group>
         <id_lang><![CDATA[1]]></id_lang>
+        <date_upd><![CDATA[${dateUpdate}]]></date_upd>
         <associations>
             <cart_rows>
                 ${cartRows}
@@ -256,4 +288,11 @@ export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): s
         </associations>
     </cart>
 </prestashop>`;
+}
+
+function formatPrestashopDate(date: Date): string {
+  return date
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ');
 }

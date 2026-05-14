@@ -6,7 +6,7 @@ import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'loginadmin', pathMatch: 'full' },
+  { path: '', redirectTo: 'products', pathMatch: 'full' },
   {
     path: 'loginadmin', component: LoginComponent ,
   },
