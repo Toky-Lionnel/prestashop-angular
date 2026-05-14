@@ -50,14 +50,12 @@ export class CartComponent {
   }
 
   checkout(): void {
-    // if (!this.sessionService.getCustomer()) {
-    //   alert('Veuillez vous connecter pour passer à la caisse.');
-    //   this.router.navigate(['/login']);
-    //   return;
-    // }
-    // console.log('Passage à la caisse...');
-    this.showLoginForm();
-    // Logique de redirection vers le paiement ici
+    if (!this.sessionService.getCustomer()) {
+      this.showLoginForm();
+      return;
+    } else {
+      this.router.navigate(['/checkout']);
+    }
   }
 
   trackByItem(_: number, item: CartItem): string {
@@ -68,13 +66,19 @@ export class CartComponent {
     this.router.navigate(['/products']); // Redirige vers l'accueil ou la boutique
   }
 
-
   showLoginForm () {
     this.dialog.open(LoginFrontComponent, {
       width: '500px',
       data: {},
       height : '500px',
     });
+  }
+
+
+  // sady mamafa cart no mamafa customer 
+  clearCustomerSession() {
+    this.sessionService.clearCustomer();
+    alert("Session client effacée !");
   }
 
 }

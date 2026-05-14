@@ -3,6 +3,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { AuthGuard } from './guards/auth.guard';
 import { ProductListComponent } from './pages/product-list/product-list.component';
 import { CartPageComponent } from './pages/cart-page/cart-page.component';
+import { CheckoutComponent } from './pages/checkout/checkout.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'loginadmin', pathMatch: 'full' },
@@ -14,6 +15,9 @@ export const routes: Routes = [
   },
   {
     path: 'cart', component : CartPageComponent
+  },
+  {
+    path: 'checkout', component : CheckoutComponent
   },
   {
     path: 'admin',

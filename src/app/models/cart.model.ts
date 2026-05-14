@@ -232,3 +232,28 @@ export function buildUserCartXML(cartItems: CartItem[]): string {
     </cart>
 </prestashop>`;
 }
+
+export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): string {
+  const cartRows = cartItems.map((item) => buildCartRowXML({
+    product_name: '',
+    id_product: item.productId,
+    product_attribute: '',
+    id_product_attribute: item.attributeId,
+    id_address_delivery: 0,
+    quantity: item.quantity
+  })).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id><![CDATA[${cartId}]]></id>
+        <id_currency><![CDATA[1]]></id_currency>
+        <id_lang><![CDATA[1]]></id_lang>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}

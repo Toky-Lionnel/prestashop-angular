@@ -20,11 +20,12 @@ export class LoginFrontComponent {
   errorMessage: string = '';
 
   private authFacade: AuthFacadeService = inject(AuthFacadeService);
+  private router : Router = inject(Router);
 
   constructor(private fb : FormBuilder) {
     this.loginForm = this.fb.group({
-      email: ['tokyrajaonarivony@gmail.com'],
-      password: ['dislOcoeur04*']
+      email: ['toky@gmail.com'],
+      password: ['']
     });
   }
 
@@ -37,6 +38,9 @@ export class LoginFrontComponent {
       this.errorMessage = this.authFacade.errorMessage || 'Email ou mot de passe incorrect.';
     }
 
+    if (success) {
+      this.router.navigate(['/checkout']);
+    }
   }
 
 

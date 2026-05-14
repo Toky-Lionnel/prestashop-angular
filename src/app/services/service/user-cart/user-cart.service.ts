@@ -18,6 +18,7 @@ export interface CartItem {
 export class UserCartService {
 
   private readonly STORAGE_KEY = 'cart';
+  private readonly CART_ID_KEY = 'cart_id';
 
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
   private cartService : CartService = inject(CartService);
@@ -59,23 +60,26 @@ export class UserCartService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-
-  async addCartToPrestashop(): Promise<void> {
-    const cartItems = this.cartSubject.value;
-
-    if (cartItems.length === 0) {
-      return;
-    }
-
-    await this.cartService.createCartUser(cartItems);
+  private getCartId(): number | null {
+    const value = localStorage.getItem(this.CART_ID_KEY);
+    return value ? Number(value) : null;
   }
 
+  private setCartId(cartId: number): void {
+    localStorage.setItem(
+      this.CART_ID_KEY,
+      cartId.toString()
+    );
+  }
 
-  addItem(item: CartItem): void {
+  async addItem(item: CartItem): Promise<void> {
+
+    let cartId = this.getCartId();
     const cart = [...this.cartSubject.value];
 
-    const existing = cart.find(
-      p => p.productId === item.productId && p.attributeId === item.attributeId
+    const existing = cart.find( p =>
+        p.productId === item.productId &&
+        p.attributeId === item.attributeId
     );
 
     if (existing) {
@@ -84,10 +88,18 @@ export class UserCartService {
       cart.push(item);
     }
 
+    if (!cartId) {
+      cartId = await this.cartService.createCartUser(cart);
+      this.setCartId(cartId || -1);
+    } else {
+      await this.cartService.updateCartUser(cart, cartId);
+    }
+
     this.cartSubject.next(cart);
     this.saveCart(cart);
   }
 
+  
   clear(): void {
     this.cartSubject.next([]);
     localStorage.removeItem(this.STORAGE_KEY);

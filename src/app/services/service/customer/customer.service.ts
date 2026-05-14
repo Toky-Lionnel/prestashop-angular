@@ -59,6 +59,21 @@ export class CustomerService {
   }
 
 
+  async getDetailsAddressByIdCustomer (id: number) : Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/addresses?filter[id_customer]=${id}&display=full`, {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const addresses = json?.prestashop?.addresses?.[0];
+    const address = addresses?.address?.[0];
+    console.log(address);
+
+    return address || null;
+  }
+
+
   async getIdCustomerByEmail (email: string) : Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/customers?filter[email]=${email}&display=[id]`, {

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { UserCartService } from '../user-cart/user-cart.service';
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +8,7 @@ export class SessionService {
 
   private userData: any = null;
   private customerData: any = null;
+  private cartService : UserCartService = inject(UserCartService);
 
   constructor() {
     const stored = localStorage.getItem('userData');
@@ -28,6 +30,7 @@ export class SessionService {
   }
 
   clearCustomer() {
+    this.cartService.clearCart();
     this.customerData = null;
     localStorage.removeItem('customerData');
   }
