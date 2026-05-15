@@ -109,10 +109,16 @@ export class ProductVitrineComponent {
   }
 
 
-  updateStock() : void {
-    console.log(this.product.id);
-    console.log(this.selectedCombination?.id);
-    console.log(this.quantity);
+  async updateStock() : Promise<void> {
+    const stocks = await this.stockService.getStockByIdProductAndAttribute(this.product.id, this.selectedCombination?.id ?? 0);
+
+    const idStock = stocks.id[0];
+    const quantite_actuel = Number(stocks.quantity[0]);
+    const quantite_ajoute = Number(this.quantity);
+    const quantite_final = quantite_actuel + quantite_ajoute;
+
+    await this.stockService.updateStockWithIdProduct(idStock, this.product.id, quantite_final, this.selectedCombination?.id ?? 0);
+    alert ('Stock mis à jour !');
   }
 
   private getDefaultCombination(product: VitrineProductDetail): VitrineProductCombination | null {

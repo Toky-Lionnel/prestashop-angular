@@ -96,5 +96,18 @@ export class StocksService {
   }
 
 
+  async getStockByIdProductAndAttribute(id_product: number, id_product_attribute: number = 0): Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/stock_availables?filter[id_product]=${id_product}&filter[id_product_attribute]=${id_product_attribute}&display=full`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockAvailables = responseData?.prestashop?.stock_availables?.[0]?.stock_available;
+    if (!stockAvailables) return null;
+
+    const stock = Array.isArray(stockAvailables) ? stockAvailables[0] : stockAvailables;
+    return stock;
+  }
+
+
 
 }
