@@ -1,0 +1,63 @@
+<div class="dialog-container">
+  <header mat-dialog-title class="dialog-header">
+    <div class="header-content">
+      <mat-icon>shopping_basket</mat-icon>
+      <h1>Historique des commandes</h1>
+    </div>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="dialog-body">
+    <mat-accordion multi="false" class="order-accordion">
+      <mat-expansion-panel *ngFor="let order of orders" class="order-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span class="order-id">#{{ order.id }}</span>
+            <span class="order-date">{{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            <span class="order-customer">{{ order.customer_email }}</span>
+            <span class="order-total">{{ order.total_paid | number:'1.2-2' }} €</span>
+            <span class="status-badge" [attr.data-status]="order.recent_statut">
+              {{ order.recent_statut }}
+            </span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="products-detail">
+          <table class="products-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th class="text-center">Quantité</th>
+                <th class="text-right">Prix Unitaire</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of order.products">
+                <td>
+                  <div class="product-info">
+                    <mat-icon>inventory_2</mat-icon>
+                    <span>{{ product.product_name }}</span>
+                  </div>
+                </td>
+                <td class="text-center">x {{ product.quantity }}</td>
+                <td class="text-right">{{ product.product_price | number:'1.2-2' }} €</td>
+                <td class="text-right font-bold">
+                  {{ (product.product_price * product.quantity) | number:'1.2-2' }} €
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-footer">
+    <button mat-stroked-button (click)="close()">Fermer</button>
+  </mat-dialog-actions>
+</div>

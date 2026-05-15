@@ -5,9 +5,6 @@ import { firstValueFrom } from "rxjs";
 import { SessionService } from "../../service/session/session.service";
 import { CustomerService } from "../../service/customer/customer.service";
 import bcrypt from 'bcryptjs';
-import { LoginFrontComponent } from "../../../components/login-front/login-front.component";
-import { MatDialogRef } from "@angular/material/dialog";
-
 
 @Injectable({
   providedIn: "root",

@@ -8,6 +8,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ProductVitrineComponent } from '../../components/product-vitrine/product-vitrine.component';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 import { Router } from '@angular/router';
+import { Order } from '../../models/OrderModel';
+import { OrderService } from '../../services/service/orders/order.service';
+import { OrdersComponent } from '../../components/orders/orders.component';
+import { SessionService } from '../../services/service/session/session.service';
+import { CartService } from '../../services/service/cart/cart.service';
+import { LoginFrontComponent } from '../../components/login-front/login-front.component';
 @Component({
   selector: 'app-product-list',
   standalone: true,
@@ -27,6 +33,9 @@ export class ProductListComponent {
   private userCartService : UserCartService = inject(UserCartService);
   private dialog = inject(MatDialog);
   private router : Router = inject(Router);
+  private orderService : OrderService = inject(OrderService);
+  private sessionService : SessionService = inject(SessionService);
+  private cartService : CartService = inject(CartService);
 
   cartLength = 0;
 
@@ -118,6 +127,32 @@ export class ProductListComponent {
 
   openCart(): void {
     this.router.navigate(['/cart']);
+  }
+
+  showLoginForm () {
+      this.dialog.open(LoginFrontComponent, {
+        width: '500px',
+        data: { redirectUrl: '/products' },
+        height : '500px',
+      });
+  }
+
+  async openOrders(): Promise<void> {
+    const idCustomer = this.sessionService.getCustomer()?.id;
+    if (!idCustomer) {
+      this.showLoginForm();
+      return;
+    }
+
+    const orders : Order [] = await this.orderService.getOrdersFull(undefined,idCustomer);
+    const carts : Order [] = await this.cartService.getCartNonCommandes(idCustomer) || [];
+    this.dialog.open(OrdersComponent, {
+      width: '800px',        // Largeur adaptée pour le tableau
+      maxWidth: '95vw',      // Sécurité pour le mobile
+      maxHeight: '90vh',     // Évite que la modale ne dépasse de l'écran
+      data: [...orders, ...carts], // Injection des données dans MAT_DIALOG_DATA
+      panelClass: 'custom-dialog-container' // Optionnel : pour du style spécifique
+    });
   }
 
 }

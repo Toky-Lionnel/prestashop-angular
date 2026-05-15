@@ -71,7 +71,7 @@ export class CartComponent {
   showLoginForm () {
     this.dialog.open(LoginFrontComponent, {
       width: '500px',
-      data: {},
+      data: { redirectUrl: '/checkout' },
       height : '500px',
     });
   }

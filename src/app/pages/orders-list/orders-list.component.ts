@@ -87,6 +87,13 @@ export class OrdersListComponent {
   }
 
   async toggleOrderDetails(order: Order): Promise<void> {
+
+    if (order.recent_statut !== 'Non commandé') {
+      const products = order.products.map((p) => `Produit: ${p.product_name}, Prix: ${p.product_price}, Quantité: ${p.quantity}`).join('\n');
+      alert(products);
+      return;
+    }
+
     const details = await this.cartService.getCartDetails(order);
     const products = details.products.map((p) => `Produit: ${p.product_name}, Prix: ${p.product_price}, Quantité: ${p.quantity}`).join('\n');
 

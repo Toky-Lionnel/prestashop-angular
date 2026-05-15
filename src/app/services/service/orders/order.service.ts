@@ -18,10 +18,10 @@ export class OrderService {
 
   constructor() {}
 
-  async getOrdersFull(date?: string): Promise<Order[]> {
+  async getOrdersFull(date?: string, id_customer?: number): Promise<Order[]> {
     this.orderStateService.loadOrderStates();
 
-    const ids = await this.getOrderIds(date);
+    const ids = await this.getOrderIds(date, id_customer);
     const promises: Promise<Order>[] = [];
 
     for (let i = 0; i < ids.length; i++) {
@@ -31,13 +31,17 @@ export class OrderService {
     return Promise.all(promises);
   }
 
-  private async getOrderIds(date?: string): Promise<number[]> {
+  private async getOrderIds(date?: string, id_customer?: number): Promise<number[]> {
     const api = this.authInterceptor.getApi();
 
     let url = '/api/orders';
 
     if (date) {
       url += `?date=1&filter[date_add]=[${date} 00:00:00,${date} 23:59:59]`;
+    }
+
+    if (id_customer) {
+      url += `${url.includes('?') ? '&' : '?'}filter[id_customer]=[${id_customer}]`;
     }
 
     const response = await api.get(url, {

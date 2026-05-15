@@ -129,9 +129,15 @@ export class CartService {
   }
 
 
-  async getAllCarts() : Promise<any[] | null> {
+  async getAllCarts(id_customer ?: number): Promise<any[] | null> {
     const api = this.interceptor.getApi();
-    const response = await api.get('/api/carts?display=full', {
+    let url = '/api/carts?display=full';
+
+    if (id_customer) {
+      url += `${url.includes('?') ? '&' : '?'}filter[id_customer]=[${id_customer}]`;
+    }
+
+    const response = await api.get(url, {
       responseType: 'text'
     });
 
@@ -141,9 +147,9 @@ export class CartService {
   }
 
 
-  async getCartNonCommandes(): Promise<any[] | null> {
+  async getCartNonCommandes(id_customer?: number): Promise<any[] | null> {
     try {
-      const carts = await this.getAllCarts() || [];
+      const carts = await this.getAllCarts(id_customer) || [];
       let orders = await this.orderService.getAllOrdersForCart() || [];
 
       const orderedId = new Set <number>();
@@ -167,8 +173,8 @@ export class CartService {
   }
 
 
-  async getCartMapped (): Promise<Order[]> {
-    const carts = await this.getCartNonCommandes() || [];
+  async getCartMapped (id_customer ?: number): Promise<Order[]> {
+    const carts = await this.getCartNonCommandes(id_customer) || [];
     const products: Order[] = [];
 
     for (const cart of carts) {
