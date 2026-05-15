@@ -12,6 +12,7 @@ import {
 import { parseStringPromise } from 'xml2js';
 import { CategoriesService } from '../categories/categories.service';
 import { AttributeService } from '../attribute/attribute.service';
+import { StocksService } from '../stocks/stocks.service';
 
 const VITRINE_DISPLAY = '[id,name,price,id_default_image,id_category_default,available_date]';
 
@@ -25,6 +26,7 @@ export class ProductService {
   private interceptor: AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
   private categoriesService: CategoriesService = inject(CategoriesService);
   private attributeService: AttributeService = inject(AttributeService);
+  private stocksService: StocksService = inject(StocksService);
 
   async createProduct(product: PrestashopProduct) {
     const api = this.interceptor.getApi();
@@ -217,20 +219,56 @@ export class ProductService {
 
     const categoryMap = categoryNameById ?? new Map((await this.categoriesService.getAll()).map((category) => [category.id, category.name] as const));
 
+    const [images, combinations, productStock] = await Promise.all([
+      this.loadProductImages(idProduct),
+      this.loadProductCombinationsWithStock(idProduct),
+      this.stocksService.getStockQuantity(idProduct)
+    ]);
+
+    const detail = mapPrestashopProductToDetail(product, {
+      categoryNameById: categoryMap,
+      images,
+      combinations
+    });
+
+    detail.stock_available = productStock;
+    return detail;
+  }
+
+  private async loadProductImages(idProduct: number) {
+    const api = this.interceptor.getApi();
     const imagesResponse = await api.get(`/api/images/products/${idProduct}`, {
       responseType: 'text'
     });
     const imagesData = await parseStringPromise(imagesResponse.data);
-    const images = mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
+    return mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
+  }
 
-    const combinationsResponse = await api.get(`/api/combinations?filter[id_product]=${idProduct}&display=full`, {
-      responseType: 'text'
-    });
+  private async loadProductCombinationsWithStock(idProduct: number) {
+    const api = this.interceptor.getApi();
+    const combinationsResponse = await api.get(
+      `/api/combinations?filter[id_product]=${idProduct}&display=full`,
+      {
+        responseType: 'text'
+      }
+    );
     const combinationsData = await parseStringPromise(combinationsResponse.data);
     const rawCombinations = combinationsData?.prestashop?.combinations?.[0]?.combination ?? [];
     const combinationsArray = Array.isArray(rawCombinations) ? rawCombinations : [rawCombinations];
 
+    const attributeValueIds = this.extractAttributeValueIds(combinationsArray);
+    const attributeLookupById = await this.loadAttributeLookup(attributeValueIds);
+
+    return Promise.all(
+      combinationsArray
+        .filter(Boolean)
+        .map((combination: any) => this.mapCombinationWithStock(idProduct, combination, attributeLookupById))
+    );
+  }
+
+  private extractAttributeValueIds(combinationsArray: any[]): Set<number> {
     const attributeValueIds = new Set<number>();
+
     for (const combination of combinationsArray.filter(Boolean)) {
       const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
       const valuesArray = Array.isArray(optionValues) ? optionValues : [optionValues];
@@ -243,6 +281,10 @@ export class ProductService {
       }
     }
 
+    return attributeValueIds;
+  }
+
+  private async loadAttributeLookup(attributeValueIds: Set<number>) {
     const attributeLookupEntries = await Promise.all(
       Array.from(attributeValueIds).map(async (valueId) => {
         const lookup = await this.attributeService.getProductOptionValueById(valueId);
@@ -257,31 +299,35 @@ export class ProductService {
       }
     }
 
-    const combinations = combinationsArray
-      .filter(Boolean)
-      .map((combination: any) => {
-        const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
-        const valuesArray = Array.isArray(optionValues) ? optionValues : [optionValues];
+    return attributeLookupById;
+  }
 
-        const attributeNameById = new Map<number, { attributeName: string; groupName: string | null }>();
-        for (const value of valuesArray.filter(Boolean)) {
-          const valueId = Number(value?.id?.[0] ?? 0);
-          const attributeLookup = attributeLookupById.get(valueId);
-          if (valueId > 0 && attributeLookup) {
-            attributeNameById.set(valueId, {
-              attributeName: attributeLookup.name,
-              groupName: attributeLookup.groupName
-            });
-          }
-        }
+  private async mapCombinationWithStock(
+    productId: number,
+    combination: any,
+    attributeLookupById: Map<number, any>
+  ) {
+    const combinationId = Number(combination?.id?.[0] ?? 0);
+    const stock = await this.stocksService.getStockQuantity(productId, combinationId);
 
-        return mapPrestashopCombinationToVitrineCombination(idProduct, combination, attributeNameById);
-      });
+    const optionValues = combination?.associations?.[0]?.product_option_values?.[0]?.product_option_value ?? [];
+    const valuesArray = Array.isArray(optionValues) ? optionValues : [optionValues];
 
-    return mapPrestashopProductToDetail(product, {
-      categoryNameById: categoryMap,
-      images,
-      combinations
-    });
+    const attributeNameById = new Map<number, { attributeName: string; groupName: string | null }>();
+    for (const value of valuesArray.filter(Boolean)) {
+      const valueId = Number(value?.id?.[0] ?? 0);
+      const attributeLookup = attributeLookupById.get(valueId);
+      if (valueId > 0 && attributeLookup) {
+        attributeNameById.set(valueId, {
+          attributeName: attributeLookup.name,
+          groupName: attributeLookup.groupName
+        });
+      }
+    }
+
+    const combinationData = mapPrestashopCombinationToVitrineCombination(productId, combination, attributeNameById);
+    combinationData.stock_available = stock;
+
+    return combinationData;
   }
 }

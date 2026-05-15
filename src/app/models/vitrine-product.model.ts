@@ -6,6 +6,7 @@ export interface VitrineProduct {
   categoryId: number;
   categoryName: string | null;
   tag : string | null;
+  stock_available: number | null;
 }
 
 export interface VitrineProductCategory {
@@ -32,6 +33,7 @@ export interface VitrineProductCombination {
   price: number;
   wholesalePrice: number | null;
   minimalQuantity: number;
+  stock_available: number | null;
   defaultOn: boolean;
   attributes: VitrineCombinationAttribute[];
   images: VitrineProductImage[];
@@ -161,6 +163,7 @@ export function mapPrestashopProductToDetail(
     categoryId,
     categoryName,
     tag,
+    stock_available: 0,
     reference: getText(product?.reference) || null,
     description: getLocalizedText(product?.description) || null,
     shortDescription: getLocalizedText(product?.description_short) || null,
@@ -250,6 +253,7 @@ export function mapPrestashopCombinationToVitrineCombination(
       const value = getText(combination?.wholesale_price);
       return value === '' ? null : toNumber(value, 0);
     })(),
+    stock_available : 0,
     minimalQuantity: toNumber(getText(combination?.minimal_quantity), 1),
     defaultOn: toNumber(getText(combination?.default_on), 0) === 1,
     attributes,
@@ -290,7 +294,8 @@ export function mapPrestashopGetAllResponseToVitrine(json: any): VitrineProduct[
       price,
       categoryId,
       categoryName: null,
-      tag
+      tag,
+      stock_available: 0
     } as VitrineProduct;
   });
 }

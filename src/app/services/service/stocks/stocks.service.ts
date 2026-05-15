@@ -82,6 +82,19 @@ export class StocksService {
     return id ? Number(id) : null;
   }
 
+  async getStockQuantity(id_product: number, id_product_attribute: number = 0): Promise<number> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/stock_availables?filter[id_product]=${id_product}&filter[id_product_attribute]=${id_product_attribute}&display=[quantity]`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockAvailables = responseData?.prestashop?.stock_availables?.[0]?.stock_available;
+    if (!stockAvailables) return 0;
+
+    const stock = Array.isArray(stockAvailables) ? stockAvailables[0] : stockAvailables;
+    const quantity = stock?.quantity?.[0] ?? stock?.quantity ?? 0;
+    return Number(quantity);
+  }
+
 
 
 }

@@ -27,6 +27,7 @@ export class ProductVitrineComponent {
     shortDescription: null,
     availableDate: null,
     categories: [],
+    stock_available : 0,
     images: [],
     combinations: []
   };
