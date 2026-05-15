@@ -1,4 +1,4 @@
-<div class="header-top">
+<div class="header-top" *ngIf="!isAdmin">
 	<button class="btn-cart" (click)="openCart()">
 		<span class="cart-label">🛒 Panier</span>
 		<span class="cart-badge">{{ cartLength }}</span>
@@ -10,7 +10,7 @@
 
 <section class="catalog-shell">
 	<header class="catalog-header">
-		<div>
+		<div *ngIf="isAdmin">
 			<p class="eyebrow">Catalogue produits</p>
 			<h1>Produits vitrine</h1>
 			<p class="subtitle">Une sélection claire des produits disponibles, avec image, prix et catégorie.</p>
@@ -21,7 +21,7 @@
 		</div>
 	</header>
 
-	<form class="catalog-filters" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+	<form *ngIf="!isAdmin" class="catalog-filters" [formGroup]="searchForm" (ngSubmit)="onSearch()">
 		<div class="filter-field">
 			<label for="name">Nom</label>
 			<input id="name" type="text" formControlName="name" placeholder="Rechercher un produit" />

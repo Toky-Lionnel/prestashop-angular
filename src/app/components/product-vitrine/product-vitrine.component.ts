@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { VitrineProductCombination, VitrineProductDetail } from '../../models/vitrine-product.model';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
+import { StocksService } from '../../services/service/stocks/stocks.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-product-vitrine',
@@ -13,6 +15,8 @@ import { UserCartService } from '../../services/service/user-cart/user-cart.serv
   styleUrls: ['./product-vitrine.component.scss']
 })
 export class ProductVitrineComponent {
+
+  @Input() isAdmin: boolean = false;
 
   private _product: VitrineProductDetail = {
     id: 0,
@@ -35,11 +39,10 @@ export class ProductVitrineComponent {
   selectedCombinationId: number | null = null;
   quantity = 1;
 
-
-
   private userCartService : UserCartService = inject(UserCartService);
-  private dialogRef = inject(MatDialogRef<ProductVitrineComponent>);
-
+  private dialogRef = inject(MatDialogRef<ProductVitrineComponent>,{ optional: true });
+  private stockService : StocksService = inject(StocksService);
+  private router: Router = inject(Router);
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
     if (data) {
@@ -98,14 +101,25 @@ export class ProductVitrineComponent {
       image: this.featuredImageUrl
     });
     alert('Produit ajouté au panier !');
-    this.dialogRef.close();
+    this.dialogRef?.close();
   }
 
   trackById(_: number, item: { id: number }): number {
     return item.id;
   }
 
+
+  updateStock() : void {
+    console.log(this.product.id);
+    console.log(this.selectedCombination?.id);
+    console.log(this.quantity);
+  }
+
   private getDefaultCombination(product: VitrineProductDetail): VitrineProductCombination | null {
     return product.combinations.find((combination) => combination.defaultOn) ?? null;
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/products']);
   }
 }

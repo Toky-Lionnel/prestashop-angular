@@ -1,3 +1,6 @@
+
+<button *ngIf="isAdmin === true" (click)="goBack()"> Retour à la liste  </button>
+
 <article class="sheet">
   <header class="sheet__header">
     <div class="sheet__title-area">
@@ -52,9 +55,16 @@
           />
         </div>
 
-        <button type="button" class="sheet__add-cart" (click)="addToCart()">
+        <button type="button" class="sheet__add-cart" (click)="addToCart()" *ngIf="isAdmin === false">
           Ajouter au panier
         </button>
+
+        <button type="button" class="sheet__add-cart" (click)="updateStock()" *ngIf="isAdmin === true">
+          Update stock
+        </button>
+
+
+
       </div>
     </aside>
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { ProductService } from '../../services/service/product/product.service';
 import { CategoriesService, CategoryOption } from '../../services/service/categories/categories.service';
@@ -7,7 +7,7 @@ import { VitrineProduct } from '../../models/vitrine-product.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ProductVitrineComponent } from '../../components/product-vitrine/product-vitrine.component';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Order } from '../../models/OrderModel';
 import { OrderService } from '../../services/service/orders/order.service';
 import { OrdersComponent } from '../../components/orders/orders.component';
@@ -37,6 +37,10 @@ export class ProductListComponent {
   private sessionService : SessionService = inject(SessionService);
   private cartService : CartService = inject(CartService);
 
+  private route : ActivatedRoute = inject(ActivatedRoute);
+  isAdmin = false;
+
+
   cartLength = 0;
 
   searchForm = this.formBuilder.group({
@@ -47,6 +51,7 @@ export class ProductListComponent {
   });
 
   async ngOnInit () {
+    this.isAdmin = this.route.snapshot.data['isAdmin'];
     try {
       this.userCartService.cart$.subscribe(cart => {
         this.cartLength = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -115,6 +120,11 @@ export class ProductListComponent {
 
 
   async openProductSheet(product: VitrineProduct) {
+    if (this.isAdmin) {
+      this.router.navigate(['/admin/add-stock', product.id]);
+      return;
+    }
+
     const productDetail = await this.productService.getProductDetailById(product.id);
     this.dialog.open(ProductVitrineComponent, {
       data: productDetail, // On passe l'objet product au composant
