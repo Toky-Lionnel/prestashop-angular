@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { VitrineProductCombination, VitrineProductDetail } from '../../models/vitrine-product.model';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
-import { StocksService } from '../../services/service/stocks/stocks.service';
 import { Router } from '@angular/router';
+import { StockFacadeService } from '../../services/facade/stockFacade/stock-facade.service';
 
 @Component({
   selector: 'app-product-vitrine',
@@ -41,7 +41,7 @@ export class ProductVitrineComponent {
 
   private userCartService : UserCartService = inject(UserCartService);
   private dialogRef = inject(MatDialogRef<ProductVitrineComponent>,{ optional: true });
-  private stockService : StocksService = inject(StocksService);
+  private stockServiceFacade : StockFacadeService = inject(StockFacadeService);
   private router: Router = inject(Router);
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
@@ -110,15 +110,7 @@ export class ProductVitrineComponent {
 
 
   async updateStock() : Promise<void> {
-    const stocks = await this.stockService.getStockByIdProductAndAttribute(this.product.id, this.selectedCombination?.id ?? 0);
-
-    const idStock = stocks.id[0];
-    const quantite_actuel = Number(stocks.quantity[0]);
-    const quantite_ajoute = Number(this.quantity);
-    const quantite_final = quantite_actuel + quantite_ajoute;
-
-    await this.stockService.updateStockWithIdProduct(idStock, this.product.id, quantite_final, this.selectedCombination?.id ?? 0);
-    alert ('Stock mis à jour !');
+    await this.stockServiceFacade.updateStockMouvement(this.product.id, this.selectedCombination?.id ?? 0, this.quantity, `Mise à jour du stock du produit ${this.product.name}`);
   }
 
   private getDefaultCombination(product: VitrineProductDetail): VitrineProductCombination | null {

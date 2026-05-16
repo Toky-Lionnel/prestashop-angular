@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <stock_mvt>
+        <id_product>
+            <![CDATA[]]>
+        </id_product>
+        <id_product_attribute>
+            <![CDATA[]]>
+        </id_product_attribute>
+        <id_currency>
+            <![CDATA[]]>
+        </id_currency>
+        <id_employee required="true" format="isUnsignedId">
+            <![CDATA[]]>
+        </id_employee>
+        <id_stock required="true" format="isUnsignedId">
+            <![CDATA[]]>
+        </id_stock>
+        <id_stock_mvt_reason required="true" format="isUnsignedId">
+            <![CDATA[]]>
+        </id_stock_mvt_reason>
+        <physical_quantity required="true" format="isUnsignedInt">
+            <![CDATA[]]>
+        </physical_quantity>
+        <sign required="true" format="isInt">
+            <![CDATA[]]>
+        </sign>
+        <price_te required="true" format="isPrice">
+            <![CDATA[]]>
+        </price_te>
+        <date_add required="true" format="isDate">
+            <![CDATA[]]>
+        </date_add>
+    </stock_mvt>
+</prestashop>

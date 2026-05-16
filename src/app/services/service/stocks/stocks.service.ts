@@ -3,6 +3,8 @@ import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterc
 import { parseStringPromise } from 'xml2js';
 import { PrestashopStockAvailable, buildStockXML } from '../../../models/stock.model';
 import {PrestashopProduct} from '../../../models/product.model';
+import { PrestashopStockMovement, buildStockMovementXML } from '../../../models/stock-mvt.model';
+import { PrestashopStockMovementReason, buildStockMovementReasonXML } from '../../../models/stock-mvt-reason.model';
 
 
 @Injectable({
@@ -13,6 +15,11 @@ export class StocksService {
   constructor() { }
 
   private interceptor : AxiosAuthInterceptor = inject (AxiosAuthInterceptor);
+
+  private extractCreatedId(responseData: any, resourceName: string): number | null {
+    const id = responseData?.prestashop?.[resourceName]?.[0]?.id?.[0];
+    return id ? Number(id) : null;
+  }
 
   async getIdStockProductsId (id_product : number) {
     const api = this.interceptor.getApi();
@@ -106,6 +113,36 @@ export class StocksService {
 
     const stock = Array.isArray(stockAvailables) ? stockAvailables[0] : stockAvailables;
     return stock;
+  }
+
+  async saveStockMovement(stockMovement: PrestashopStockMovement): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const xmlData = buildStockMovementXML(stockMovement);
+
+    const response = await api.post('/api/stock_movements', xmlData, {
+      headers: {
+        'Content-Type': 'application/xml',
+        'Accept': 'application/xml'
+      }
+    });
+
+    const responseData = await parseStringPromise(response.data);
+    return this.extractCreatedId(responseData, 'stock_movement');
+  }
+
+  async saveStockMovementReason(stockMovementReason: PrestashopStockMovementReason): Promise<number | null> {
+    const api = this.interceptor.getApi();
+    const xmlData = buildStockMovementReasonXML(stockMovementReason);
+
+    const response = await api.post('/api/stock_movement_reasons', xmlData, {
+      headers: {
+        'Content-Type': 'application/xml',
+        'Accept': 'application/xml'
+      }
+    });
+
+    const responseData = await parseStringPromise(response.data);
+    return this.extractCreatedId(responseData, 'stock_movement_reason');
   }
 
 
