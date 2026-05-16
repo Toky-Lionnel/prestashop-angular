@@ -9,52 +9,95 @@
     </button>
   </header>
 
-  <mat-dialog-content class="dialog-body">
-    <mat-accordion multi="false" class="order-accordion">
-      <mat-expansion-panel *ngFor="let order of orders" class="order-panel">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <span class="order-id">#{{ order.id }}</span>
-            <span class="order-date">{{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
-          </mat-panel-title>
-          <mat-panel-description>
-            <span class="order-customer">{{ order.customer_email }}</span>
-            <span class="order-total">{{ order.total_paid | number:'1.2-2' }} €</span>
-            <span class="status-badge" [attr.data-status]="order.recent_statut">
-              {{ order.recent_statut }}
-            </span>
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+  <mat-dialog-content class="dialog-body" [class.with-details]="currentOrderDetails">
+    <div class="content-wrapper">
+      <div class="orders-section">
+        <mat-accordion multi="false" class="order-accordion">
+          <mat-expansion-panel *ngFor="let order of orders" class="order-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span class="order-id">#{{ order.id }}</span>
+                <span class="order-date">{{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                <span class="order-total">{{ order.total_paid | number:'1.2-2' }} €</span>
+                <span class="status-badge" [attr.data-status]="order.recent_statut" *ngIf="order.recent_statut !== 'Non commandé' else noorder">
+                  {{ order.recent_statut }}
+                </span>
+                <ng-template #noorder>
+                  <span class="no-order">Non commandé</span>
+                </ng-template>
+              </mat-panel-description>
+              <mat-panel-description>
+                <button mat-raised-button color="primary" (click)="openDetails(order); $event.stopPropagation()" class="details-btn">
+                  <mat-icon>info</mat-icon>
+                  Voir détails
+                </button>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
 
-        <div class="products-detail">
-          <table class="products-table">
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th class="text-center">Quantité</th>
-                <th class="text-right">Prix Unitaire</th>
-                <th class="text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let product of order.products">
-                <td>
-                  <div class="product-info">
-                    <mat-icon>inventory_2</mat-icon>
-                    <span>{{ product.product_name }}</span>
-                  </div>
-                </td>
-                <td class="text-center">x {{ product.quantity }}</td>
-                <td class="text-right">{{ product.product_price | number:'1.2-2' }} €</td>
-                <td class="text-right font-bold">
-                  {{ (product.product_price * product.quantity) | number:'1.2-2' }} €
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="details-section" *ngIf="currentOrderDetails || isLoadingDetails">
+        <div class="details-header">
+          <h2>Détails de la commande</h2>
+          <button mat-icon-button (click)="closeDetails()" class="close-btn">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-      </mat-expansion-panel>
-    </mat-accordion>
+
+        <div class="details-content">
+          <div *ngIf="isLoadingDetails" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Chargement des détails...</p>
+          </div>
+
+          <div *ngIf="!isLoadingDetails && currentOrderDetails" class="products-container">
+            <div class="order-info">
+              <div class="info-item">
+                <span class="label">Numéro de commande:</span>
+                <span class="value">#{{ currentOrderDetails.order.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Date:</span>
+                <span class="value">{{ currentOrderDetails.order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Total:</span>
+                <span class="value font-bold">{{ currentOrderDetails.order.total_paid | number:'1.2-2' }} €</span>
+              </div>
+            </div>
+
+            <div class="products-list" *ngIf="currentOrderDetails.products && currentOrderDetails.products.length > 0; else noProducts">
+              <h3>Produits</h3>
+              <div class="product-item" *ngFor="let product of currentOrderDetails.products">
+                <div class="product-header">
+                  <span class="product-name">{{ product.product_name }}</span>
+                  <span class="product-qty">Qté: {{ product.quantity }}</span>
+                </div>
+                <div class="product-footer">
+                  <span class="product-price">{{ product.product_price | number:'1.2-2' }} € / unité</span>
+                  <span class="product-total">Sous-total: {{ (product.product_price * product.quantity) | number:'1.2-2' }} €</span>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #noProducts>
+              <div class="no-products-message" *ngIf="!currentOrderDetails.error">
+                <mat-icon>inbox</mat-icon>
+                <p>Aucun produit trouvé pour cette commande.</p>
+              </div>
+            </ng-template>
+
+            <div class="error-message" *ngIf="currentOrderDetails.error">
+              <mat-icon>error_outline</mat-icon>
+              <p>{{ currentOrderDetails.error }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-footer">

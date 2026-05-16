@@ -155,7 +155,7 @@ export class ProductListComponent {
     }
 
     const orders : Order [] = await this.orderService.getOrdersFull(undefined,idCustomer);
-    const carts : Order [] = await this.cartService.getCartNonCommandes(idCustomer) || [];
+    const carts : Order [] = await this.cartService.getCartMapped(idCustomer) || [];
     this.dialog.open(OrdersComponent, {
       width: '800px',        // Largeur adaptée pour le tableau
       maxWidth: '95vw',      // Sécurité pour le mobile
