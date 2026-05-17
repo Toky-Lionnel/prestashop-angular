@@ -172,7 +172,6 @@ export class StocksService {
     const stock : PrestashopStockMovementListItem [] = [];
 
     for (const s of stockMvts) {
-
       const prodInfo = await this.getIdProductAndIdProductAttributeByIdStock(Number(s.id_stock[0]._));
       const id_product = prodInfo?.id_product ?? null;
       const id_product_attribute = prodInfo?.id_product_attribute ?? null;
@@ -187,16 +186,138 @@ export class StocksService {
         date_add: s.date_add ? String(s.date_add[0]) : null,
       };
 
-      console.log(stockMouvement);
-
       stock.push(stockMouvement);
     }
 
     return stock;
   }
 
+  async getStockMovementsGroupedByDayProductAttribute(
+    id_product: number,
+    id_product_attribute: number = 0,
+    options?: {
+      startDate?: string; // YYYY-MM-DD
+      endDate?: string; // YYYY-MM-DD
+    }
+  ): Promise<PrestashopStockMovementGroup[]> {
+    const api = this.interceptor.getApi();
+
+    // Step 1: Get id_stock from id_product and id_product_attribute
+    const id_stock = await this.getIdStockByProductAndAttribute(id_product, id_product_attribute);
+    if (!id_stock) {
+      return [];
+    }
+
+    // Step 2: Fetch stock movements filtered by id_stock
+    const response = await api.get(`/api/stock_movements?filter[id_stock]=${id_stock}&display=full`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockMvts = responseData?.prestashop?.stock_mvts?.[0]?.stock_mvt;
+    if (!stockMvts) return [];
+
+    const items = Array.isArray(stockMvts) ? stockMvts : [stockMvts];
+
+    // Parse movements
+    const movements: PrestashopStockMovementListItem[] = items.map((s: any) => {
+      return {
+        id: Number(s.id?.[0] ?? 0),
+        id_product: Number(id_product),
+        id_product_attribute: Number(id_product_attribute),
+        id_stock: id_stock,
+        id_stock_mvt_reason: s.id_stock_mvt_reason ? Number(s.id_stock_mvt_reason[0]) : null,
+        physical_quantity: s.physical_quantity ? Number(s.physical_quantity[0]) : null,
+        sign: s.sign ? Number(s.sign[0]) : null,
+        date_add: s.date_add ? String(s.date_add[0]) : null,
+        reference: s.reference ? String(s.reference[0]) : null,
+      } as PrestashopStockMovementListItem;
+    });
+
+    // Step 3: Apply date filters if provided
+    let filtered = movements;
+    if (options) {
+      if (options.startDate) {
+        filtered = filtered.filter((m: any) => {
+          if (!m.date_add) return false;
+          const d = String(m.date_add).split(' ')[0];
+          return d >= options.startDate!;
+        });
+      }
+      if (options.endDate) {
+        filtered = filtered.filter((m: any) => {
+          if (!m.date_add) return false;
+          const d = String(m.date_add).split(' ')[0];
+          return d <= options.endDate!;
+        });
+      }
+    }
+
+    // Step 4: Group by day
+    const groups = new Map<string, PrestashopStockMovementGroup>();
+
+    for (const m of filtered) {
+      const date = m.date_add ? String(m.date_add).split(' ')[0] : new Date().toISOString().slice(0, 10);
+      const key = date;
+      const qty = (m.physical_quantity ?? 0) * (m.sign ?? 1);
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          date,
+          id_product: Number(id_product),
+          id_product_attribute: Number(id_product_attribute),
+          total_quantity: qty,
+          movements: [m],
+        });
+      } else {
+        const g = groups.get(key)!;
+        g.total_quantity += qty;
+        g.movements.push(m);
+      }
+    }
+
+    return Array.from(groups.values());
+  }
 
 
+  async getEvolutionStockProduct(
+    id_product: number,
+    id_product_attribute: number = 0,
+    options?: {
+      startDate?: string; // YYYY-MM-DD
+      endDate?: string; // YYYY-MM-DD
+    }
+  ): Promise<PrestashopStockMovementListItem[]> {
+    const api = this.interceptor.getApi();
 
+    // Step 1: Get id_stock from id_product and id_product_attribute
+    const id_stock = await this.getIdStockByProductAndAttribute(id_product, id_product_attribute);
+    if (!id_stock) {
+      return [];
+    }
 
+    // Step 2: Fetch stock movements filtered by id_stock
+    const response = await api.get(`/api/stock_movements?filter[id_stock]=${id_stock}&display=full`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockMvts = responseData?.prestashop?.stock_mvts?.[0]?.stock_mvt;
+    if (!stockMvts) return [];
+
+    const items = Array.isArray(stockMvts) ? stockMvts : [stockMvts];
+
+    // Parse movements
+    const movements: PrestashopStockMovementListItem[] = items.map((s: any) => {
+      return {
+        id: Number(s.id?.[0] ?? 0),
+        id_product: Number(id_product),
+        id_product_attribute: Number(id_product_attribute),
+        id_stock: id_stock,
+        id_stock_mvt_reason: s.id_stock_mvt_reason ? Number(s.id_stock_mvt_reason[0]) : null,
+        physical_quantity: s.physical_quantity ? Number(s.physical_quantity[0]) : null,
+        sign: s.sign ? Number(s.sign[0]) : null,
+        date_add: s.date_add ? String(s.date_add[0]) : null,
+        reference: s.reference ? String(s.reference[0]) : null,
+      } as PrestashopStockMovementListItem;
+    });
+
+    return movements;
+  }
 }

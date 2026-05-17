@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Inject, Input, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { VitrineProductCombination, VitrineProductDetail } from '../../models/vitrine-product.model';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 import { Router } from '@angular/router';
 import { StockFacadeService } from '../../services/facade/stockFacade/stock-facade.service';
 import { CartService } from '../../services/service/cart/cart.service';
 import { StocksService } from '../../services/service/stocks/stocks.service';
+import { StockEvolutionComponent } from '../stock-evolution/stock-evolution.component';
 
 @Component({
   selector: 'app-product-vitrine',
@@ -48,7 +49,7 @@ export class ProductVitrineComponent {
   private router: Router = inject(Router);
   private cartService : CartService = inject(CartService);
   private stockService : StocksService = inject(StocksService);
-
+  private dialog = inject(MatDialog);
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
     if (data) {
@@ -154,17 +155,19 @@ export class ProductVitrineComponent {
 
 
   async viewStockEvolution(): Promise<void> {
-    const stocks = await this.stockService.getStockMovements();
+    const stocks = await this.stockService.getEvolutionStockProduct(this.product.id, this.selectedCombination?.id ?? 0);
 
-    console.log(stocks);
-
-
-    // const stockEvolution = await this.stockServiceFacade.getEvolutionStock(this.product.id, this.selectedCombination?.id ?? 0);
-    // console.log(stockEvolution);
-    // alert('Évolution du stock affichée dans la console !');
+    this.dialog.open(StockEvolutionComponent, {
+      data: stocks, // On passe l'objet product au composant
+      width: '1200px', // Largeur de la popup
+      maxWidth: '100vw',
+      maxHeight: '90vh',
+      panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
+    });
   }
 
   goBack(): void {
     this.router.navigate(['/admin/products']);
   }
+
 }

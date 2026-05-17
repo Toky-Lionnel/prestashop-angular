@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #1e293b;
+}
+
+.stock-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.stock-header {
+  margin-bottom: 2rem;
+  h1 { font-size: 1.75rem; font-weight: 800; margin: 0; color: #0f172a; }
+  p { color: #64748b; margin-top: 0.35rem; font-size: 0.95rem; }
+}
+
+.table-wrapper {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  thead {
+    background-color: #f1f5f9;
+
+    th {
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background-color 0.2s;
+      &:hover { background-color: #f8fafc; }
+      &:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      font-size: 0.9rem;
+      color: #334155;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Badges ID
+.id-badge {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  &.attribute {
+    background-color: #e0f2fe;
+    color: #0369a1;
+  }
+}
+
+// Couleurs de colonnes d'états
+.text-success { color: #16a34a !important; }
+.text-danger { color: #dc2626 !important; }
+
+.net-positive {
+  color: #15803d;
+  background-color: #f0fdf4;
+}
+
+.net-negative {
+  color: #b91c1c;
+  background-color: #fef2f2;
+}
+
+.count-column {
+  color: #1e293b;
+}
+
+// Alignements utilitaires
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.text-muted { color: #94a3b8; }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem !important;
+  color: #64748b;
+  font-style: italic;
+}
