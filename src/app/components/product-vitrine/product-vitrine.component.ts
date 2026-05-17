@@ -113,7 +113,13 @@ export class ProductVitrineComponent {
 
   updateQuantity(value: string): void {
     const parsed = Number(value);
-    this.quantity = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
+    if (!Number.isFinite(parsed)) {
+      this.quantity = 1;
+      return;
+    }
+
+    const rounded = Math.floor(parsed);
+    this.quantity = this.isAdmin ? rounded : (rounded > 0 ? rounded : 1);
   }
 
   // TODO : prix and image should be those of the combination if they exist, not the product ones

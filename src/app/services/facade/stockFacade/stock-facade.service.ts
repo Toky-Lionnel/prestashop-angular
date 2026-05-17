@@ -14,20 +14,24 @@ export class StockFacadeService {
 
   async updateStockMouvement (id_product : number, id_product_attribute : number, quantity : number, reason : string) : Promise<void> {
 
-    let signe = -1;
+    let quantite_ajoute = Number(quantity);
 
     const stocks = await this.stockService.getStockByIdProductAndAttribute(id_product, id_product_attribute);
     const idStock = stocks.id[0];
     const quantite_actuel = Number(stocks.quantity[0]);
-    const quantite_ajoute = Number(quantity);
+
     const quantite_final = quantite_actuel + quantite_ajoute;
 
     await this.stockService.updateStockWithIdProduct(idStock, id_product, quantite_final, id_product_attribute);
     alert ('Stock mis à jour !');
 
-    if (quantity > 0) {
-      signe = 1;
+    let signe = 1;
+
+    if (quantite_ajoute < 0) {
+      signe = -1;
+      quantite_ajoute = -quantite_ajoute;
     }
+
 
     const stockMovementReason : PrestashopStockMovementReason = {
       sign: signe,
@@ -43,7 +47,7 @@ export class StockFacadeService {
       id_employee: 1,
       id_stock: Number(idStock),
       id_stock_mvt_reason: Number(idStockMvtReason),
-      physical_quantity: quantity,
+      physical_quantity: quantite_ajoute,
       sign: signe,
       price_te: 0
     };

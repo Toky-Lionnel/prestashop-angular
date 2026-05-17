@@ -45,10 +45,17 @@
       <div class="sheet__purchase-box">
         <div class="sheet__quantity-field">
           <label for="quantity">Quantité</label>
-          <input
+          <input *ngIf="isAdmin === false"
             id="quantity"
             type="number"
             min="1"
+            [ngModel]="quantity"
+            (ngModelChange)="updateQuantity($event)"
+            name="quantity"
+          />
+          <input *ngIf="isAdmin === true"
+            id="quantity"
+            type="number"
             [ngModel]="quantity"
             (ngModelChange)="updateQuantity($event)"
             name="quantity"
