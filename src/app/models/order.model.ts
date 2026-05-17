@@ -135,3 +135,34 @@ ${orderRows}
 }
 
 
+export function buildUpdateOrderXML(data: PrestashopOrder, id_order: number): string {
+  const orderRows = data.associations.order_rows.map((row) => buildOrderRowXML(row)).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <order>
+        <id><![CDATA[${escapeCDATA(id_order)}]]></id>
+        <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
+        <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <id_cart><![CDATA[${escapeCDATA(data.id_cart)}]]></id_cart>
+        <id_currency><![CDATA[${escapeCDATA(data.id_currency)}]]></id_currency>
+        <id_lang><![CDATA[${escapeCDATA(data.id_lang)}]]></id_lang>
+        <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
+        <id_carrier><![CDATA[${escapeCDATA(data.id_carrier)}]]></id_carrier>
+        <module><![CDATA[${escapeCDATA(data.module)}]]></module>
+        <payment><![CDATA[${escapeCDATA(data.payment)}]]></payment>
+        <total_paid><![CDATA[${escapeCDATA(data.total_paid)}]]></total_paid>
+        <total_paid_real><![CDATA[${escapeCDATA(data.total_paid_real)}]]></total_paid_real>
+        <total_products><![CDATA[${escapeCDATA(data.total_products)}]]></total_products>
+        <total_products_wt><![CDATA[${escapeCDATA(data.total_products_wt)}]]></total_products_wt>
+        <conversion_rate><![CDATA[${escapeCDATA(data.conversion_rate)}]]></conversion_rate>
+        <associations>
+            <order_rows>
+${orderRows}
+            </order_rows>
+        </associations>
+    </order>
+</prestashop>`;
+}
+
+

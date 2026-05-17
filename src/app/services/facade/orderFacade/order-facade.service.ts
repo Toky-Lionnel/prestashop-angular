@@ -14,6 +14,7 @@ import { AttributeService } from '../../service/attribute/attribute.service';
 import { CustomerCsvModel, uniqueCustomerCsvRows } from '../../../models/customer-csv.model';
 import { CustomerFacadeService } from '../customerFacade/customer-facade.service';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../../models/cart-csv.model';
+import { StockFacadeService } from '../stockFacade/stock-facade.service';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +27,7 @@ export class OrderFacadeService {
   private customerService : CustomerService = inject(CustomerService);
   private productService : ProductService = inject(ProductService);
   private attributeService : AttributeService = inject(AttributeService);
-
+  private stockFacadeService : StockFacadeService = inject(StockFacadeService);
   private customerFacade : CustomerFacadeService = inject(CustomerFacadeService);
 
   constructor() { }
@@ -83,15 +84,25 @@ export class OrderFacadeService {
         const idCart = await this.cartService.createCart(cart);
         cart.id = idCart;
 
-        const order : PrestashopOrder = transformCartToOrder(cart);
-        const idOrder = await this.orderService.createOrder(order);
-        await this.orderHistoryService.loadOrderStates();
+        if (cart.order_state !== '' || cart.order_state !== null || cart.order_state !== undefined) {
+          const order : PrestashopOrder = transformCartToOrder(cart);
+          const idOrder = await this.orderService.createOrder(order);
+          await this.orderHistoryService.loadOrderStates();
 
-        const idState = this.orderHistoryService.getOrderStateIdByName(order.order_state ?? '');
-        const orderState : PrestashopOrderHistory = transformOrderToOrderHistory(order);
-        orderState.id_order_state = idState ?? 0;
-        orderState.id_order = idOrder?? 0;
-        await this.orderHistoryService.createOrderState(orderState);
+          // creation mouvement de stock pour chaque ligne de commande
+          for (const row of cart.associations.cart_rows) {
+            await this.stockFacadeService.createStockMouvement(row.id_product ?? 0, row.id_product_attribute ?? 0, -row.quantity, 'Order creation');
+          }
+
+          // update de la date
+          await this.orderService.updateOrder({ ...order, date_add: cart.date_add }, Number(idOrder));
+
+          const idState = this.orderHistoryService.getOrderStateIdByName(order.order_state ?? '');
+          const orderState : PrestashopOrderHistory = transformOrderToOrderHistory(order);
+          orderState.id_order_state = idState ?? 0;
+          orderState.id_order = idOrder?? 0;
+          await this.orderHistoryService.createOrderState(orderState);
+        }
 
       } catch (error) {
         console.error('Error creating order for cart with line number', cart.line_number, ':', error);

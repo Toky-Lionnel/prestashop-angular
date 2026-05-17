@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Order } from '../../../models/OrderModel';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
-import { PrestashopOrder, buildOrderXML } from '../../../models/order.model';
+import { PrestashopOrder, buildOrderXML, buildUpdateOrderXML } from '../../../models/order.model';
 import { parseStringPromise } from 'xml2js';
 import { OrderStateService } from '../order-state/order-state.service';
 import { CustomerService } from '../customer/customer.service';
@@ -117,9 +117,6 @@ export class OrderService {
     const api = this.authInterceptor.getApi();
     const orderXML = buildOrderXML(order);
 
-    console.log(orderXML);
-
-
     try {
       const response = await api.post('/api/orders', orderXML, {
         headers: {
@@ -132,6 +129,26 @@ export class OrderService {
       return order?.id?.[0];
     } catch (error) {
       console.error('Error creating order:', error);
+      return null;
+    }
+  }
+
+  async updateOrder(order: PrestashopOrder, id_order : number): Promise<number | null> {
+    const api = this.authInterceptor.getApi();
+    const orderXML = buildUpdateOrderXML(order, id_order);
+
+    try {
+      const response = await api.put('/api/orders/' + id_order, orderXML, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+
+      const responseData = await parseStringPromise(response.data);
+      const order = responseData?.prestashop?.order?.[0];
+      return order?.id?.[0];
+    } catch (error) {
+      console.error('Error updating order:', error);
       return null;
     }
   }

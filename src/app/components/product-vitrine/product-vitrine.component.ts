@@ -147,6 +147,7 @@ export class ProductVitrineComponent {
 
   async updateStock() : Promise<void> {
     await this.stockServiceFacade.updateStockMouvement(this.product.id, this.selectedCombination?.id ?? 0, this.quantity, `Mise à jour du stock du produit ${this.product.name}`);
+    console.log("Mise à jour réussie");
   }
 
   private getDefaultCombination(product: VitrineProductDetail): VitrineProductCombination | null {

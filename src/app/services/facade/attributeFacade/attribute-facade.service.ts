@@ -1,11 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { CombinationCsvModel } from '../../../models/combination-csv.model';
-import { StocksService } from '../../service/stocks/stocks.service';
 import { AttributeService } from '../../service/attribute/attribute.service';
 import { ProductService } from '../../service/product/product.service';
 import { PrestashopCombination, PrestashopProductOption, PrestashopProductOptionValue } from '../../../models/attribute.model';
 import { AttributeModel, extractUniqueAttributes } from '../../../models/attribute-csv.model';
 import { TaxService } from '../../service/tax/tax.service';
+import { StockFacadeService } from '../stockFacade/stock-facade.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +14,17 @@ export class AttributeFacadeService {
 
   constructor() { }
 
-  private stocksService : StocksService = inject(StocksService);
   private attributeService : AttributeService = inject(AttributeService);
   private productService : ProductService = inject(ProductService);
   private taxService : TaxService = inject(TaxService);
+  private stockFacadeService : StockFacadeService = inject(StockFacadeService);
 
   async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[]) {
     for (const combo of combinations) {
       const idProduct = await this.productService.getIdProductByReference(combo.reference);
       if (!idProduct) continue;
-      const idStock = await this.stocksService.getIdStockProductsId(idProduct);
-      await this.stocksService.updateStockWithIdProduct(idStock, idProduct, combo.stock_initial, 0);
+
+      await this.stockFacadeService.updateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination');
     }
   }
 
@@ -148,16 +148,11 @@ export class AttributeFacadeService {
             continue;
           }
 
-          let idStock = await this.stocksService.getIdStockByProductAndAttribute(
-              idProduct,createdCombinationId
-            );
+          // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
+          await this.stockFacadeService.updateStockMouvement(
+            idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import'
+          );
 
-
-          if (idStock) {
-            await this.stocksService.updateStockWithIdProduct(
-              idStock,idProduct,combo.stock_initial,createdCombinationId
-            );
-          };
       }
     }
   }
