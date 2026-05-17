@@ -5,6 +5,7 @@ import { PrestashopStockAvailable, buildStockXML } from '../../../models/stock.m
 import {PrestashopProduct} from '../../../models/product.model';
 import { PrestashopStockMovement, buildStockMovementXML } from '../../../models/stock-mvt.model';
 import { PrestashopStockMovementReason, buildStockMovementReasonXML } from '../../../models/stock-mvt-reason.model';
+import { PrestashopStockMovementListItem, PrestashopStockMovementGroup } from '../../../models/stock-mvt-list.model';
 
 
 @Injectable({
@@ -115,6 +116,23 @@ export class StocksService {
     return stock;
   }
 
+  async getIdProductAndIdProductAttributeByIdStock(id_stock: number): Promise<{ id_product: number | null, id_product_attribute: number | null } | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/stock_availables/${id_stock}?display=full`);
+    const responseData = await parseStringPromise(response.data);
+
+    const stockAvailable = responseData?.prestashop?.stock_available?.[0];
+    if (!stockAvailable) return null;
+
+    const id_product = stockAvailable.id_product?.[0]._ ?? null;
+    const id_product_attribute = stockAvailable.id_product_attribute?.[0]._ ?? null;
+
+    return {
+      id_product: id_product ? Number(id_product) : null,
+      id_product_attribute: id_product_attribute ? Number(id_product_attribute) : 0
+    };
+  }
+
   async saveStockMovement(stockMovement: PrestashopStockMovement): Promise<number | null> {
     const api = this.interceptor.getApi();
     const xmlData = buildStockMovementXML(stockMovement);
@@ -144,6 +162,40 @@ export class StocksService {
     const responseData = await parseStringPromise(response.data);
     return this.extractCreatedId(responseData, 'stock_movement_reason');
   }
+
+  async getStockMovements(): Promise<PrestashopStockMovementListItem[] | null> {
+
+    const api = this.interceptor.getApi();
+    const response = await api.get('/api/stock_movements?display=full');
+    const responseData = await parseStringPromise(response.data);
+    const stockMvts = responseData?.prestashop?.stock_mvts?.[0]?.stock_mvt;
+    const stock : PrestashopStockMovementListItem [] = [];
+
+    for (const s of stockMvts) {
+
+      const prodInfo = await this.getIdProductAndIdProductAttributeByIdStock(Number(s.id_stock[0]._));
+      const id_product = prodInfo?.id_product ?? null;
+      const id_product_attribute = prodInfo?.id_product_attribute ?? null;
+
+      const stockMouvement : PrestashopStockMovementListItem = {
+        id: Number(s.id[0]),
+        id_product: id_product,
+        id_product_attribute: id_product_attribute,
+        id_stock: s.id_stock ? Number(s.id_stock[0]._) : null,
+        physical_quantity: s.physical_quantity ? Number(s.physical_quantity[0]) : null,
+        sign: s.sign ? Number(s.sign[0]) : null,
+        date_add: s.date_add ? String(s.date_add[0]) : null,
+      };
+
+      console.log(stockMouvement);
+
+      stock.push(stockMouvement);
+    }
+
+    return stock;
+  }
+
+
 
 
 

@@ -56,4 +56,5 @@ export class StockFacadeService {
     alert ('Mouvement de stock enregistré !');
   }
 
+
 }
