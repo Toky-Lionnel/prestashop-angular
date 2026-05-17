@@ -6,6 +6,7 @@ import { VitrineProductCombination, VitrineProductDetail } from '../../models/vi
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 import { Router } from '@angular/router';
 import { StockFacadeService } from '../../services/facade/stockFacade/stock-facade.service';
+import { CartService } from '../../services/service/cart/cart.service';
 
 @Component({
   selector: 'app-product-vitrine',
@@ -17,6 +18,7 @@ import { StockFacadeService } from '../../services/facade/stockFacade/stock-faca
 export class ProductVitrineComponent {
 
   @Input() isAdmin: boolean = false;
+  comboPrices: Record<number, number> = {};
 
   private _product: VitrineProductDetail = {
     id: 0,
@@ -43,12 +45,31 @@ export class ProductVitrineComponent {
   private dialogRef = inject(MatDialogRef<ProductVitrineComponent>,{ optional: true });
   private stockServiceFacade : StockFacadeService = inject(StockFacadeService);
   private router: Router = inject(Router);
+  private cartService : CartService = inject(CartService);
 
   constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: VitrineProductDetail) {
     if (data) {
       this.product = data;
     }
   }
+
+  async ngOnInit(): Promise<void> {
+    await this.loadComboPrices();
+  }
+
+  async loadComboPrices(): Promise<void> {
+  const requests = this.product.combinations.map(async (combo: any) => {
+    const result =
+      await this.cartService.getProductNameAndCombinationAndPriceTTC(
+        this._product.id,
+        combo.id ?? 0
+      );
+
+    this.comboPrices[combo.id] = result.price_ttc ?? 0;
+  });
+
+  await Promise.all(requests);
+}
 
   @Input()
   set product(value: VitrineProductDetail) {
@@ -72,7 +93,12 @@ export class ProductVitrineComponent {
 
   // TODO: fix price display when combination has price 0 but product has price > 0 (should display product price)
   get currentPrice(): number {
-    return this.product.price ?? this.selectedCombination?.price;
+    return this.product.price ?? this.selectedCombination?.price ?? 0;
+  }
+
+  async calculPrixCombo (combo : any) : Promise<number> {
+    const price = await this.cartService.getProductNameAndCombinationAndPriceTTC(this._product.id,combo.id ?? 0);
+    return price.price_ttc ?? 0;
   }
 
   selectImage(url: string | null): void {
@@ -97,7 +123,7 @@ export class ProductVitrineComponent {
       attributeId: this.selectedCombination?.id ?? 0,
       productNameWithAttribute: `${this.product.name}${this.selectedCombination ? ' - ' + this.selectedCombination.attributes.map(attr => attr.attributeName).join(', ') : ''}`,
       quantity: this.quantity,
-      price: this.product.price,
+      price: this.comboPrices[this.selectedCombination?.id ?? 0] ?? this.product.price,
       image: this.featuredImageUrl
     });
     alert('Produit ajouté au panier !');
