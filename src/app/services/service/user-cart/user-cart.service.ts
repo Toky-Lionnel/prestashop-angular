@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { CartService } from '../cart/cart.service';
-import { buildUserCartXML } from '../../../models/cart.model';
 
 export interface CartItem {
   productId: number;
@@ -80,6 +79,8 @@ export class UserCartService {
 
   async addItem(item: CartItem): Promise<void> {
 
+    const idCustomer : number = this.getCustomerId() ?? 0;
+
     let cartId = this.getCartId();
     const cart = [...this.cartSubject.value];
 
@@ -95,10 +96,10 @@ export class UserCartService {
     }
 
     if (!cartId) {
-      cartId = await this.cartService.createCartUser(cart);
+      cartId = await this.cartService.createCartUser(cart, idCustomer);
       this.setCartId(cartId || -1);
     } else {
-      await this.cartService.updateCartUser(cart, cartId);
+      await this.cartService.updateCartUser(cart, cartId, idCustomer);
     }
 
     this.cartSubject.next(cart);
@@ -129,6 +130,11 @@ export class UserCartService {
     );
     this.cartSubject.next(cart);
     this.saveCart(cart);
+  }
+
+  private getCustomerId(): number | null {
+    const customer = JSON.parse(localStorage.getItem('customerData') || 'null');
+    return customer ? customer.id : null;
   }
 
 }

@@ -23,8 +23,9 @@ export class AttributeFacadeService {
     for (const combo of combinations) {
       const idProduct = await this.productService.getIdProductByReference(combo.reference);
       if (!idProduct) continue;
+      const date_add = await this.productService.getDateAvailabilityByIdProduct(idProduct) ?? new Date().toISOString();
 
-      await this.stockFacadeService.updateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination');
+      await this.stockFacadeService.updateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination', date_add);
     }
   }
 
@@ -107,6 +108,8 @@ export class AttributeFacadeService {
         continue;
       }
 
+      const date_availability = await this.productService.getDateAvailabilityByIdProduct(idProduct) ?? new Date().toISOString();
+
       for (const combo of combos) {
         const attribute = uniqueAttributes.find(attr => attr.specificite === combo.specificite && attr.karazany === combo.karazany);
         if (!attribute) {
@@ -150,7 +153,7 @@ export class AttributeFacadeService {
 
           // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
           await this.stockFacadeService.updateStockMouvement(
-            idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import'
+            idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import', date_availability
           );
 
       }

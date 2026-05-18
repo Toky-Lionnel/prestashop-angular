@@ -66,6 +66,28 @@ export class ProductService {
     return Number(idProduct);
   }
 
+  async getDateAvailabilityByIdProduct(idProduct: number): Promise<string | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[id]=[${idProduct}]&display=[available_date]`,
+      {
+        responseType: 'text'
+      }
+    );
+
+    const json = await parseStringPromise(response.data);
+    const products = json?.prestashop?.products?.[0];
+    const product = products?.product?.[0];
+    const availableDate = product?.available_date?.[0];
+
+    if (!availableDate) {
+      console.error('No available date found for product ID:', idProduct);
+      return null;
+    }
+
+    return availableDate;
+  }
+
   async getIdProductByReference(reference: string): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(

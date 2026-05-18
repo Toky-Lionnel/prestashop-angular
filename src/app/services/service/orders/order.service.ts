@@ -282,8 +282,6 @@ export class OrderService {
       // Step 2: Construire le XML avec tous les champs récupérés et modifier la date_add
       const orderXML = buildUpdateOrderXMLFromResponse(orderData, id_order, newDateAdd);
 
-      console.log(orderXML);
-
       // Step 3: PUT avec les données modifiées
       const putResponse = await api.put('/api/orders/' + id_order, orderXML, {
         headers: {

@@ -317,4 +317,31 @@ export class StocksService {
 
     return movements;
   }
+
+  async getStockMovementById(id: number): Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/stock_movements/${id}?display=full`, {
+      responseType: 'text'
+    });
+
+    const responseData = await parseStringPromise(response.data);
+    return responseData?.prestashop?.stock_movement?.[0] ?? null;
+  }
+
+  async updateStockMovement(id: number, stockMovement: PrestashopStockMovement): Promise<boolean> {
+    const api = this.interceptor.getApi();
+    const xmlData = buildStockMovementXML(stockMovement);
+
+    try {
+      await api.put(`/api/stock_movements/${id}`, xmlData, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating stock movement:', error);
+      return false;
+    }
+  }
 }

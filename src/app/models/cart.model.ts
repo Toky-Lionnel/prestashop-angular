@@ -238,7 +238,7 @@ export function buildCartUpdateXML(data: PrestashopCart): string {
 }
 
 
-export function buildUserCartXML(cartItems: CartItem[]): string {
+export function buildUserCartXML(cartItems: CartItem[], id_customer : number): string {
   const cartRows = cartItems.map((item) => buildCartRowXML({
     product_name: '',
     id_product: item.productId,
@@ -253,6 +253,7 @@ export function buildUserCartXML(cartItems: CartItem[]): string {
     <cart>
         <id_currency><![CDATA[1]]></id_currency>
         <id_lang><![CDATA[1]]></id_lang>
+        <id_customer><![CDATA[${escapeCDATA(id_customer)}]]></id_customer>
         <associations>
             <cart_rows>
                 ${cartRows}
@@ -262,7 +263,7 @@ export function buildUserCartXML(cartItems: CartItem[]): string {
 </prestashop>`;
 }
 
-export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): string {
+export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number, id_customer: number): string {
   const cartRows = cartItems.map((item) => buildCartRowXML({
     product_name: '',
     id_product: item.productId,
@@ -279,7 +280,7 @@ export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): s
     <cart>
         <id><![CDATA[${cartId}]]></id>
         <id_currency><![CDATA[1]]></id_currency>
-        <id_customer><![CDATA[0]]></id_customer>
+        <id_customer><![CDATA[${escapeCDATA(id_customer)}]]></id_customer>
         <id_shop>1</id_shop>
         <id_shop_group>1</id_shop_group>
         <id_lang><![CDATA[1]]></id_lang>

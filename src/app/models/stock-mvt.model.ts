@@ -1,3 +1,5 @@
+import { formatPrestashopDate } from "../utils/prestashop-date.utils";
+
 const escapeCDATA = (value: string | number): string => {
   return String(value).replace(/]]>/g, ']]]]><![CDATA[>');
 };
@@ -62,7 +64,7 @@ export function buildStockMovementXML(data: PrestashopStockMovement): string {
             <![CDATA[${escapeCDATA(data.price_te ?? '')}]]>
         </price_te>
         <date_add required="true" format="isDate">
-            <![CDATA[${escapeCDATA(dateAdd)}]]>
+            <![CDATA[${escapeCDATA(formatPrestashopDate(dateAdd))}]]>
         </date_add>
     </stock_mvt>
 </prestashop>`;

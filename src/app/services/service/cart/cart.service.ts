@@ -86,9 +86,9 @@ export class CartService {
   }
 
 
-  async createCartUser(carts : CartItem[]): Promise<number | null> {
+  async createCartUser(carts : CartItem[], id_customer: number): Promise<number | null> {
     const api = this.interceptor.getApi();
-    const cartXML = buildUserCartXML(carts);
+    const cartXML = buildUserCartXML(carts, id_customer);
 
     try {
       const response = await api.post('/api/carts', cartXML, {
@@ -105,9 +105,9 @@ export class CartService {
     }
   }
 
-  async updateCartUser(carts : CartItem[], cartId: number): Promise<number | null> {
+  async updateCartUser(carts : CartItem[], cartId: number, id_customer: number): Promise<number | null> {
     const api = this.interceptor.getApi();
-    const cartXML = buildUserCartXMLUpdate(carts, cartId);
+    const cartXML = buildUserCartXMLUpdate(carts, cartId, id_customer);
 
     try {
       const response = await api.put(`/api/carts/${cartId}`, cartXML, {
