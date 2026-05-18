@@ -36,6 +36,49 @@ export function transformCustomerCsvRowsToModel(rows: any[]): CustomerCsvModel[]
   return rows.map(transformCustomerCsvRowToModel);
 }
 
+
+import { createEmptyValidationResult, ImportValidationResult, FieldValidationError } from './validation.model';
+
+export function validateCustomerCsvRows(rows: any[]): ImportValidationResult<CustomerCsvModel> {
+  const expectedKeys = ['date', 'nom', 'email', 'pwd', 'adresse', 'achat', 'etat', 'line_number'];
+  const result = createEmptyValidationResult<CustomerCsvModel>();
+
+  for (const rawRow of rows) {
+    const errors: FieldValidationError[] = [];
+    for (const key of expectedKeys) {
+      if (!(key in rawRow)) {
+        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}` });
+      }
+    }
+
+    const dateValue = (rawRow['date'] || '').trim();
+    if (dateValue) {
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (!dateRegex.test(dateValue)) {
+        errors.push({ field: 'date', code: 'format', message: 'format de date différente de DD/MM/YYYY pour date' });
+      }
+    }
+
+    const achatNum = toNumber(rawRow['achat'], NaN);
+    if (!isNaN(achatNum) && achatNum < 0) {
+      errors.push({ field: 'achat', code: 'invalid_value', message: 'montant négatif pour achat' });
+    }
+
+    const model = transformCustomerCsvRowToModel(rawRow);
+    if (errors.length > 0) {
+      result.invalidData.push({ lineNumber: model.line_number ?? 0, data: model, errors });
+    } else {
+      result.validData.push(model);
+    }
+  }
+
+  result.summary.total = rows.length;
+  result.summary.valid = result.validData.length;
+  result.summary.invalid = result.invalidData.length;
+
+  return result;
+}
+
 const normalizeValue = (value: string | undefined): string => {
   return (value || '').trim().toLowerCase();
 };

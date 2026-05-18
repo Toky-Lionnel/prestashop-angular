@@ -1,4 +1,5 @@
 import { PrestashopOrder } from './order.model';
+import { formatPrestashopDate } from '../utils/prestashop-date.utils';
 
 export interface PrestashopOrderHistory {
   id_order_state: number;
@@ -17,19 +18,13 @@ const escapeCDATA = (value: string | number): string => {
   return String(value).replace(/]]>/g, ']]]]><![CDATA[>');
 };
 
-const formatDateTime = (date: Date): string => {
-  const pad = (value: number): string => String(value).padStart(2, '0');
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-};
-
 export function transformToOrderHistory(id_order : number,
   id_order_state: number, date_add : string | null, line_number?: number): PrestashopOrderHistory {
   return {
     id_order_state: id_order_state,
     order_state : String(id_order_state),
     id_order: id_order,
-    date_add: date_add || formatDateTime(new Date()),
+    date_add: formatPrestashopDate(date_add ?? new Date()),
     line_number: line_number
   };
 }
@@ -43,7 +38,7 @@ export function transformOrderToOrderHistory(order : PrestashopOrder): Prestasho
     id_order: order.id ?? 0,
     order_state : order.order_state ?? '',
     line_number : order.line_number,
-    date_add: order.date_add || formatDateTime(new Date())
+    date_add: formatPrestashopDate(order.date_add ?? new Date())
   };
 }
 

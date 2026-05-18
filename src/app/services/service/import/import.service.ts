@@ -8,10 +8,11 @@ import { PrestashopCustomer, transformParsedCustomersToModels } from '../../../m
 import { PrestashopProduct, transformProductRowsToModel } from '../../../models/product.model';
 import { ImportValidationResult } from '../../../models/validation.model';
 import { getErrorsAsHTML } from '../../../utils/validation-error-display';
-import { ProductCsvModel, transformProductCsvRowsToModel } from '../../../models/product-csv.model';
-import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../../models/combination-csv.model';
-import { CustomerCsvModel, transformCustomerCsvRowsToModel } from '../../../models/customer-csv.model';
+import { ProductCsvModel, validateProductCsvRows } from '../../../models/product-csv.model';
+import { CombinationCsvModel, validateCombinationCsvRows } from '../../../models/combination-csv.model';
+import { CustomerCsvModel, validateCustomerCsvRows } from '../../../models/customer-csv.model';
 import { AttributeFacadeService } from '../../facade/attributeFacade/attribute-facade.service';
+import { ImagesService } from '../images/images.service';
 
 
 @Injectable({
@@ -19,13 +20,13 @@ import { AttributeFacadeService } from '../../facade/attributeFacade/attribute-f
 })
 export class ImportFileService {
 
-
   constructor() { }
 
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
   private customerFacadeService : CustomerFacadeService = inject(CustomerFacadeService);
   private orderFacadeService : OrderFacadeService = inject(OrderFacadeService);
   private attributeFacadeService : AttributeFacadeService = inject(AttributeFacadeService);
+  private imagesService : ImagesService = inject(ImagesService);
 
   async testImportOrder () {
     const backendData : BackendData = { filename : '', 'table_name' : 'Order', 'data' : ''};
@@ -34,7 +35,7 @@ export class ImportFileService {
   }
 
 
-  async importCSV (backendData: BackendData []): Promise<void> {
+  async importCSV (backendData: BackendData [], zipFile?: File): Promise<string> {
       const productData: BackendData | undefined = backendData.find(
         data => data.table_name.toLowerCase() === 'products'
       );
@@ -51,14 +52,46 @@ export class ImportFileService {
         throw new Error('Missing required import data');
       }
 
-      const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(productData.data));
+      const rawProducts = JSON.parse(productData.data || '[]');
+      const productValidation = validateProductCsvRows(rawProducts);
+
+      const rawCombinations = JSON.parse(combinationsData.data || '[]');
+      const combinationsValidation = validateCombinationCsvRows(rawCombinations);
+
+      const rawCustomers = JSON.parse(customerData.data || '[]');
+      const customersValidation = validateCustomerCsvRows(rawCustomers);
+
+      // Build errors HTML if any
+      let errorsHTML = '';
+      if (productValidation.invalidData.length > 0) {
+        errorsHTML += getErrorsAsHTML(productValidation, productData.filename || 'products');
+      }
+      if (combinationsValidation.invalidData.length > 0) {
+        errorsHTML += getErrorsAsHTML(combinationsValidation, combinationsData.filename || 'combinations');
+      }
+      if (customersValidation.invalidData.length > 0) {
+        errorsHTML += getErrorsAsHTML(customersValidation, customerData.filename || 'customers');
+      }
+
+      if (errorsHTML) {
+        // return the formatted HTML to the caller (component) to display
+        return errorsHTML;
+      }
+
+      const productsCSV: ProductCsvModel[] = productValidation.validData;
       await this.productFacadeService.importProductsBase(productsCSV);
 
-      const combinationsCSV : CombinationCsvModel [] = transformCombinationCsvRowsToModel(JSON.parse(combinationsData.data));
+      const combinationsCSV: CombinationCsvModel[] = combinationsValidation.validData;
       await this.attributeFacadeService.importProductCombinations(combinationsCSV);
 
-      const customersCSV : CustomerCsvModel [] = transformCustomerCsvRowsToModel(JSON.parse(customerData.data));
+      const customersCSV: CustomerCsvModel[] = customersValidation.validData;
       await this.orderFacadeService.importOrders(customersCSV);
+
+      if (zipFile) {
+        await this.imagesService.importImages(zipFile);
+      }
+
+      return ''; // no errors, empty string indicates success
   }
 
 

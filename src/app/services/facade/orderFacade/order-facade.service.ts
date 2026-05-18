@@ -83,10 +83,15 @@ export class OrderFacadeService {
 
         const idCart = await this.cartService.createCart(cart);
         cart.id = idCart;
+        await this.cartService.updateCart(cart, idCart ?? 0);
 
         if (cart.order_state !== '' || cart.order_state !== null || cart.order_state !== undefined) {
           const order : PrestashopOrder = transformCartToOrder(cart);
-          const idOrder = await this.orderService.createOrder(order);
+
+          const orderData = await this.orderService.createOrderData(order);
+
+          const idOrder = orderData?.id?.[0];
+
           await this.orderHistoryService.loadOrderStates();
 
           // creation mouvement de stock pour chaque ligne de commande
@@ -94,8 +99,8 @@ export class OrderFacadeService {
             await this.stockFacadeService.createStockMouvement(row.id_product ?? 0, row.id_product_attribute ?? 0, -row.quantity, 'Order creation');
           }
 
-          // update de la date
-          await this.orderService.updateOrder({ ...order, date_add: cart.date_add }, Number(idOrder));
+          // update de la date via GET + PUT
+          await this.orderService.updateOrderWithFullData(Number(idOrder), cart.date_add ?? '');
 
           const idState = this.orderHistoryService.getOrderStateIdByName(order.order_state ?? '');
           const orderState : PrestashopOrderHistory = transformOrderToOrderHistory(order);

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Order } from '../../../models/OrderModel';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
-import { PrestashopOrder, buildOrderXML, buildUpdateOrderXML } from '../../../models/order.model';
+import { PrestashopOrder, buildOrderXML, buildUpdateOrderXML, buildUpdateOrderXMLFromResponse } from '../../../models/order.model';
 import { parseStringPromise } from 'xml2js';
 import { OrderStateService } from '../order-state/order-state.service';
 import { CustomerService } from '../customer/customer.service';
@@ -133,6 +133,27 @@ export class OrderService {
     }
   }
 
+
+  async createOrderData(order: PrestashopOrder): Promise<any | null> {
+    const api = this.authInterceptor.getApi();
+    const orderXML = buildOrderXML(order);
+
+    try {
+      const response = await api.post('/api/orders', orderXML, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+
+      const responseData = await parseStringPromise(response.data);
+      const order = responseData?.prestashop?.order?.[0];
+      return order;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return null;
+    }
+  }
+
   async updateOrder(order: PrestashopOrder, id_order : number): Promise<number | null> {
     const api = this.authInterceptor.getApi();
     const orderXML = buildUpdateOrderXML(order, id_order);
@@ -241,7 +262,42 @@ export class OrderService {
     }
   }
 
+  async updateOrderWithFullData(id_order: number, newDateAdd: string): Promise<number | null> {
+    const api = this.authInterceptor.getApi();
 
+    try {
+      // Step 1: GET l'order complet
+      const getResponse = await api.get(`/api/orders/${id_order}`, {
+        responseType: 'text'
+      });
 
+      const getResponseParsed = await parseStringPromise(getResponse.data);
+      const orderData = getResponseParsed?.prestashop?.order?.[0];
+
+      if (!orderData) {
+        console.error('Failed to retrieve order:', id_order);
+        return null;
+      }
+
+      // Step 2: Construire le XML avec tous les champs récupérés et modifier la date_add
+      const orderXML = buildUpdateOrderXMLFromResponse(orderData, id_order, newDateAdd);
+
+      console.log(orderXML);
+
+      // Step 3: PUT avec les données modifiées
+      const putResponse = await api.put('/api/orders/' + id_order, orderXML, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+
+      const putResponseParsed = await parseStringPromise(putResponse.data);
+      const updatedOrder = putResponseParsed?.prestashop?.order?.[0];
+      return updatedOrder?.id?.[0];
+    } catch (error) {
+      console.error('Error updating order with full data:', error);
+      return null;
+    }
+  }
 
 }

@@ -51,14 +51,6 @@ export function validateCombinationCsvModel(model: CombinationCsvModel): { isVal
     errors.push('Référence est requise');
   }
 
-  if (!model.specificite || model.specificite.trim() === '') {
-    errors.push('Spécificité est requise');
-  }
-
-  if (!model.karazany || model.karazany.trim() === '') {
-    errors.push('Karazany est requis');
-  }
-
   if (model.stock_initial < 0) {
     errors.push('Stock initial ne peut pas être négatif');
   }
@@ -71,4 +63,39 @@ export function validateCombinationCsvModel(model: CombinationCsvModel): { isVal
     isValid: errors.length === 0,
     errors
   };
+}
+
+
+import { createEmptyValidationResult, ImportValidationResult, FieldValidationError } from './validation.model';
+
+export function validateCombinationCsvRows(rows: any[]): ImportValidationResult<CombinationCsvModel> {
+  const expectedKeys = ['reference', 'specificité', 'karazany', 'stock_initial', 'prix_vente_ttc', 'line_number'];
+  const result = createEmptyValidationResult<CombinationCsvModel>();
+
+  for (const rawRow of rows) {
+    const errors: FieldValidationError[] = [];
+    for (const key of expectedKeys) {
+      if (!(key in rawRow)) {
+        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}` });
+      }
+    }
+
+    const model = transformCombinationCsvRowToModel(rawRow);
+    const check = validateCombinationCsvModel(model);
+    if (!check.isValid) {
+      check.errors.forEach(e => errors.push({ field: 'row', code: 'invalid_value', message: e }));
+    }
+
+    if (errors.length > 0) {
+      result.invalidData.push({ lineNumber: model.line_number ?? 0, data: model, errors });
+    } else {
+      result.validData.push(model);
+    }
+  }
+
+  result.summary.total = rows.length;
+  result.summary.valid = result.validData.length;
+  result.summary.invalid = result.invalidData.length;
+
+  return result;
 }

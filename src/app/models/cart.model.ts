@@ -1,6 +1,7 @@
 
 import { CartItem } from '../services/service/user-cart/user-cart.service';
 import { CartCsvModel } from './cart-csv.model';
+import { formatPrestashopDate } from '../utils/prestashop-date.utils';
 
 export interface PrestashopCartRow {
   product_name: string;
@@ -199,6 +200,7 @@ export function buildCartXML(data: PrestashopCart): string {
         <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
         <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
         <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <date_add><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_add>
         <associations>
             <cart_rows>
                 ${cartRows}
@@ -211,7 +213,7 @@ export function buildCartXML(data: PrestashopCart): string {
 export function buildCartUpdateXML(data: PrestashopCart): string {
   const cartRows = data.associations.cart_rows.map((row) => buildCartRowXML(row)).join('\n');
 
-  const dateUpdate = formatPrestashopDate(new Date());
+  const dateUpdate = formatPrestashopDateCart(new Date());
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -222,6 +224,7 @@ export function buildCartUpdateXML(data: PrestashopCart): string {
         <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
         <id_shop>1</id_shop>
         <id_shop_group>1</id_shop_group>
+        <date_add><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_add>
         <date_upd><![CDATA[${escapeCDATA(dateUpdate)}]]></date_upd>
         <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
         <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
@@ -269,7 +272,7 @@ export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): s
     quantity: item.quantity
   })).join('\n');
 
-  const dateUpdate = formatPrestashopDate(new Date());
+  const dateUpdate = formatPrestashopDateCart(new Date());
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -290,7 +293,7 @@ export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number): s
 </prestashop>`;
 }
 
-function formatPrestashopDate(date: Date): string {
+function formatPrestashopDateCart(date: Date): string {
   return date
     .toISOString()
     .slice(0, 19)

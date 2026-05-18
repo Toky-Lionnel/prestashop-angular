@@ -1,4 +1,4 @@
-<!-- <button (click)="OnReset()">Reinitialisation</button> -->
+<button (click)="OnReset()">Reinitialisation</button>
 
 <button (click)="onLogout()">Deconnexion</button>
 
@@ -10,7 +10,7 @@
 
   <div class="import-block">
     <h2>Import venant d'Excel</h2>
-    <p class="hint">Vous devez choisir exactement 3 fichiers.</p>
+    <p class="hint">Vous devez choisir exactement 3 fichiers CSV et un fichier ZIP d'images.</p>
 
     <div class="field-row">
       <label for="excelFile1">Fichier 1</label>
@@ -30,8 +30,14 @@
       <div *ngIf="excelFiles[2]" class="file-name">Sélectionné: {{ excelFiles[2]?.name }}</div>
     </div>
 
+    <div class="field-row">
+      <label for="zipFile">Fichier ZIP images</label>
+      <input id="zipFile" type="file" accept=".zip" (change)="onZipFileChange($event)" />
+      <div *ngIf="zipFile" class="file-name">Sélectionné: {{ zipFile.name }}</div>
+    </div>
+
     <button type="button" class="btn" (click)="importExcelFiles()" [disabled]="isExcelImportDisabled">
-      Importer les 3 fichiers Excel
+      Importer les 3 fichiers CSV et le ZIP
     </button>
   </div>
 

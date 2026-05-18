@@ -66,9 +66,6 @@ export class StocksService {
     };
     const xmlData = buildStockXML(stockData);
 
-    console.log(xmlData);
-
-
     const response = await api.put(`/api/stock_availables/${id_stock}`, xmlData, {
       headers: {
         'Content-Type': 'application/xml'

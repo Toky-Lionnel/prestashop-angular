@@ -1,4 +1,5 @@
 import { PrestashopCart } from './cart.model';
+import { formatPrestashopDate } from '../utils/prestashop-date.utils';
 
 export interface PrestashopOrderRow {
   product_id: number;
@@ -149,18 +150,82 @@ export function buildUpdateOrderXML(data: PrestashopOrder, id_order: number): st
         <id_lang><![CDATA[${escapeCDATA(data.id_lang)}]]></id_lang>
         <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
         <id_carrier><![CDATA[${escapeCDATA(data.id_carrier)}]]></id_carrier>
-        <module><![CDATA[${escapeCDATA(data.module)}]]></module>
-        <payment><![CDATA[${escapeCDATA(data.payment)}]]></payment>
-        <total_paid><![CDATA[${escapeCDATA(data.total_paid)}]]></total_paid>
-        <total_paid_real><![CDATA[${escapeCDATA(data.total_paid_real)}]]></total_paid_real>
-        <total_products><![CDATA[${escapeCDATA(data.total_products)}]]></total_products>
-        <total_products_wt><![CDATA[${escapeCDATA(data.total_products_wt)}]]></total_products_wt>
-        <conversion_rate><![CDATA[${escapeCDATA(data.conversion_rate)}]]></conversion_rate>
+        <id_shop><![CDATA[1]]></id_shop>
+        <id_shop_group><![CDATA[0]]></id_shop_group>
+        <date_add><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_add>
+        <date_upd><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_upd>
         <associations>
             <order_rows>
 ${orderRows}
             </order_rows>
         </associations>
+    </order>
+</prestashop>`;
+}
+
+export function buildUpdateOrderXMLFromResponse(orderData: any, id_order: number, newDateAdd: string): string {
+  const xmlFields: string[] = [];
+  const ignoredFields = new Set([
+    'associations',
+    'current_state',
+    'id',
+    'id_shop',
+    'id_shop_group',
+    '$'
+  ]);
+
+  // Fonction pour extraire la valeur réelle d'un champ xml2js
+  const extractValue = (value: any): string => {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    // Si c'est un tableau, prendre le premier élément
+    if (Array.isArray(value)) {
+      value = value[0];
+    }
+
+    // Si c'est un objet avec une propriété '_' (xml2js text content)
+    if (typeof value === 'object' && value !== null && value._) {
+      return String(value._);
+    }
+
+    // Sinon convertir directement en string
+    return String(value);
+  };
+
+  // Parcourir tous les champs de l'objet retourné
+  for (const key in orderData) {
+    if (orderData.hasOwnProperty(key)) {
+      let value = orderData[key];
+
+      // Sauter les champs non modifiables ou ajoutés manuellement
+      if (ignoredFields.has(key)) {
+        continue;
+      }
+
+      // Modifier date_add
+      if (key === 'date_add') {
+        value = formatPrestashopDate(newDateAdd);
+      } else {
+        // Extraire la vraie valeur
+        value = extractValue(value);
+      }
+
+      // Construire le tag XML
+      xmlFields.push(`        <${key}><![CDATA[${escapeCDATA(value ?? '')}]]></${key}>`);
+    }
+  }
+
+  // Ajouter les champs spéciaux
+  xmlFields.push(`        <id><![CDATA[${escapeCDATA(id_order)}]]></id>`);
+  xmlFields.push(`        <id_shop><![CDATA[1]]></id_shop>`);
+  xmlFields.push(`        <id_shop_group><![CDATA[0]]></id_shop_group>`);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <order>
+${xmlFields.join('\n')}
     </order>
 </prestashop>`;
 }

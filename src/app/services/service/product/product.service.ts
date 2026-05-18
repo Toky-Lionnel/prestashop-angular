@@ -88,6 +88,10 @@ export class ProductService {
     return Number(idProduct);
   }
 
+  async getProductByReference(reference: string): Promise<number | null> {
+    return this.getIdProductByReference(reference);
+  }
+
   async getPrixBaseProductByReference(idProduct: number): Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(
