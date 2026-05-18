@@ -298,4 +298,31 @@ export class OrderService {
     }
   }
 
+
+  async getCartsPaiementEffectue(): Promise<any[] | null> {
+    const api = this.authInterceptor.getApi();
+    try {
+      const response = await api.get('/api/orders?filter[current_state]=[2]&display=[id_cart]', {
+        responseType: 'text'
+      });
+
+      const lists = [];
+
+      const orderData = await parseStringPromise(response.data);
+      const orders = orderData?.prestashop?.orders?.[0]?.order;
+      for (const o of orders) {
+        const id_cart = o.id_cart?.[0]?._;
+        if (id_cart) {
+          lists.push(Number(id_cart));
+        }
+      }
+
+      return lists;
+
+    } catch (error) {
+      console.error('Error fetching carts with payment:', error);
+      return null;
+    }
+  }
+
 }

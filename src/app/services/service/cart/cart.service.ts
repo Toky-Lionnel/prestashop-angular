@@ -282,4 +282,76 @@ export class CartService {
     }
   }
 
+  async getNombreProduitsReserve (id_cart: number): Promise<any> {
+    const cart = await this.getCartById(id_cart);
+    if (!cart) return 0;
+
+    let total = 0;
+    for (const product of cart.products) {
+      total += product.quantity;
+    }
+    return total;
+  }
+
+
+  async getReservedProducts(): Promise<Array<{ id_product: number; id_product_attribute: number; quantity: number }>> {
+    try {
+      const reservedCartIds = await this.orderService.getCartsPaiementEffectue() || [];
+      const uniqueCartIds = [...new Set(reservedCartIds.filter((id) => Number.isFinite(id)))];
+      
+      const reservedProducts = new Map<string, { id_product: number; id_product_attribute: number; quantity: number }>();
+
+      for (const cartId of uniqueCartIds) {
+        const cart = await this.getCartById(cartId);
+        const rows = cart?.associations?.[0]?.cart_rows?.[0]?.cart_row;
+
+        if (!rows) {
+          continue;
+        }
+
+        const list = Array.isArray(rows) ? rows : [rows];
+
+        for (const row of list) {
+          const idProduct = this.extractNumeric(row?.id_product?.[0]?._ ?? row?.id_product?.[0] ?? row?.id_product);
+          if (idProduct === null) {
+            continue;
+          }
+
+          const idProductAttribute = this.extractNumeric(row?.id_product_attribute?.[0]?._ ?? row?.id_product_attribute?.[0] ?? row?.id_product_attribute) ?? 0;
+          const quantity = this.extractNumeric(row?.quantity?.[0]?._ ?? row?.quantity?.[0] ?? row?.quantity) ?? 0;
+          const key = `${idProduct}:${idProductAttribute}`;
+
+          const existing = reservedProducts.get(key);
+          if (existing) {
+            existing.quantity += quantity;
+          } else {
+            reservedProducts.set(key, {
+              id_product: idProduct,
+              id_product_attribute: idProductAttribute,
+              quantity
+            });
+          }
+        }
+      }
+
+      return [...reservedProducts.values()];
+    } catch (error) {
+      console.error('Error getting reserved products:', error);
+      return [];
+    }
+  }
+
+
+  async getCartById(id_cart: number) {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/carts/${id_cart}?display=full`, {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const cart = json?.prestashop?.cart?.[0];
+    if (!cart) return null;
+
+    return cart;
+  }
 }

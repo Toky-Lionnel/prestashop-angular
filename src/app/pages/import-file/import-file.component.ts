@@ -74,6 +74,9 @@ export class ImportFileComponent {
   constructor() {}
 
   async ngOnInit() {
+    const productsReserve = await this.cartService.getReservedProducts();
+    console.log(productsReserve);
+
   }
 
   async OnReset() {
