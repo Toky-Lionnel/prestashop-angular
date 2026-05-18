@@ -44,6 +44,7 @@ export function transformProductCsvRowToModel(row: any): ProductCsvModel {
     taxe: extractPercentage(row['taxe'], 0),
     categorie: row['categorie']?.trim() || '',
     prix_achat: toNumber(row['prix_achat'], 0),
+    line_number: toNumber(row['line_number'], 1)
   };
 }
 
@@ -61,7 +62,7 @@ export function validateProductCsvRows(rows: any[]): ImportValidationResult<Prod
     const errors: FieldValidationError[] = [];
     for (const key of expectedKeys) {
       if (!(key in rawRow)) {
-        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}` });
+        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}`, invalidValue: rawRow[key] });
       }
     }
 
@@ -69,17 +70,17 @@ export function validateProductCsvRows(rows: any[]): ImportValidationResult<Prod
     if (dateValue) {
       const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
       if (!dateRegex.test(dateValue)) {
-        errors.push({ field: 'date_availability_produit', code: 'format', message: 'format de date différente de DD/MM/YYYY' });
+        errors.push({ field: 'date_availability_produit', code: 'format', message: 'format de date différente de DD/MM/YYYY', invalidValue: rawRow['date_availability_produit'] });
       }
     }
 
     const prixTtc = toNumber(rawRow['prix_ttc'], NaN);
     const prixAchat = toNumber(rawRow['prix_achat'], NaN);
     if (isNaN(prixTtc) || prixTtc < 0) {
-      errors.push({ field: 'prix_ttc', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_ttc' });
+      errors.push({ field: 'prix_ttc', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_ttc', invalidValue: rawRow['prix_ttc'] });
     }
     if (isNaN(prixAchat) || prixAchat < 0) {
-      errors.push({ field: 'prix_achat', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_achat' });
+      errors.push({ field: 'prix_achat', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_achat', invalidValue: rawRow['prix_achat'] });
     }
 
     const model = transformProductCsvRowToModel(rawRow);

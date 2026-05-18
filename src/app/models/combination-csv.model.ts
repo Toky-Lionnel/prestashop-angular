@@ -69,21 +69,21 @@ export function validateCombinationCsvModel(model: CombinationCsvModel): { isVal
 import { createEmptyValidationResult, ImportValidationResult, FieldValidationError } from './validation.model';
 
 export function validateCombinationCsvRows(rows: any[]): ImportValidationResult<CombinationCsvModel> {
-  const expectedKeys = ['reference', 'specificité', 'karazany', 'stock_initial', 'prix_vente_ttc', 'line_number'];
+  const expectedKeys = ['reference', 'specificité', 'karazany', 'stock_initial', 'prix_vente_ttc'];
   const result = createEmptyValidationResult<CombinationCsvModel>();
 
   for (const rawRow of rows) {
     const errors: FieldValidationError[] = [];
     for (const key of expectedKeys) {
       if (!(key in rawRow)) {
-        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}` });
+        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}`, invalidValue: rawRow[key] });
       }
     }
 
     const model = transformCombinationCsvRowToModel(rawRow);
     const check = validateCombinationCsvModel(model);
     if (!check.isValid) {
-      check.errors.forEach(e => errors.push({ field: 'row', code: 'invalid_value', message: e }));
+      check.errors.forEach(e => errors.push({ field: 'row', code: 'invalid_value', message: e, invalidValue: rawRow }));
     }
 
     if (errors.length > 0) {

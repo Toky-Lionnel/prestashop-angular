@@ -28,7 +28,6 @@ export class ProductFacadeService {
   private stocksService: StocksService = inject(StocksService);
   private categoriesService: CategoriesService = inject(CategoriesService);
   private taxService: TaxService = inject(TaxService);
-  private attributeService: AttributeService = inject(AttributeService);
 
   constructor() {}
 
@@ -133,7 +132,6 @@ export class ProductFacadeService {
             },
           },
         };
-
         await this.productService.createProduct(prestashopProduct);
       }
     } catch (error) {

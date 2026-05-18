@@ -31,8 +31,6 @@ export interface PrestashopStockMovement {
 }
 
 export function buildStockMovementXML(data: PrestashopStockMovement): string {
-  const dateAdd = toIsoDateTime(data.date_add);
-
   return `<?xml version="1.0" encoding="UTF-8"?>
 <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
     <stock_mvt>
@@ -64,7 +62,46 @@ export function buildStockMovementXML(data: PrestashopStockMovement): string {
             <![CDATA[${escapeCDATA(data.price_te ?? '')}]]>
         </price_te>
         <date_add required="true" format="isDate">
-            <![CDATA[${escapeCDATA(formatPrestashopDate(dateAdd))}]]>
+            <![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]>
+        </date_add>
+    </stock_mvt>
+</prestashop>`;
+}
+
+export function buildStockUpdateMovementXML(data: PrestashopStockMovement, id_stock_mvt: number): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <stock_mvt>
+        <id>${escapeCDATA(id_stock_mvt)}</id>
+        <id_product>
+            <![CDATA[${escapeCDATA(data.id_product ?? '')}]]>
+        </id_product>
+        <id_product_attribute>
+            <![CDATA[${escapeCDATA(data.id_product_attribute ?? '')}]]>
+        </id_product_attribute>
+        <id_currency>
+            <![CDATA[${escapeCDATA(data.id_currency ?? '')}]]>
+        </id_currency>
+        <id_employee required="true" format="isUnsignedId">
+            <![CDATA[${escapeCDATA(data.id_employee ?? '')}]]>
+        </id_employee>
+        <id_stock required="true" format="isUnsignedId">
+            <![CDATA[${escapeCDATA(data.id_stock ?? '')}]]>
+        </id_stock>
+        <id_stock_mvt_reason required="true" format="isUnsignedId">
+            <![CDATA[${escapeCDATA(data.id_stock_mvt_reason ?? '')}]]>
+        </id_stock_mvt_reason>
+        <physical_quantity required="true" format="isUnsignedInt">
+            <![CDATA[${escapeCDATA(data.physical_quantity ?? '')}]]>
+        </physical_quantity>
+        <sign required="true" format="isInt">
+            <![CDATA[${escapeCDATA(data.sign)}]]>
+        </sign>
+        <price_te required="true" format="isPrice">
+            <![CDATA[${escapeCDATA(data.price_te ?? '')}]]>
+        </price_te>
+        <date_add required="true" format="isDate">
+            <![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]>
         </date_add>
     </stock_mvt>
 </prestashop>`;

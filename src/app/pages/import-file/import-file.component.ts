@@ -29,6 +29,7 @@ import { AttributeFacadeService } from '../../services/facade/attributeFacade/at
 import { CustomerCsvModel, validateCustomerCsvRows } from '../../models/customer-csv.model';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/cart-csv.model';
 import { TaxService } from '../../services/service/tax/tax.service';
+import { StocksService } from '../../services/service/stocks/stocks.service';
 
 @Component({
   selector: 'app-import-file',
@@ -68,10 +69,14 @@ export class ImportFileComponent {
   private sessionService : SessionService = inject(SessionService);
   private router: Router = inject(Router);
   private taxService : TaxService = inject(TaxService);
+  private stockService : StocksService = inject(StocksService);
 
   constructor() {}
 
   async ngOnInit() {
+    const stock = await this.stockService.getStockMovementById(321);
+    console.log(stock);
+
   }
 
   async OnReset() {

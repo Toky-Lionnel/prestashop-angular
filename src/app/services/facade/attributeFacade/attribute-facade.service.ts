@@ -151,10 +151,10 @@ export class AttributeFacadeService {
             continue;
           }
 
-          // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
-          await this.stockFacadeService.updateStockMouvement(
-            idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import', date_availability
-          );
+        // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
+        await this.stockFacadeService.updateStockMouvement(
+          idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import', date_availability
+        );
 
       }
     }

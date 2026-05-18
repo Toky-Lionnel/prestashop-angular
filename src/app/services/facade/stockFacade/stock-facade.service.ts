@@ -51,7 +51,38 @@ export class StockFacadeService {
       date_add: date_add
     };
 
-    await this.stockService.saveStockMovement(stockMovement);
+    const idStockMvt = await this.stockService.saveStockMovement(stockMovement);
+
+    console.log(`ID du mouvement de stock: ${idStockMvt} (updateStockMouvement)`);
+    console.log(`Date d'ajout: ${date_add} (updateStockMouvement)`);
+
+    if (!idStockMvt || !date_add) {
+      console.error('Failed to create stock movement or date is missing');
+      return;
+    }
+
+    // Step 2: GET le mouvement créé
+    const mvtData = await this.stockService.getStockMovementById(idStockMvt);
+
+    if (!mvtData) {
+      console.error('Failed to retrieve stock movement:', idStockMvt);
+      return;
+    }
+
+    const updatedMovement: PrestashopStockMovement = {
+      id_product: id_product,
+      id_product_attribute: id_product_attribute,
+      id_currency: mvtData.id_currency?.[0] ?? 1,
+      id_employee: mvtData.id_employee?.[0]._ ?? 1,
+      id_stock: Number(mvtData.id_stock?.[0]._ ?? idStock),
+      id_stock_mvt_reason: Number(mvtData.id_stock_mvt_reason?.[0]._ ?? idStockMvtReason),
+      physical_quantity: Number(mvtData.physical_quantity?.[0] ?? quantite_ajoute),
+      sign: Number(mvtData.sign?.[0] ?? signe),
+      price_te: Number(mvtData.price_te?.[0] ?? 0),
+      date_add: date_add
+    };
+
+    await this.stockService.updateStockMovement(idStockMvt, updatedMovement);
   }
 
 
@@ -86,38 +117,38 @@ export class StockFacadeService {
       physical_quantity: quantite_ajoute,
       sign: signe,
       price_te: 0,
-      date_add: ''
+      date_add: date_add
     };
 
     const idStockMvt = await this.stockService.saveStockMovement(stockMovement);
+    console.log(`ID du mouvement de stock: ${idStockMvt} (createStockMouvement)`);
+    console.log(`Date d'ajout: ${date_add} (createStockMouvement)`);
 
     if (!idStockMvt || !date_add) {
+      console.error('Failed to create stock movement or date is missing');
       return;
     }
 
     // Step 2: GET le mouvement créé
     const mvtData = await this.stockService.getStockMovementById(idStockMvt);
-
     if (!mvtData) {
       console.error('Failed to retrieve stock movement:', idStockMvt);
       return;
     }
 
-    // Step 3: Modifier la date_add et faire un PUT
-    mvtData.date_add = [formatPrestashopDate(date_add)];
-
     const updatedMovement: PrestashopStockMovement = {
       id_product: id_product,
       id_product_attribute: id_product_attribute,
       id_currency: mvtData.id_currency?.[0] ?? 1,
-      id_employee: mvtData.id_employee?.[0] ?? 1,
-      id_stock: Number(mvtData.id_stock?.[0] ?? idStock),
-      id_stock_mvt_reason: Number(mvtData.id_stock_mvt_reason?.[0] ?? idStockMvtReason),
+      id_employee: mvtData.id_employee?.[0]._ ?? 1,
+      id_stock: Number(mvtData.id_stock?.[0]._ ?? idStock),
+      id_stock_mvt_reason: Number(mvtData.id_stock_mvt_reason?.[0]._ ?? idStockMvtReason),
       physical_quantity: Number(mvtData.physical_quantity?.[0] ?? quantite_ajoute),
       sign: Number(mvtData.sign?.[0] ?? signe),
       price_te: Number(mvtData.price_te?.[0] ?? 0),
-      date_add: formatPrestashopDate(date_add)
+      date_add: date_add
     };
+
 
     await this.stockService.updateStockMovement(idStockMvt, updatedMovement);
   }

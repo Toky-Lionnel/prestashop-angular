@@ -5,6 +5,7 @@ export interface FieldValidationError {
   field: string;
   code: 'required' | 'format' | 'invalid_value' | 'out_of_range' | 'duplicate' | 'not_found';
   message: string;
+  invalidValue?: unknown;
 }
 
 /**

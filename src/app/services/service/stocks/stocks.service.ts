@@ -3,7 +3,7 @@ import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterc
 import { parseStringPromise } from 'xml2js';
 import { PrestashopStockAvailable, buildStockXML } from '../../../models/stock.model';
 import {PrestashopProduct} from '../../../models/product.model';
-import { PrestashopStockMovement, buildStockMovementXML } from '../../../models/stock-mvt.model';
+import { PrestashopStockMovement, buildStockMovementXML, buildStockUpdateMovementXML } from '../../../models/stock-mvt.model';
 import { PrestashopStockMovementReason, buildStockMovementReasonXML } from '../../../models/stock-mvt-reason.model';
 import { PrestashopStockMovementListItem, PrestashopStockMovementGroup } from '../../../models/stock-mvt-list.model';
 
@@ -133,7 +133,6 @@ export class StocksService {
   async saveStockMovement(stockMovement: PrestashopStockMovement): Promise<number | null> {
     const api = this.interceptor.getApi();
     const xmlData = buildStockMovementXML(stockMovement);
-
     const response = await api.post('/api/stock_movements', xmlData, {
       headers: {
         'Content-Type': 'application/xml',
@@ -142,7 +141,7 @@ export class StocksService {
     });
 
     const responseData = await parseStringPromise(response.data);
-    return this.extractCreatedId(responseData, 'stock_movement');
+    return responseData.prestashop.stock_mvt?.[0]?.id[0] ? Number(responseData.prestashop.stock_mvt?.[0]?.id[0]) : null;
   }
 
   async saveStockMovementReason(stockMovementReason: PrestashopStockMovementReason): Promise<number | null> {
@@ -325,12 +324,16 @@ export class StocksService {
     });
 
     const responseData = await parseStringPromise(response.data);
-    return responseData?.prestashop?.stock_movement?.[0] ?? null;
+    console.log(responseData);
+
+    return responseData?.prestashop?.stock_mvt?.[0] ?? null;
   }
 
   async updateStockMovement(id: number, stockMovement: PrestashopStockMovement): Promise<boolean> {
     const api = this.interceptor.getApi();
-    const xmlData = buildStockMovementXML(stockMovement);
+    const xmlData = buildStockUpdateMovementXML(stockMovement, id);
+
+    console.log(`Xml update : ${xmlData}`);
 
     try {
       await api.put(`/api/stock_movements/${id}`, xmlData, {
