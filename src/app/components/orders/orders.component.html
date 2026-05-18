@@ -19,16 +19,40 @@
                 <span class="order-id">#{{ order.id }}</span>
                 <span class="order-date">{{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
               </mat-panel-title>
-              <mat-panel-description>
-                <span class="order-total">{{ order.total_paid | number:'1.2-2' }} €</span>
-                <span class="status-badge" [attr.data-status]="order.recent_statut" *ngIf="order.recent_statut !== 'Non commandé' else noorder">
-                  {{ order.recent_statut }}
-                </span>
-                <ng-template #noorder>
-                  <span class="no-order">Non commandé</span>
-                </ng-template>
+              <mat-panel-description class="order-actions">
+                <div class="order-summary">
+                  <span class="order-total">{{ order.total_paid | number:'1.2-2' }} €</span>
+                  <span class="status-badge" [attr.data-status]="order.recent_statut" *ngIf="order.recent_statut !== 'Non commandé' else noorder">
+                    {{ order.recent_statut }}
+                  </span>
+                </div>
+
+                <div class="action-buttons">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--success"
+                    (click)="updateOrderStatus(order, 5)"
+                    *ngIf="order.recent_statut !== 'Livré' && order.recent_statut !== 'Annulée' && order.recent_statut !== 'Non commandé'">
+                    Livré
+                  </button>
+
+                  <button
+                    type="button"
+                    class="action-btn action-btn--danger"
+                    (click)="updateOrderStatus(order, 6)"
+                    *ngIf="order.recent_statut !== 'Annulée' && order.recent_statut !== 'Non commandé' && order.recent_statut !== 'Livré'">
+                    Annuler
+                  </button>
+
+                  <ng-template #noorder>
+                    <button type="button" class="action-btn action-btn--primary">
+                      Transformer en commande
+                    </button>
+                    <span class="no-order">Non commandé</span>
+                  </ng-template>
+                </div>
               </mat-panel-description>
-              <mat-panel-description>
+              <mat-panel-description class="details-action">
                 <button mat-raised-button color="primary" (click)="openDetails(order); $event.stopPropagation()" class="details-btn">
                   <mat-icon>info</mat-icon>
                   Voir détails

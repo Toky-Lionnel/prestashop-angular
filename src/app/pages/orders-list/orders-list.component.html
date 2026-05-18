@@ -56,21 +56,37 @@
             </td>
             <td>
               <div class="row-actions" *ngIf="!isCart(order)">
-                <label class="sr-only" [for]="'status-' + order.id">Changer le statut</label>
+                <!-- <label class="sr-only" [for]="'status-' + order.id">Changer le statut</label>
                 <select [id]="'status-' + order.id" [(ngModel)]="selectedStates[order.id]" [disabled]="pendingValidation[order.id]">
                   <option *ngFor="let state of orderStates" [ngValue]="state.id">{{ state.names[0].value }}</option>
                 </select>
 
                 <button type="button" (click)="onValidate(order)" [disabled]="pendingValidation[order.id]">
                   {{ pendingValidation[order.id] ? 'Mise à jour...' : 'Valider' }}
+                </button> -->
+
+                <button type="button" class="row-action-btn row-action-btn--success" (click)="updateOrderStatus(order, 5)">
+                  Livrer
                 </button>
-              </div>
+                <button type="button" class="row-action-btn row-action-btn--danger"  (click)="updateOrderStatus(order, 6)">
+                  Annuler
+                </button>
+
+
                <button
                   type="button"
                   class="details-button"
                   (click)="toggleOrderDetails(order)">
                   {{ expandedOrderId === order.id ? 'Masquer détails' : 'Voir détails' }}
                 </button>
+
+              </div>
+               <!-- <button
+                  type="button"
+                  class="details-button"
+                  (click)="toggleOrderDetails(order)">
+                  {{ expandedOrderId === order.id ? 'Masquer détails' : 'Voir détails' }}
+                </button> -->
             </td>
           </tr>
         </ng-container>

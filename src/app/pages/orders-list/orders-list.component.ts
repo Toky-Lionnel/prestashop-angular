@@ -120,4 +120,13 @@ export class OrdersListComponent {
     return 'secondary';
   }
 
+  async updateOrderStatus(order: Order, status: number) {
+    await this.orderStateService.updateOrderState(order.id, status);
+    // Mettre à jour le statut localement pour refléter le changement immédiatement
+    const updatedStatusName = this.orderStateService.getOrderStateNameById(status);
+    if (updatedStatusName) {
+      order.recent_statut = updatedStatusName;
+    }
+  }
+
 }

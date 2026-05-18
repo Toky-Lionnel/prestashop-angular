@@ -127,4 +127,19 @@ export class OrderStateService {
     return this.loadOrderStates();
   }
 
+  async updateOrderState (id_order: number, id_order_state: number): Promise<void> {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+            <request>
+              <id_order>${id_order}</id_order>
+              <idOrderState>${id_order_state}</idOrderState>
+            </request>`;
+
+    const api = this.interceptor.getApi();
+    await api.post('/index.php?fc=module&module=mon_module&controller=shiporder', xml, {
+      headers: {
+        'Content-Type': 'application/xml'
+      }
+    });
+  }
+
 }

@@ -1,4 +1,4 @@
-import { Order, OrderRow } from '../../models/OrderModel';
+import { Order } from '../../models/OrderModel';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CartService } from '../../services/service/cart/cart.service';
+import { OrderStateService } from '../../services/service/order-state/order-state.service';
 
 
 @Component({
@@ -32,6 +33,7 @@ export class OrdersComponent {
   private dialogRef = inject(MatDialogRef<OrdersComponent>);
   public orders: Order[] = inject(MAT_DIALOG_DATA);
   private cartService : CartService = inject(CartService);
+  private orderStateService : OrderStateService = inject(OrderStateService);
 
   public currentOrderDetails: any = null;
   public isLoadingDetails: boolean = false;
@@ -82,6 +84,16 @@ export class OrdersComponent {
   closeDetails() {
     this.currentOrderDetails = null;
   }
+
+  async updateOrderStatus(order: Order, status: number) {
+    await this.orderStateService.updateOrderState(order.id, status);
+    // Mettre à jour le statut localement pour refléter le changement immédiatement
+    const updatedStatusName = this.orderStateService.getOrderStateNameById(status);
+    if (updatedStatusName) {
+      order.recent_statut = updatedStatusName;
+    }
+  }
+
 
 }
 

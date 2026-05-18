@@ -74,9 +74,6 @@ export class ImportFileComponent {
   constructor() {}
 
   async ngOnInit() {
-    const stock = await this.stockService.getStockMovementById(321);
-    console.log(stock);
-
   }
 
   async OnReset() {

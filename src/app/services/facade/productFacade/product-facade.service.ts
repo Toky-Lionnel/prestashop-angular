@@ -2,11 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { ProductService } from '../../service/product/product.service';
 import { StocksService } from '../../service/stocks/stocks.service';
 import { PrestashopProduct } from '../../../models/product.model';
-import {
-  createEmptyValidationResult,
-  FieldValidationError,
-  ImportValidationResult,
-} from '../../../models/validation.model';
 import { CategoriesService } from '../../service/categories/categories.service';
 import { PrestashopCategory } from '../../../models/category.model';
 import { ProductCsvModel } from '../../../models/product-csv.model';
@@ -16,9 +11,7 @@ import {
   PrestashopTaxRule,
   PrestashopTaxRuleGroup,
 } from '../../../models/tax.model';
-import { CombinationCsvModel } from '../../../models/combination-csv.model';
-import { AttributeService } from '../../service/attribute/attribute.service';
-import { PrestashopCombination, PrestashopProductOption } from '../../../models/attribute.model';
+import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -71,7 +64,7 @@ export class ProductFacadeService {
         const tax: PrestashopTax = {
           name: {
             language: [
-              { id: 1, value: `Tax for ${product.nom} - ${product.taxe}%` },
+              { id: 1, value: `Tax ${product.taxe}%` },
             ],
           },
           rate: product.taxe,
