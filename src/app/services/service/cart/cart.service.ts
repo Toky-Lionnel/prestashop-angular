@@ -9,6 +9,35 @@ import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
 import { TaxService } from '../tax/tax.service';
 import { AttributeService } from '../attribute/attribute.service';
+import { StocksService } from '../stocks/stocks.service';
+
+export interface ReservedProductsByCategory {
+  id_product: number;
+  product_name: string | null;
+  categories: Array<{
+    id: number;
+    name: string | null;
+    quantity: number;
+  }>;
+  total_quantity: number;
+}
+
+export interface StockAvailableGrouped {
+  id_product: number;
+  id_product_attribute: number;
+  product_name: string | null;
+  quantity: number;
+  depends_on_stock: number;
+  out_of_stock: number;
+  category : number;
+}
+
+export interface PhysicalQuantityGrouped {
+  id_product: number;
+  id_product_attribute: number;
+  product_name: string | null;
+  physical_quantity: number;
+}
 
 
 @Injectable({
@@ -24,6 +53,7 @@ export class CartService {
   private productService : ProductService = inject(ProductService);
   private taxService : TaxService = inject(TaxService);
   private attributeService : AttributeService = inject(AttributeService);
+  private stocksService : StocksService = inject(StocksService);
 
   /**
    * Extrait la valeur string d'un champ XML2JS (qui est toujours un tableau)
@@ -294,52 +324,6 @@ export class CartService {
   }
 
 
-  async getReservedProducts(): Promise<Array<{ id_product: number; id_product_attribute: number; quantity: number }>> {
-    try {
-      const reservedCartIds = await this.orderService.getCartsPaiementEffectue() || [];
-      const uniqueCartIds = [...new Set(reservedCartIds.filter((id) => Number.isFinite(id)))];
-      
-      const reservedProducts = new Map<string, { id_product: number; id_product_attribute: number; quantity: number }>();
-
-      for (const cartId of uniqueCartIds) {
-        const cart = await this.getCartById(cartId);
-        const rows = cart?.associations?.[0]?.cart_rows?.[0]?.cart_row;
-
-        if (!rows) {
-          continue;
-        }
-
-        const list = Array.isArray(rows) ? rows : [rows];
-
-        for (const row of list) {
-          const idProduct = this.extractNumeric(row?.id_product?.[0]?._ ?? row?.id_product?.[0] ?? row?.id_product);
-          if (idProduct === null) {
-            continue;
-          }
-
-          const idProductAttribute = this.extractNumeric(row?.id_product_attribute?.[0]?._ ?? row?.id_product_attribute?.[0] ?? row?.id_product_attribute) ?? 0;
-          const quantity = this.extractNumeric(row?.quantity?.[0]?._ ?? row?.quantity?.[0] ?? row?.quantity) ?? 0;
-          const key = `${idProduct}:${idProductAttribute}`;
-
-          const existing = reservedProducts.get(key);
-          if (existing) {
-            existing.quantity += quantity;
-          } else {
-            reservedProducts.set(key, {
-              id_product: idProduct,
-              id_product_attribute: idProductAttribute,
-              quantity
-            });
-          }
-        }
-      }
-
-      return [...reservedProducts.values()];
-    } catch (error) {
-      console.error('Error getting reserved products:', error);
-      return [];
-    }
-  }
 
 
   async getCartById(id_cart: number) {

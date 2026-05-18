@@ -355,4 +355,27 @@ export class ProductService {
 
     return combinationData;
   }
+
+
+  async getCategoryIdByProductId(idProduct: number) {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[id]=[${idProduct}]&display=[id_category_default]`,
+      {
+        responseType: 'text'
+      }
+    );
+
+    const json = await parseStringPromise(response.data);
+    const products = json?.prestashop?.products?.[0];
+    const product = products?.product?.[0];
+    const categoryId = product?.id_category_default?.[0]._;
+
+    if (!categoryId) {
+      console.error('No category ID found for product ID:', idProduct);
+      return null;
+    }
+
+    return Number(categoryId);
+  }
 }

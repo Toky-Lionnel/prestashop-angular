@@ -91,3 +91,15 @@
     </div>
   </section>
 </div>
+
+<!-- Section Stocks par Catégorie -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Stocks par Catégorie</h2>
+    <span class="badge secondary">Données actuelles</span>
+  </div>
+  <!-- Dans la page principale de votre application -->
+<app-category-stock-list
+  [categoriesStock]="stocksCategorySummary">
+</app-category-stock-list>
+</section>

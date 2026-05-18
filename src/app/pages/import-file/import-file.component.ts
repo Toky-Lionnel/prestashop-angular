@@ -30,6 +30,7 @@ import { CustomerCsvModel, validateCustomerCsvRows } from '../../models/customer
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/cart-csv.model';
 import { TaxService } from '../../services/service/tax/tax.service';
 import { StocksService } from '../../services/service/stocks/stocks.service';
+import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
 
 @Component({
   selector: 'app-import-file',
@@ -70,12 +71,14 @@ export class ImportFileComponent {
   private router: Router = inject(Router);
   private taxService : TaxService = inject(TaxService);
   private stockService : StocksService = inject(StocksService);
+  private stockStatService : StockStatService = inject(StockStatService);
+
 
   constructor() {}
 
   async ngOnInit() {
-    const productsReserve = await this.cartService.getReservedProducts();
-    console.log(productsReserve);
+    const stats = await this.stockStatService.getCategoryStockSummary();
+    console.log(stats);
 
   }
 

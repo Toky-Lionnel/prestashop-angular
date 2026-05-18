@@ -38,6 +38,14 @@ export class ReinitialisationService {
     await this.deleteAll('/api/carts', 'cart');
     await this.deleteAll('/api/cart_rules', 'cart_rule');
 
+
+    // =========================
+    // MESSAGES
+    // =========================
+    await this.deleteAll('/api/stock_availables', 'stock_available');
+    await this.deleteAll('/api/stock_movements', 'stock_movement');
+    await this.deleteAll('/api/stock_movement_reasons', 'stock_movement_reason');
+
     // =========================
     // PRODUITS
     // =========================
