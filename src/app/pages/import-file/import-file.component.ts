@@ -79,10 +79,6 @@ export class ImportFileComponent {
   constructor() {}
 
   async ngOnInit() {
-
-
-    const ventes = await this.venteService.getSalesByCategory();
-    console.log('Ventes:', ventes);
   }
 
   async OnReset() {

@@ -2,6 +2,11 @@ import { inject, Injectable } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
 import { PrestashopOrderHistory, PrestashopOrderHistoryUpdate, buildOrderHistoryXML, buildUpdateOrderHistoryXML } from '../../../models/order-history.model';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
+import { parseStringPromise } from 'xml2js';
+import { PrestashopCartRow } from '../../../models/cart.model';
+import { PrestashopStockMovement } from '../../../models/stock-mvt.model';
+import { StocksService } from '../stocks/stocks.service';
+import { OrderService } from '../orders/order.service';
 
 export interface PrestashopOrderStateLanguage {
   id: number;
@@ -21,6 +26,7 @@ export class OrderStateService {
   constructor() { }
 
   private interceptor : AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
+  private stocksService : StocksService = inject(StocksService);
   private orderStates: PrestashopOrderState[] = [];
 
 

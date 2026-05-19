@@ -180,7 +180,7 @@ export function transformTaxRuleRowToModel(row: any): PrestashopTaxRule {
  */
 export function transformTaxRuleGroupRowToModel(row: any, options: Partial<TaxTransformOptions> = {}): PrestashopTaxRuleGroup {
   const active = options.active ?? DEFAULT_TAX_RULE_GROUP_OPTIONS.active;
-  const name = row.name?.trim() || 'Groupe de règles sans nom';
+  const name = row.name?.trim() || 'Groupe sans nom';
 
   return {
     id: null,

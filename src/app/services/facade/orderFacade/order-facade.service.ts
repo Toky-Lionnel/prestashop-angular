@@ -225,18 +225,16 @@ export class OrderFacadeService {
       throw new Error(`Cannot create order state: Order state not found for name ${order_state_name}`);
     }
 
-    const updated = await this.updateFirstOrderState(id_order, order_state_name, date_add);
+    await this.updateFirstOrderState(id_order, order_state_name, date_add);
 
-    const orderHistoryData: PrestashopOrderHistory = {
-      id_order: id_order,
-      id_order_state: id_order_state,
-      order_state: order_state_name,
-      date_add: date_add,
-      line_number: cart_associations?.cart_rows?.order_row?.[0]?.line_number
-    };
-
-    // await this.orderHistoryService.createOrderState(orderHistoryData);
-
+    if (id_order_state == 5) {
+      for (const cart of cart_associations.cart_rows) {
+        const id_product = cart.id_product;
+        const id_product_attribute = cart.id_product_attribute ?? 0;
+        const quantity = cart.quantity;
+        await this.stockFacadeService.createStockMouvement(id_product, id_product_attribute, -quantity, 'Order creation', date_add);
+      }
+    }
   }
 
   async updateOrderStatus(orderId: number, status: number) {

@@ -4,8 +4,10 @@ import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterc
 import { xmlToJson } from '../../../utils/parse-xml.utils';
 import { PrestashopOrder, buildOrderXML, buildUpdateOrderXML, buildUpdateOrderXMLFromResponse } from '../../../models/order.model';
 import { parseStringPromise } from 'xml2js';
-import { OrderStateService } from '../order-state/order-state.service';
+import { OrderStateService, PrestashopOrderStateLanguage } from '../order-state/order-state.service';
 import { CustomerService } from '../customer/customer.service';
+import { PrestashopCartRow } from '../../../models/cart.model';
+import { StockFacadeService } from '../../facade/stockFacade/stock-facade.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +17,14 @@ export class OrderService {
   private authInterceptor: AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
   private orderStateService : OrderStateService = inject(OrderStateService);
   private customerService : CustomerService = inject(CustomerService);
+  private stockFacadeService : StockFacadeService = inject(StockFacadeService);
 
   constructor() {}
 
-  async getOrdersFull(date?: string, id_customer?: number): Promise<Order[]> {
+  async getOrdersFull(date?: string, id_customer?: number, full?: boolean): Promise<Order[]> {
     this.orderStateService.loadOrderStates();
 
-    const ids = await this.getOrderIds(date, id_customer);
+    const ids = await this.getOrderIds(date, id_customer, full);
     const promises: Promise<Order>[] = [];
 
     for (let i = 0; i < ids.length; i++) {
@@ -32,7 +35,7 @@ export class OrderService {
   }
 
 
-  private async getOrderIds(date?: string, id_customer?: number): Promise<number[]> {
+  private async getOrderIds(date?: string, id_customer?: number , full ?: boolean): Promise<number[]> {
     const api = this.authInterceptor.getApi();
     let url = '/api/orders';
 
@@ -44,7 +47,10 @@ export class OrderService {
       );
     }
 
-    filters.push(`filter[current_state]=![6]`);
+    if (!full) {
+      filters.push(`filter[current_state]=![6]`);
+    }
+
     if (id_customer) {
       filters.push(`filter[id_customer]=[${id_customer}]`);
     }
@@ -320,6 +326,120 @@ export class OrderService {
     } catch (error) {
       console.error('Error fetching carts with payment:', error);
       return null;
+    }
+  }
+
+
+  async getOrderCartRows(id_order: number): Promise<PrestashopCartRow[]> {
+    const api = this.authInterceptor.getApi();
+
+    try {
+      // Récupérer d'abord l'ordre pour obtenir son id_cart
+      const orderResponse = await api.get(`/api/orders/${id_order}?display=[id,id_cart]`);
+      const orderJson = await xmlToJson(orderResponse.data);
+
+      const order = Array.isArray(orderJson?.prestashop?.order)
+        ? orderJson.prestashop.order[0]
+        : orderJson?.prestashop?.order;
+
+      if (!order) {
+        console.warn(`Commande ${id_order} non trouvée`);
+        return [];
+      }
+
+      const id_cart = this.toNumber(this.extractXmlText(order?.id_cart), 0);
+      if (!id_cart) {
+        console.warn(`Pas de panier trouvé pour la commande ${id_order}`);
+        return [];
+      }
+
+      const cartResponse = await api.get(`/api/carts/${id_cart}?display=full`);
+      const cartJson = await parseStringPromise(cartResponse.data);
+
+      const cart = cartJson?.prestashop?.cart?.[0];
+      if (!cart) {
+        console.warn(`Panier ${id_cart} non trouvé`);
+        return [];
+      }
+
+      const cartRowsData = cart?.associations?.[0]?.cart_rows?.[0]?.cart_row ?? [];
+      const cartRows = this.normalizeList(cartRowsData).map((row: any) => ({
+        product_name: this.extractXmlText(row?.product_name),
+        id_product: this.toNumber(this.extractXmlText(row?.id_product[0]._), 0),
+        product_attribute: this.extractXmlText(row?.product_attribute),
+        id_product_attribute: this.toNumber(this.extractXmlText(row?.id_product_attribute[0]._), 0) || 0,
+        id_address_delivery: this.toNumber(this.extractXmlText(row?.id_address_delivery), 0),
+        quantity: this.toNumber(this.extractXmlText(row?.quantity), 0),
+      }));
+
+      return cartRows;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des cart rows pour la commande ${id_order}:`, error);
+      return [];
+    }
+  }
+
+
+   private toNumber(value: unknown, fallback: number): number {
+      if (value === null || value === undefined || value === '') {
+        return fallback;
+      }
+
+      const parsed = Number(value);
+
+      return Number.isFinite(parsed)
+        ? parsed
+        : fallback;
+    }
+
+    private normalizeList<T>(value: T | T[] | null | undefined): T[] {
+      if (!value) {
+        return [];
+      }
+
+      return Array.isArray(value) ? value : [value];
+    }
+
+    private extractXmlText(value: any): string {
+      if (value === null || value === undefined) {
+        return '';
+      }
+
+      if (typeof value === 'object' && '_' in value) {
+        return String(value._ ?? '');
+      }
+
+      return String(value);
+    }
+
+    private extractNameValue(name: any): PrestashopOrderStateLanguage[] {
+
+    const rawLanguages = name?.language;
+
+    const languages = Array.isArray(rawLanguages)
+      ? rawLanguages
+      : rawLanguages
+        ? [rawLanguages]
+        : [];
+
+    return languages.map((language: any) => ({
+      id: this.toNumber(language?.$?.id, 0),
+      value: String(language?._ ?? '')
+    }));
+  }
+
+
+  async insertMouvementStocks (id_order : number) : Promise <any> {
+    const carts = await this.getOrderCartRows(id_order);
+
+    for (const cart of carts) {
+      await this.stockFacadeService.createStockMouvement(
+        cart.id_product,
+        cart.id_product_attribute ?? 0,
+        -cart.quantity,
+        'Order livraison',
+        new Date().toISOString()
+      );
     }
   }
 

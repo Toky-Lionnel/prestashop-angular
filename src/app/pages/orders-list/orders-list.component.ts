@@ -29,7 +29,7 @@ export class OrdersListComponent {
   async ngOnInit() {
     this.orderStates = await this.orderStateService.loadOrderStates();
     const carts : Order [] = await this.cartService.getCartMapped();
-    this.orders = await this.orderService.getOrdersFull();
+    this.orders = await this.orderService.getOrdersFull(undefined, undefined , true);
     this.orders = [...this.orders, ...carts];
     this.initializeSelectedStates();
   }
@@ -123,6 +123,10 @@ export class OrdersListComponent {
   async updateOrderStatus(order: Order, status: number) {
     await this.orderStateService.updateOrderState(order.id, status);
     // Mettre à jour le statut localement pour refléter le changement immédiatement
+
+    if (status == 5) {
+      await this.orderService.insertMouvementStocks(order.id);
+    }
     const updatedStatusName = this.orderStateService.getOrderStateNameById(status);
     if (updatedStatusName) {
       order.recent_statut = updatedStatusName;

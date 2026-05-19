@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { StocksService } from '../../service/stocks/stocks.service';
 import { PrestashopStockMovementReason } from '../../../models/stock-mvt-reason.model';
 import { PrestashopStockMovement } from '../../../models/stock-mvt.model';
-import { formatPrestashopDate } from '../../../utils/prestashop-date.utils';
 
 @Injectable({
   providedIn: 'root'

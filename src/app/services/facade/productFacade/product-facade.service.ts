@@ -74,7 +74,7 @@ export class ProductFacadeService {
         const taxId = await this.taxService.createTax(tax);
 
         const taxGroup: PrestashopTaxRuleGroup = {
-          name: `Tax Rule Group for ${product.nom}`,
+          name: `Tax ${product.nom}`,
           active: 1,
         };
 
