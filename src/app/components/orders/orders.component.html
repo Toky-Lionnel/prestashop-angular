@@ -4,9 +4,6 @@
       <mat-icon>shopping_basket</mat-icon>
       <h1>Historique des commandes</h1>
     </div>
-    <button mat-icon-button (click)="close()">
-      <mat-icon>close</mat-icon>
-    </button>
   </header>
 
   <mat-dialog-content class="dialog-body" [class.with-details]="currentOrderDetails">
@@ -16,8 +13,8 @@
           <mat-expansion-panel *ngFor="let order of orders" class="order-panel">
             <mat-expansion-panel-header>
               <mat-panel-title>
-                <span class="order-id">#{{ order.id }}</span>
-                <span class="order-date">{{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span class="order-id">#{{ order.id }} - </span>
+                <span class="order-date"> - {{ order.date_add | date:'dd/MM/yyyy HH:mm' }}</span>
               </mat-panel-title>
               <mat-panel-description class="order-actions">
                 <div class="order-summary">
@@ -44,8 +41,25 @@
                     Annuler
                   </button>
 
-                  <input type="number" [value]="nombreDuplicate" (change)="onQtyChange($event, nombreDuplicate)" min="1">
-                  <button (click)="onDuplicate(order)"> Dupliquer </button>
+                  <div class="duplicate-controls" role="group" aria-label="Dupliquer commande">
+                    <input
+                      type="number"
+                      class="duplicate-qty"
+                      [value]="nombreDuplicate"
+                      (change)="onQtyChange($event, nombreDuplicate)"
+                      min="1"
+                      aria-label="Quantité de duplication"
+                    />
+                    <button
+                      type="button"
+                      class="action-btn action-btn--primary duplicate-btn"
+                      (click)="onDuplicate(order)"
+                      aria-label="Dupliquer la commande"
+                    >
+                      <mat-icon>content_copy</mat-icon>
+                      Dupliquer
+                    </button>
+                  </div>
 
                   <ng-template #noorder>
                     <button type="button" (click)="transformToOrder(order)" class="action-btn action-btn--primary">
@@ -127,7 +141,4 @@
     </div>
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end" class="dialog-footer">
-    <button mat-stroked-button (click)="close()">Fermer</button>
-  </mat-dialog-actions>
 </div>

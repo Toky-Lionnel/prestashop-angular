@@ -33,11 +33,11 @@ export class ValidationComponent implements OnInit {
   elements : CartElements [] = [];
   indisponible : boolean = false;
 
-
   private stockService : StocksService = inject(StocksService);
   private cartService : CartService = inject(CartService);
   private orderService : OrderService = inject(OrderService);
   private dialogRef = inject(MatDialogRef<ValidationComponent>);
+
 
   @Input ({required : true}) carts : PrestashopCart = {
     id_currency: 0,

@@ -39,14 +39,14 @@
                 class="badge badge-success"
                 role="status"
                 aria-label="Produit disponible">
-                ✓ {{ e.stock_disponible }}
+                {{ e.stock_disponible }}
               </span>
               <span
                 *ngIf="e.product_quantity > e.stock_disponible"
                 class="badge badge-danger"
                 role="status"
                 aria-label="Produit indisponible">
-                ✗ {{ e.stock_disponible }}
+                {{ e.stock_disponible }}
               </span>
             </td>
           </tr>

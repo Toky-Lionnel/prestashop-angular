@@ -1,5 +1,5 @@
 import { Order } from '../../models/OrderModel';
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
@@ -39,16 +39,14 @@ import { Router } from '@angular/router';
 })
 export class OrdersComponent {
 
-  private dialogRef = inject(MatDialogRef<OrdersComponent>);
-  public orders: Order[] = inject(MAT_DIALOG_DATA);
   private cartService : CartService = inject(CartService);
   private orderStateService : OrderStateService = inject(OrderStateService);
   private sessionService : SessionService = inject(SessionService);
   private customerService : CustomerService = inject(CustomerService);
   private orderService : OrderService = inject(OrderService);
 
+  @Input() orders: Order[] = [];
 
-  private router : Router = inject(Router);
   private dialog = inject(MatDialog);
 
   public currentOrderDetails: any = null;
@@ -63,9 +61,7 @@ export class OrdersComponent {
       this.nombreDuplicate = newQty;
   }
 
-  close(): void {
-    this.dialogRef.close();
-  }
+
 
   getStatusColor(status: string): string {
     switch (status.toLowerCase()) {
@@ -155,9 +151,6 @@ export class OrdersComponent {
     await this.orderService.createOrderData(orders,2);
 
     alert('La commande a été créée avec succès !');
-
-     // Optionnel : Fermer le dialogue après la création de la commande
-    this.close();
   }
 
 
@@ -195,13 +188,10 @@ export class OrdersComponent {
     };
 
     this.dialog.open(ValidationComponent, {
-      data: prestashopCart, // On passe l'objet product au composant
+      data: prestashopCart,
       width: '1700px',
-      maxHeight: '120vh',
-      panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
+      maxHeight: '120vh'
     });
-
-    this.close(); // Fermer le dialogue actuel après l'ouverture du nouveau dialogue de validation
   }
 
 

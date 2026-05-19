@@ -6,6 +6,7 @@ import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { AccueilComponent } from './pages/accueil/accueil.component';
 import { ReinitialisationComponent } from './pages/reinitialisation/reinitialisation.component';
+import { OrderListCustomerComponent } from './pages/order-list-customer/order-list-customer.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'accueil', pathMatch: 'full' },
@@ -23,6 +24,9 @@ export const routes: Routes = [
   },
   {
     path : 'accueil', component : AccueilComponent
+  },
+  {
+    path : 'orders' , component : OrderListCustomerComponent
   },
   {
     path: 'admin',

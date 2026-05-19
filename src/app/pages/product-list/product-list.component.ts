@@ -154,15 +154,7 @@ export class ProductListComponent {
       return;
     }
 
-    const orders : Order [] = await this.orderService.getOrdersFull(undefined,idCustomer,true);
-    const carts : Order [] = await this.cartService.getCartMapped(idCustomer) || [];
-    this.dialog.open(OrdersComponent, {
-      width: '1300px',        // Largeur adaptée pour le tableau
-      maxWidth: '95vw',      // Sécurité pour le mobile
-      maxHeight: '90vh',     // Évite que la modale ne dépasse de l'écran
-      data: [...orders, ...carts], // Injection des données dans MAT_DIALOG_DATA
-      panelClass: 'custom-dialog-container' // Optionnel : pour du style spécifique
-    });
+    this.router.navigate(['/orders']);
   }
 
 
