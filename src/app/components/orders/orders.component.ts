@@ -1,7 +1,7 @@
 import { Order } from '../../models/OrderModel';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +15,8 @@ import { SessionService } from '../../services/service/session/session.service';
 import { CustomerService } from '../../services/service/customer/customer.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
 import { OrderService } from '../../services/service/orders/order.service';
+import { FormsModule } from "@angular/forms";
+import { ValidationComponent } from '../validation/validation.component';
 
 
 @Component({
@@ -28,8 +30,9 @@ import { OrderService } from '../../services/service/orders/order.service';
     MatIconModule,
     MatButtonModule,
     MatChipsModule,
-    MatProgressSpinnerModule
-  ],
+    MatProgressSpinnerModule,
+    FormsModule
+],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'
 })
@@ -43,8 +46,19 @@ export class OrdersComponent {
   private customerService : CustomerService = inject(CustomerService);
   private orderService : OrderService = inject(OrderService);
 
+  private dialog = inject(MatDialog);
+
   public currentOrderDetails: any = null;
   public isLoadingDetails: boolean = false;
+
+  nombreDuplicate : number = 1;
+
+
+  onQtyChange(event: Event, item: number): void {
+      const input = event.target as HTMLInputElement;
+      const newQty = parseInt(input.value, 10);
+      this.nombreDuplicate = newQty;
+  }
 
   close(): void {
     this.dialogRef.close();
@@ -141,6 +155,51 @@ export class OrdersComponent {
 
      // Optionnel : Fermer le dialogue après la création de la commande
      this.close();
+  }
+
+
+  async onDuplicate(o : Order) {
+    console.log(`Nombre dupliqué : ${this.nombreDuplicate}`);
+
+    const order = await this.orderService.getOrderByIdOrder(o.id);
+    const idCart = order?.prestashop?.order.id_cart._;
+
+    const customerAdress = await this.customerService.getAddressByIdCustomer(this.sessionService.getCustomer()?.id ?? 0);
+    const cartsItems = await this.cartService.getCartById(idCart ?? 0);
+    const cartRows = cartsItems?.associations[0].cart_rows[0].cart_row;
+
+    const carts : PrestashopCartRow [] = cartRows.map((item : any) => ({
+      product_name: '', // Récupérer la référence du produit
+      id_product: item.id_product[0]._,
+      product_attribute: '', // Récupérer la référence de l'attribut si nécessaire
+      id_product_attribute: item.id_product_attribute[0]._,
+      id_address_delivery: customerAdress ?? 0,
+      quantity: item.quantity * this.nombreDuplicate
+    }));
+
+    const prestashopAssociations : PrestashopCartAssociations = {
+      cart_rows: carts
+    }
+
+    const prestashopCart : PrestashopCart = {
+      id : idCart ?? undefined,
+      id_currency: 1,
+      id_lang: 1,
+      id_customer: this.sessionService.getCustomer()?.id ?? 0,
+      id_address_delivery: customerAdress ?? 0,
+      id_address_invoice: customerAdress ?? 0,
+      order_state : 'Paiement accepté',
+      line_number: 0,
+      associations: prestashopAssociations
+    };
+
+
+    this.dialog.open(ValidationComponent, {
+      data: prestashopCart, // On passe l'objet product au composant
+      width: '1200px',
+      maxHeight: '120vh',
+      panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
+    });
   }
 
 

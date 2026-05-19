@@ -35,7 +35,7 @@ export class ImportFileService {
   }
 
 
-  async importCSV (backendData: BackendData [], zipFile?: File): Promise<string> {
+  async importCSV (backendData: BackendData [], zipFile?: File , importImage ?: boolean ): Promise<string> {
       const productData: BackendData | undefined = backendData.find(
         data => data.table_name.toLowerCase() === 'products'
       );
@@ -87,9 +87,11 @@ export class ImportFileService {
       const customersCSV: CustomerCsvModel[] = customersValidation.validData;
       await this.orderFacadeService.importOrders(customersCSV);
 
-      if (zipFile) {
-        await this.imagesService.importImages(zipFile);
-      }
+      // if (importImage === false) {
+      //   if (zipFile) {
+      //     await this.imagesService.importImages(zipFile);
+      //   }
+      // }
 
       return ''; // no errors, empty string indicates success
   }

@@ -1,0 +1,108 @@
+
+<div class="validation-container">
+  <header class="validation-header">
+    <h1>Vérification de la commande</h1>
+    <p class="subtitle">Vérifiez les détails avant de valider votre commande</p>
+  </header>
+
+  <!-- Tableau des produits -->
+  <section class="products-section">
+    <div class="section-title">
+      <h2>Détails des articles</h2>
+      <span class="item-count">{{ elements.length }} article(s)</span>
+    </div>
+
+    <div class="products-table-wrapper">
+      <table class="products-table" role="table" aria-label="Détails des produits commandés">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th class="text-right">Prix unitaire</th>
+            <th class="text-center">Quantité</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of elements" [class.unavailable]="e.product_quantity > e.stock_disponible">
+            <td class="product-name">
+              <strong>{{ e.product_name }}</strong>
+            </td>
+            <td class="text-right">{{ e.prix_unitaire | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td class="text-center">
+              <span class="quantity-badge">{{ e.product_quantity }}</span>
+            </td>
+            <td class="text-right font-semibold">{{ e.prix_total | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td class="text-center">
+              <span
+                *ngIf="e.product_quantity <= e.stock_disponible"
+                class="badge badge-success"
+                role="status"
+                aria-label="Produit disponible">
+                ✓ {{ e.stock_disponible }}
+              </span>
+              <span
+                *ngIf="e.product_quantity > e.stock_disponible"
+                class="badge badge-danger"
+                role="status"
+                aria-label="Produit indisponible">
+                ✗ {{ e.stock_disponible }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Résumé de la commande -->
+  <section class="summary-section">
+    <div class="summary-card">
+      <h3>Résumé de la commande</h3>
+      <div class="summary-row">
+        <span>Sous-total :</span>
+        <strong>{{ calculateSubtotal() | currency:'EUR':'symbol':'1.2-2' }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Nombre d'articles :</span>
+        <strong>{{ calculateTotalQuantity() }}</strong>
+      </div>
+      <div class="summary-row" *ngIf="indisponible">
+        <span class="alert-text">⚠️ Produits indisponibles :</span>
+        <strong class="alert-text">{{ getUnavailableCount() }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Alertes -->
+  <div class="alerts" *ngIf="indisponible" role="alert" aria-live="polite">
+    <div class="alert alert-warning">
+      <h4>Attention</h4>
+      <p>Certains articles ne sont pas disponibles en quantité suffisante. Veuillez réduire les quantités ou contacter le support.</p>
+      <ul>
+        <li *ngFor="let e of elements.filter(item => item.product_quantity > item.stock_disponible)">
+          <strong>{{ e.product_name }}</strong> : {{ e.product_quantity }} demandé(s), {{ e.stock_disponible }} disponible(s)
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="onValidate()"
+      [disabled]="indisponible"
+      [attr.aria-disabled]="indisponible">
+      ✓ Valider la commande
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="onCancel()"
+      aria-label="Annuler et retourner">
+      Annuler
+    </button>
+  </div>
+</div>

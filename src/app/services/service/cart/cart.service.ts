@@ -323,9 +323,6 @@ export class CartService {
     return total;
   }
 
-
-
-
   async getCartById(id_cart: number) {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/carts/${id_cart}?display=full`, {

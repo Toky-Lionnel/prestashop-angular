@@ -59,10 +59,6 @@ export function validateCustomerCsvRows(rows: any[]): ImportValidationResult<Cus
       }
     }
 
-    const achatNum = toNumber(rawRow['achat'], NaN);
-    if (!isNaN(achatNum) && achatNum < 0) {
-      errors.push({ field: 'achat', code: 'invalid_value', message: 'montant négatif pour achat', invalidValue: rawRow['achat'] });
-    }
 
     const model = transformCustomerCsvRowToModel(rawRow);
     if (errors.length > 0) {

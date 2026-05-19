@@ -44,6 +44,9 @@
                     Annuler
                   </button>
 
+                  <input type="number" [value]="nombreDuplicate" (change)="onQtyChange($event, nombreDuplicate)" min="1">
+                  <button (click)="onDuplicate(order)"> Dupliquer </button>
+
                   <ng-template #noorder>
                     <button type="button" (click)="transformToOrder(order)" class="action-btn action-btn--primary">
                       Transformer en commande

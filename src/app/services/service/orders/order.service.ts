@@ -199,6 +199,23 @@ export class OrderService {
     }
   }
 
+
+  async getOrderByIdOrder(id: number): Promise<any | null> {
+    const api = this.authInterceptor.getApi();
+
+    try {
+      const response = await api.get(`/api/orders/${id}`, {
+        responseType: 'text'
+      });
+
+      const json = await xmlToJson(response.data);
+      return json;
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      return null;
+    }
+  }
+
   async getOrderByIdCart (idCart: number): Promise<any | null> {
     const api = this.authInterceptor.getApi();
     try {
