@@ -105,7 +105,15 @@ export class OrderFacadeService {
         console.error('Error creating order for cart with line number', cart.line_number, ':', error);
         throw error;
       }
+
+      console.log(`=== FIN CREATION CART ${cart.line_number} ===`);
+
+
     }
+
+    console.log("=== FIN CREATION FEUILLE 3");
+
+
   }
 
   async validateOrders(carts: PrestashopCart[], file_name: string,

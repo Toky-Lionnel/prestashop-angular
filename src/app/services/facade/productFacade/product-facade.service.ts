@@ -126,7 +126,14 @@ export class ProductFacadeService {
           },
         };
         await this.productService.createProduct(prestashopProduct);
+
+        console.log(`=== FIN CREATION PRODUIT ${product.line_number}`);
+
+
       }
+
+      console.log("==== FIN CREATION DES PRODUITS ====");
+
     } catch (error) {
       console.error('Error importing products:', error);
       throw error;
