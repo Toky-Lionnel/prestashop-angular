@@ -5,6 +5,7 @@ import { ProductListComponent } from './pages/product-list/product-list.componen
 import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { AccueilComponent } from './pages/accueil/accueil.component';
+import { ReinitialisationComponent } from './pages/reinitialisation/reinitialisation.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'accueil', pathMatch: 'full' },
@@ -57,6 +58,10 @@ export const routes: Routes = [
           loadComponent: () =>
             import('./pages/add-stock/add-stock.component')
               .then(m => m.AddStockComponent)
+        },
+        {
+          path : 'reinit',
+          component : ReinitialisationComponent
         }
       ]
   },

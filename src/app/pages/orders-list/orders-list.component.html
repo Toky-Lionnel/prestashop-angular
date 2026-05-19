@@ -65,15 +65,16 @@
                   {{ pendingValidation[order.id] ? 'Mise à jour...' : 'Valider' }}
                 </button> -->
 
-                <button type="button" class="row-action-btn row-action-btn--success" (click)="updateOrderStatus(order, 5)">
-                  Livrer
-                </button>
-                <button type="button" class="row-action-btn row-action-btn--danger"  (click)="updateOrderStatus(order, 6)">
-                  Annuler
-                </button>
+                <div class="row-actions__status" *ngIf="order.recent_statut === 'Paiement accepté'">
+                  <button type="button" class="row-action-btn row-action-btn--success" (click)="updateOrderStatus(order, 5)">
+                    Livrer
+                  </button>
+                  <button type="button" class="row-action-btn row-action-btn--danger" (click)="updateOrderStatus(order, 6)">
+                    Annuler
+                  </button>
+                </div>
 
-
-               <button
+                <button
                   type="button"
                   class="details-button"
                   (click)="toggleOrderDetails(order)">
@@ -81,12 +82,6 @@
                 </button>
 
               </div>
-               <!-- <button
-                  type="button"
-                  class="details-button"
-                  (click)="toggleOrderDetails(order)">
-                  {{ expandedOrderId === order.id ? 'Masquer détails' : 'Voir détails' }}
-                </button> -->
             </td>
           </tr>
         </ng-container>

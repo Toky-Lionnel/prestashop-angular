@@ -159,12 +159,9 @@ export class AttributeFacadeService {
       }
 
       console.log(`==== FIN CREATION COMBINAISON ${idProduct}`);
-
-
     }
 
     console.log("=== FIN CREATION FEUILLE 2");
-
   }
 
   async calculDifferenceHorsTaxe(

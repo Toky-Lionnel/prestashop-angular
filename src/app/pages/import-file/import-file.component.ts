@@ -209,4 +209,17 @@ export class ImportFileComponent {
     // Optionally, navigate to the login page
     await this.router.navigate(['/loginadmin']);
   }
+
+  async onDashboard() {
+    await this.router.navigate(['/admin/dashboard']);
+  }
+
+  async listeProducts() {
+    this.router.navigate(['/admin/products']);
+  }
+
+  async listeOrders() {
+    this.router.navigate(['/admin/orders']);
+  }
+
 }
