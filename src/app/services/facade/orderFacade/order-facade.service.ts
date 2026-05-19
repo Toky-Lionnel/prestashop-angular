@@ -4,7 +4,6 @@ import { CartService } from '../../service/cart/cart.service';
 import { PrestashopCart, transformCartCsvRowsToPrestashopCarts } from '../../../models/cart.model';
 import { PrestashopOrder, transformCartToOrder } from '../../../models/order.model';
 import { OrderStateService } from '../../service/order-state/order-state.service';
-import { PrestashopOrderHistory, transformOrderToOrderHistory } from '../../../models/order-history.model';
 import { CustomerService } from '../../service/customer/customer.service';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 import { PrestashopProduct } from '../../../models/product.model';
@@ -15,6 +14,7 @@ import { CustomerCsvModel, uniqueCustomerCsvRows } from '../../../models/custome
 import { CustomerFacadeService } from '../customerFacade/customer-facade.service';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../../models/cart-csv.model';
 import { StockFacadeService } from '../stockFacade/stock-facade.service';
+import { PrestashopOrderHistory } from '../../../models/order-history.model';
 
 @Injectable({
   providedIn: 'root'
@@ -88,11 +88,16 @@ export class OrderFacadeService {
 
         if ((cart.order_state ?? '').trim() !== '') {
           const order : PrestashopOrder = transformCartToOrder(cart);
-          const orderData = await this.orderService.createOrderData(order);
+
+          await this.orderHistoryService.loadOrderStates();
+          const id_order_state = this.orderHistoryService.getOrderStateIdByName(cart.order_state ?? '');
+
+
+          const orderData = await this.orderService.createOrderData(order,id_order_state ?? undefined);
           const idOrder = orderData?.id?.[0];
 
           // update de la date via GET + PUT
-          await this.orderService.updateOrderWithFullData(Number(idOrder), cart.date_add ?? '');
+          await this.orderService.updateOrderWithFullData(Number(idOrder), cart.date_add ?? '', id_order_state ?? 0);
           await this.createOrderState(idOrder ?? 0, cart.order_state ?? '', cart.associations, cart.date_add ?? '');
         }
 
@@ -179,9 +184,40 @@ export class OrderFacadeService {
     return false;
   }
 
+  private async getFirstOrderStateId(id_order: number, fallbackId: number): Promise<number> {
+    const firstOrderState = await this.orderHistoryService.getFirstOrderStateOrder(id_order);
+    return firstOrderState?.id ?? fallbackId;
+  }
+
+  private async updateFirstOrderState(id_order: number, order_state_name: string, date_add: string): Promise<boolean> {
+    const firstOrderHistoryId = await this.orderHistoryService.getFirstOrderHistoryId(id_order);
+
+    console.log(firstOrderHistoryId);
+
+
+    if (!firstOrderHistoryId) {
+      return false;
+    }
+
+    await this.orderHistoryService.loadOrderStates();
+    const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
+    if (!id_order_state) {
+      throw new Error(`Cannot update order state: Order state not found for name ${order_state_name}`);
+    }
+
+    await this.orderHistoryService.updateOrderHistoryState(firstOrderHistoryId, {
+      id: firstOrderHistoryId,
+      id_order,
+      id_order_state,
+      order_state: order_state_name,
+      date_add
+    });
+
+    return true;
+  }
+
 
   async createOrderState(id_order: number, order_state_name: string, cart_associations: any , date_add : string): Promise<void> {
-
     await this.orderHistoryService.loadOrderStates();
 
     const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
@@ -189,37 +225,18 @@ export class OrderFacadeService {
       throw new Error(`Cannot create order state: Order state not found for name ${order_state_name}`);
     }
 
-    if (id_order_state === 2) {
-      const orderState : PrestashopOrderHistory = {
-        id_order_state: 2,
-        id_order: id_order,
-        date_add: new Date().toISOString(),
-        order_state : order_state_name
-      };
-      await this.orderHistoryService.createOrderState(orderState);
-      return;
-    }
+    const updated = await this.updateFirstOrderState(id_order, order_state_name, date_add);
 
+    const orderHistoryData: PrestashopOrderHistory = {
+      id_order: id_order,
+      id_order_state: id_order_state,
+      order_state: order_state_name,
+      date_add: date_add,
+      line_number: cart_associations?.cart_rows?.order_row?.[0]?.line_number
+    };
 
-    if (id_order_state === 5 || id_order_state === 6) {
-      // creation du payement accepté :
-      const orderState : PrestashopOrderHistory = {
-        id_order_state: 2,
-        id_order: id_order,
-        date_add: new Date().toISOString(),
-        order_state : order_state_name
-      };
-      await this.orderHistoryService.createOrderState(orderState);
-    }
+    // await this.orderHistoryService.createOrderState(orderHistoryData);
 
-
-    if (id_order_state === 5) {
-      await this.updateOrderStatus(id_order, 5);
-    }
-
-    if (id_order_state === 6) {
-      await this.updateOrderStatus(id_order, 6);
-    }
   }
 
   async updateOrderStatus(orderId: number, status: number) {

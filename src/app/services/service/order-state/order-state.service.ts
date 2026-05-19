@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
-import { PrestashopOrderHistory, buildOrderHistoryXML } from '../../../models/order-history.model';
+import { PrestashopOrderHistory, PrestashopOrderHistoryUpdate, buildOrderHistoryXML, buildUpdateOrderHistoryXML } from '../../../models/order-history.model';
 import { xmlToJson } from '../../../utils/parse-xml.utils';
 
 export interface PrestashopOrderStateLanguage {
@@ -51,6 +51,26 @@ export class OrderStateService {
     return Number.isFinite(parsed)
       ? parsed
       : fallback;
+  }
+
+  private normalizeList<T>(value: T | T[] | null | undefined): T[] {
+    if (!value) {
+      return [];
+    }
+
+    return Array.isArray(value) ? value : [value];
+  }
+
+  private extractXmlText(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (typeof value === 'object' && '_' in value) {
+      return String(value._ ?? '');
+    }
+
+    return String(value);
   }
 
   private extractNameValue(name: any): PrestashopOrderStateLanguage[] {
@@ -116,11 +136,78 @@ export class OrderStateService {
     const api = this.interceptor.getApi();
     const xml = buildOrderHistoryXML(orderHistory);
 
-    const response = await api.post('/api/order_histories', xml, {
+    await api.post('/api/order_histories', xml, {
       headers: {
         'Content-Type': 'application/xml'
       }
     });
+  }
+
+  async getFirstOrderHistoryId(id_order: number): Promise<number | null> {
+    const api = this.interceptor.getApi();
+
+    const response = await api.get(`/api/order_histories?filter[id_order]=[${id_order}]&display=[id,id_order_state,date_add]`);
+    const json = await xmlToJson(response.data);
+
+    const rawOrderHistories = json?.prestashop?.order_histories?.order_history;
+    const histories = this.sortOrderHistoriesByDate(this.normalizeList(rawOrderHistories));
+    const firstHistory = histories[0];
+
+    return this.toNumber(this.extractXmlText(firstHistory?.id), 0) || null;
+  }
+
+  private extractHistoryDate(history: any): string {
+    return this.extractXmlText(history?.date_add);
+  }
+
+  private sortOrderHistoriesByDate(histories: any[]): any[] {
+    return [...histories].sort((left, right) =>
+      this.extractHistoryDate(left).localeCompare(this.extractHistoryDate(right))
+    );
+  }
+
+  async getFirstOrderStateOrder(id_order: number): Promise<PrestashopOrderState | null> {
+    const api = this.interceptor.getApi();
+
+    if (this.orderStates.length === 0) {
+      await this.loadOrderStates();
+    }
+
+    const response = await api.get(`/api/order_histories?filter[id_order]=[${id_order}]&display=[id_order_state,date_add]`);
+    const json = await xmlToJson(response.data);
+
+    const rawOrderHistories = json?.prestashop?.order_histories?.order_history;
+    const histories = this.sortOrderHistoriesByDate(this.normalizeList(rawOrderHistories));
+
+    const firstHistory = histories[0];
+    const idOrderState = this.toNumber(this.extractXmlText(firstHistory?.id_order_state), 0);
+
+    if (!idOrderState) {
+      return null;
+    }
+
+    return this.getOrderStateById(idOrderState) ?? null;
+  }
+
+  async getOrderStateOrder(id_order: number): Promise<PrestashopOrderState | null> {
+    return this.getFirstOrderStateOrder(id_order);
+  }
+
+  async updateOrderHistoryState(id_order_history: number, orderHistory: PrestashopOrderHistoryUpdate): Promise<void> {
+    const api = this.interceptor.getApi();
+    const xml = buildUpdateOrderHistoryXML(orderHistory);
+
+    console.log(xml);
+    await api.put(`/api/order_histories/${id_order_history}`, xml, {
+      headers: {
+        'Content-Type': 'application/xml'
+      }
+    });
+  }
+
+  async deleteOrderState(id_order_history: number): Promise<void> {
+    const api = this.interceptor.getApi();
+    await api.delete(`/api/order_histories/${id_order_history}`);
   }
 
   async getAllOrderStateByName(): Promise<any> {

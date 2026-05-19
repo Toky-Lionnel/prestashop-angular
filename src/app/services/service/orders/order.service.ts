@@ -135,10 +135,9 @@ export class OrderService {
   }
 
 
-  async createOrderData(order: PrestashopOrder): Promise<any | null> {
+  async createOrderData(order: PrestashopOrder, id_current_state?: number): Promise<any | null> {
     const api = this.authInterceptor.getApi();
-    const orderXML = buildOrderXML(order);
-
+    const orderXML = buildOrderXML(order, id_current_state);
     try {
       const response = await api.post('/api/orders', orderXML, {
         headers: {
@@ -260,7 +259,7 @@ export class OrderService {
     }
   }
 
-  async updateOrderWithFullData(id_order: number, newDateAdd: string): Promise<number | null> {
+  async updateOrderWithFullData(id_order: number, newDateAdd: string, id_order_state: number): Promise<number | null> {
     const api = this.authInterceptor.getApi();
 
     try {
@@ -272,6 +271,8 @@ export class OrderService {
       const getResponseParsed = await parseStringPromise(getResponse.data);
       const orderData = getResponseParsed?.prestashop?.order?.[0];
 
+      orderData.current_state = [{ _: String(id_order_state) }];
+
       if (!orderData) {
         console.error('Failed to retrieve order:', id_order);
         return null;
@@ -279,7 +280,6 @@ export class OrderService {
 
       // Step 2: Construire le XML avec tous les champs récupérés et modifier la date_add
       const orderXML = buildUpdateOrderXMLFromResponse(orderData, id_order, newDateAdd);
-
       // Step 3: PUT avec les données modifiées
       const putResponse = await api.put('/api/orders/' + id_order, orderXML, {
         headers: {

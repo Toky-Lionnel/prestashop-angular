@@ -9,6 +9,10 @@ export interface PrestashopOrderHistory {
   line_number?: number;
 }
 
+export interface PrestashopOrderHistoryUpdate extends PrestashopOrderHistory {
+  id: number;
+}
+
 export interface OrderHistoryTransformOptions {
   id_order_state?: number;
   date_add?: string;
@@ -53,6 +57,19 @@ export function buildOrderHistoryXML(data: PrestashopOrderHistory): string {
     ${buildOrderHistoryFieldXML('id_order', data.id_order)}
 ${buildOrderHistoryFieldXML('id_order_state', data.id_order_state)}
     </order_history>
+</prestashop>`;
+}
+
+export function buildUpdateOrderHistoryXML(data: PrestashopOrderHistoryUpdate): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+  <order_history>
+  ${buildOrderHistoryFieldXML('id_order', data.id_order)}
+${buildOrderHistoryFieldXML('id_order_state', data.id_order_state)}
+  <id format="isUnsignedId">
+      <![CDATA[${escapeCDATA(data.id)}]]>
+    </id>
+  </order_history>
 </prestashop>`;
 }
 

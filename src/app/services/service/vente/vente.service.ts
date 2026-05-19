@@ -80,7 +80,7 @@ export class VenteService {
   /**
    * Regroupe les ventes par catégorie et calcule totaux et bénéfices.
    * - total_purchase: somme des (original_wholesale_price * quantity)
-   * - total_sales: somme des total_price_tax_incl si présent, sinon unit_price_tax_incl * quantity
+   * - total_sales: somme des total_price_tax_excl si présent, sinon unit_price_tax_incl * quantity
    */
   async getSalesByCategory(): Promise<CategorySalesSummary[]> {
     const ventes = await this.getAllVentes();
@@ -90,7 +90,7 @@ export class VenteService {
     for (const v of ventes) {
       const key = v.category_id != null ? v.category_id : 'null';
       const qty = v.product_quantity ?? 0;
-      const totalSales = (v.total_price_tax_incl != null) ? v.total_price_tax_incl : ((v.unit_price_tax_incl ?? 0) * qty);
+      const totalSales = (v.total_price_tax_excl != null) ? v.total_price_tax_excl : ((v.unit_price_tax_incl ?? 0) * qty);
       const totalPurchase = (v.original_wholesale_price ?? 0) * qty;
 
       const cur = agg.get(key) ?? { category_id: v.category_id ?? null, total_purchase: 0, total_sales: 0 };

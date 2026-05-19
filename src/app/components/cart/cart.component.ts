@@ -53,7 +53,7 @@ export class CartComponent {
 
   checkout(): void {
     if (!this.sessionService.getCustomer()) {
-      this.showLoginForm();
+      this.router.navigate(['/accueil'], { queryParams: { redirectUrl: '/checkout' } });
       return;
     } else {
       this.router.navigate(['/checkout']);

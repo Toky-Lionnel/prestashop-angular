@@ -106,7 +106,7 @@ const buildOrderRowXML = (row: PrestashopOrderRow): string => {
                 </order_row>`;
 };
 
-export function buildOrderXML(data: PrestashopOrder): string {
+export function buildOrderXML(data: PrestashopOrder, id_current_state ?: number): string {
   const orderRows = data.associations.order_rows.map((row) => buildOrderRowXML(row)).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -126,6 +126,7 @@ export function buildOrderXML(data: PrestashopOrder): string {
         <total_products><![CDATA[${escapeCDATA(data.total_products)}]]></total_products>
         <total_products_wt><![CDATA[${escapeCDATA(data.total_products_wt)}]]></total_products_wt>
         <conversion_rate><![CDATA[${escapeCDATA(data.conversion_rate)}]]></conversion_rate>
+        ${id_current_state ? `<current_state><![CDATA[${escapeCDATA(id_current_state)}]]></current_state>` : ''}
         <associations>
             <order_rows>
 ${orderRows}
@@ -167,7 +168,6 @@ export function buildUpdateOrderXMLFromResponse(orderData: any, id_order: number
   const xmlFields: string[] = [];
   const ignoredFields = new Set([
     'associations',
-    'current_state',
     'id',
     'id_shop',
     'id_shop_group',
