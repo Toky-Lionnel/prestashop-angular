@@ -98,6 +98,10 @@ export class ValidationComponent implements OnInit {
     return this.elements.filter(e => e.product_quantity > e.stock_disponible).length;
   }
 
+  getUnavailableItems(): CartElements[] {
+    return this.elements.filter(e => e.product_quantity > e.stock_disponible);
+  }
+
   async onValidate () {
     try {
       const id_cart = await this.cartService.createCart(this.carts);

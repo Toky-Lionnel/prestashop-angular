@@ -80,7 +80,7 @@
       <h4>Attention</h4>
       <p>Certains articles ne sont pas disponibles en quantité suffisante. Veuillez réduire les quantités ou contacter le support.</p>
       <ul>
-        <li *ngFor="let e of elements.filter(item => item.product_quantity > item.stock_disponible)">
+        <li *ngFor="let e of getUnavailableItems()">
           <strong>{{ e.product_name }}</strong> : {{ e.product_quantity }} demandé(s), {{ e.stock_disponible }} disponible(s)
         </li>
       </ul>

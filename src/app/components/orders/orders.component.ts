@@ -17,6 +17,7 @@ import { PrestashopOrder, transformCartToOrder } from '../../models/order.model'
 import { OrderService } from '../../services/service/orders/order.service';
 import { FormsModule } from "@angular/forms";
 import { ValidationComponent } from '../validation/validation.component';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -46,6 +47,8 @@ export class OrdersComponent {
   private customerService : CustomerService = inject(CustomerService);
   private orderService : OrderService = inject(OrderService);
 
+
+  private router : Router = inject(Router);
   private dialog = inject(MatDialog);
 
   public currentOrderDetails: any = null;
@@ -154,13 +157,11 @@ export class OrdersComponent {
     alert('La commande a été créée avec succès !');
 
      // Optionnel : Fermer le dialogue après la création de la commande
-     this.close();
+    this.close();
   }
 
 
   async onDuplicate(o : Order) {
-    console.log(`Nombre dupliqué : ${this.nombreDuplicate}`);
-
     const order = await this.orderService.getOrderByIdOrder(o.id);
     const idCart = order?.prestashop?.order.id_cart._;
 
@@ -188,18 +189,19 @@ export class OrdersComponent {
       id_customer: this.sessionService.getCustomer()?.id ?? 0,
       id_address_delivery: customerAdress ?? 0,
       id_address_invoice: customerAdress ?? 0,
-      order_state : 'Paiement accepté',
+      order_state : 'Livré',
       line_number: 0,
       associations: prestashopAssociations
     };
 
-
     this.dialog.open(ValidationComponent, {
       data: prestashopCart, // On passe l'objet product au composant
-      width: '1200px',
+      width: '1700px',
       maxHeight: '120vh',
       panelClass: 'custom-dialog-container' // Optionnel pour du CSS personnalisé
     });
+
+    this.close(); // Fermer le dialogue actuel après l'ouverture du nouveau dialogue de validation
   }
 
 

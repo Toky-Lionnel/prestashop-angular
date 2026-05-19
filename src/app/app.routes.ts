@@ -62,7 +62,7 @@ export const routes: Routes = [
         {
           path : 'reinit',
           component : ReinitialisationComponent
-        }
+        },
       ]
   },
 

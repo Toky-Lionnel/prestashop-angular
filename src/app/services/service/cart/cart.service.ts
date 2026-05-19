@@ -47,6 +47,8 @@ export class CartService {
 
   constructor() { }
 
+  private cartPrestashop : PrestashopCart | null = null;
+
   private interceptor : AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
   private orderService : OrderService = inject(OrderService);
   private customerService : CustomerService = inject(CustomerService);
@@ -334,5 +336,14 @@ export class CartService {
     if (!cart) return null;
 
     return cart;
+  }
+
+
+  setCart(cart: PrestashopCart) {
+    this.cartPrestashop = cart;
+  }
+
+  getCart(): PrestashopCart | null {
+    return this.cartPrestashop;
   }
 }
