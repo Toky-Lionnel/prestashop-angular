@@ -31,6 +31,7 @@ import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/c
 import { TaxService } from '../../services/service/tax/tax.service';
 import { StocksService } from '../../services/service/stocks/stocks.service';
 import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
+import { VenteService } from '../../services/service/vente/vente.service';
 
 @Component({
   selector: 'app-import-file',
@@ -73,13 +74,15 @@ export class ImportFileComponent {
   private stockService : StocksService = inject(StocksService);
   private stockStatService : StockStatService = inject(StockStatService);
 
+  private venteService : VenteService = inject(VenteService);
 
   constructor() {}
 
   async ngOnInit() {
-    const stats = await this.stockStatService.getCategoryStockSummary();
-    console.log(stats);
 
+
+    const ventes = await this.venteService.getSalesByCategory();
+    console.log('Ventes:', ventes);
   }
 
   async OnReset() {

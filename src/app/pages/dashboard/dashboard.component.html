@@ -30,25 +30,14 @@
         <div class="kpi-data">
           <span class="label">Total Généraux</span>
           <strong class="value"> {{total_orders_jour | number:'1.2-2'}} €</strong>
-          <span class="sub-label"> {{ nb_orders_jour }}opérations</span>
-        </div>
-      </div>
-
-      <div class="kpi-card daily">
-        <div class="kpi-icon card"></div>
-        <div class="kpi-data">
-          <span class="label">Total Cartes</span>
-          <strong class="value">0 €</strong>
-          <span class="sub-label">28 paiements</span>
         </div>
       </div>
 
       <div class="kpi-card daily">
         <div class="kpi-icon orders"></div>
         <div class="kpi-data">
-          <span class="label">Total Commandes</span>
-          <strong class="value">{{total_orders_jour | number:'1.2-2'}} €</strong>
-          <span class="sub-label">{{nb_orders_jour}} commandes</span>
+          <span class="label">Nombre de Commandes</span>
+          <strong class="value">{{nb_orders_jour}} commandes</strong>
         </div>
       </div>
     </div>
@@ -66,26 +55,13 @@
         <div class="kpi-data">
           <span class="label">Chiffre d'Affaires Global</span>
           <strong class="value">{{total_orders_general | number:'1.2-2'}} €</strong>
-          <div class="progress-bar"><div class="fill" style="width: 75%"></div></div>
-          <span class="sub-label"> {{ nb_orders_general }}transactions au total</span>
-        </div>
-      </div>
-
-      <div class="kpi-card total">
-        <div class="kpi-data">
-          <span class="label">Volume Cartes (Cumulé)</span>
-          <strong class="value"> 0 €</strong>
-          <div class="progress-bar"><div class="fill blue" style="width: 60%"></div></div>
-          <span class="sub-label">0 cartes enregistrées</span>
         </div>
       </div>
 
       <div class="kpi-card total">
         <div class="kpi-data">
           <span class="label">Commandes Totales</span>
-          <strong class="value">{{total_orders_general | number:'1.2-2'}} €</strong>
-          <div class="progress-bar"><div class="fill green" style="width: 45%"></div></div>
-          <span class="sub-label">{{nb_orders_general}} commandes</span>
+          <strong class="value">{{nb_orders_general}} commandes</strong>
         </div>
       </div>
     </div>
@@ -102,4 +78,17 @@
 <app-category-stock-list
   [categoriesStock]="stocksCategorySummary">
 </app-category-stock-list>
+</section>
+
+
+<!-- Section Performance Commerciale par Catégorie -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Performance Commerciale par Catégorie</h2>
+    <span class="badge secondary">Données actuelles</span>
+  </div>
+  <!-- Dans la page principale de votre application -->
+  <app-sales
+    [salesSummaryList]="salesCategorySummary">
+  </app-sales>
 </section>

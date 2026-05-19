@@ -32,6 +32,7 @@ export class OrderFacadeService {
 
   constructor() { }
 
+
   async importOrders (customers : CustomerCsvModel []) {
 
     const uniqueCustomers : CustomerCsvModel [] = uniqueCustomerCsvRows(customers);
@@ -87,26 +88,12 @@ export class OrderFacadeService {
 
         if ((cart.order_state ?? '').trim() !== '') {
           const order : PrestashopOrder = transformCartToOrder(cart);
-
           const orderData = await this.orderService.createOrderData(order);
-
           const idOrder = orderData?.id?.[0];
-
-          await this.orderHistoryService.loadOrderStates();
-
-          // creation mouvement de stock pour chaque ligne de commande
-          for (const row of cart.associations.cart_rows) {
-            await this.stockFacadeService.createStockMouvement(row.id_product ?? 0, row.id_product_attribute ?? 0, -row.quantity, 'Order creation', cart.date_add ?? '');
-          }
 
           // update de la date via GET + PUT
           await this.orderService.updateOrderWithFullData(Number(idOrder), cart.date_add ?? '');
-
-          const idState = this.orderHistoryService.getOrderStateIdByName(order.order_state ?? '');
-          const orderState : PrestashopOrderHistory = transformOrderToOrderHistory(order);
-          orderState.id_order_state = idState ?? 0;
-          orderState.id_order = idOrder?? 0;
-          await this.orderHistoryService.createOrderState(orderState);
+          await this.createOrderState(idOrder ?? 0, cart.order_state ?? '', cart.associations, cart.date_add ?? '');
         }
 
       } catch (error) {
@@ -191,5 +178,53 @@ export class OrderFacadeService {
     }
     return false;
   }
+
+
+  async createOrderState(id_order: number, order_state_name: string, cart_associations: any , date_add : string): Promise<void> {
+
+    await this.orderHistoryService.loadOrderStates();
+
+    const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
+    if (!id_order_state) {
+      throw new Error(`Cannot create order state: Order state not found for name ${order_state_name}`);
+    }
+
+    if (id_order_state === 2) {
+      const orderState : PrestashopOrderHistory = {
+        id_order_state: 2,
+        id_order: id_order,
+        date_add: new Date().toISOString(),
+        order_state : order_state_name
+      };
+      await this.orderHistoryService.createOrderState(orderState);
+      return;
+    }
+
+
+    if (id_order_state === 5 || id_order_state === 6) {
+      // creation du payement accepté :
+      const orderState : PrestashopOrderHistory = {
+        id_order_state: 2,
+        id_order: id_order,
+        date_add: new Date().toISOString(),
+        order_state : order_state_name
+      };
+      await this.orderHistoryService.createOrderState(orderState);
+    }
+
+
+    if (id_order_state === 5) {
+      await this.updateOrderStatus(id_order, 5);
+    }
+
+    if (id_order_state === 6) {
+      await this.updateOrderStatus(id_order, 6);
+    }
+  }
+
+  async updateOrderStatus(orderId: number, status: number) {
+      await this.orderHistoryService.updateOrderState(orderId, status);
+  }
+
 
 }

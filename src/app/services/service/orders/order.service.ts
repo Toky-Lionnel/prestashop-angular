@@ -31,17 +31,26 @@ export class OrderService {
     return Promise.all(promises);
   }
 
+
   private async getOrderIds(date?: string, id_customer?: number): Promise<number[]> {
     const api = this.authInterceptor.getApi();
-
     let url = '/api/orders';
 
+    const filters: string[] = [];
     if (date) {
-      url += `?date=1&filter[date_add]=[${date} 00:00:00,${date} 23:59:59]`;
+      filters.push(
+        `date=1`,
+        `filter[date_add]=[${date} 00:00:00,${date} 23:59:59]`
+      );
     }
 
+    filters.push(`filter[current_state]=![6]`);
     if (id_customer) {
-      url += `${url.includes('?') ? '&' : '?'}filter[id_customer]=[${id_customer}]`;
+      filters.push(`filter[id_customer]=[${id_customer}]`);
+    }
+
+    if (filters.length > 0) {
+      url += `?${filters.join('&')}`;
     }
 
     const response = await api.get(url, {
@@ -49,23 +58,15 @@ export class OrderService {
     });
 
     const json = await xmlToJson(response.data);
-    const orders = json.prestashop.orders.order;
+    const orders = json.prestashop.orders?.order;
 
     if (!orders) {
       return [];
     }
 
     const list = Array.isArray(orders) ? orders : [orders];
-
-    const ids: number[] = [];
-
-    for (let i = 0; i < list.length; i++) {
-      ids.push(Number(list[i].$.id));
-    }
-
-    return ids;
+    return list.map((o: any) => Number(o.$.id));
   }
-
 
   private async getOrderMapped(id: number): Promise<Order> {
     const api = this.authInterceptor.getApi();
@@ -232,9 +233,6 @@ export class OrderService {
       return null;
     }
   }
-
-
-
 
   async verifCart (idCart: number): Promise<any | null> {
     const api = this.authInterceptor.getApi();

@@ -1,0 +1,120 @@
+:host {
+  display: block;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #1e293b;
+}
+
+.sales-summary-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  thead {
+    background-color: #ffffff;
+
+    th {
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background-color 0.15s ease;
+      &:hover { background-color: #f8fafc; }
+      &:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+    }
+
+    td {
+      padding: 1.2rem 1.5rem;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+  }
+}
+
+// Design des colonnes
+.id-column {
+  color: #94a3b8;
+  font-weight: 500;
+  width: 80px;
+}
+
+.name-column {
+  color: #0f172a;
+}
+
+.price-purchase {
+  color: #64748b; // Un coût d'achat est plus discret en gris
+}
+
+.price-sales {
+  color: #0f172a;
+}
+
+// Styles spécifiques pour les bénéfices/pertes
+.benefit-column {
+  width: 150px;
+
+  &.profit {
+    color: #166534;
+    background-color: #f0fdf4;
+  }
+
+  &.loss {
+    color: #991b1b;
+    background-color: #fef2f2;
+  }
+}
+
+// Classes utilitaires
+.text-success { color: #16a34a !important; }
+.text-danger { color: #dc2626 !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.empty-row {
+  text-align: center;
+  padding: 3rem !important;
+  color: #94a3b8;
+  font-style: italic;
+}

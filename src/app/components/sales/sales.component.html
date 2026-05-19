@@ -1,0 +1,53 @@
+<div class="sales-summary-card">
+  <div class="card-header">
+    <div class="header-title">
+      <h2>Performance Commerciale par Catégorie</h2>
+      <p>Analyse du chiffre d'affaires, des coûts d'achat et de la rentabilité nette</p>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="sales-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Catégorie</th>
+          <th class="text-right">Total Achats (Coût)</th>
+          <th class="text-right">Total Ventes (CA)</th>
+          <th class="text-right">Marge %</th>
+          <th class="text-right">Bénéfice Net</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let summary of salesSummaryList">
+          <td class="id-column">
+            {{ summary.category_id !== null ? '#' + summary.category_id : '-' }}
+          </td>
+          <td class="name-column font-semibold">
+            {{ summary.category_name || 'Non classé' }}
+          </td>
+          <td class="text-right price-purchase">
+            {{ summary.total_purchase | number:'1.2-2' }} €
+          </td>
+          <td class="text-right price-sales font-medium">
+            {{ summary.total_sales | number:'1.2-2' }} €
+          </td>
+          <td class="text-right font-medium" [ngClass]="summary.benefit >= 0 ? 'text-success' : 'text-danger'">
+            {{ getMarginPercentage(summary) | number:'1.1-1' }}%
+          </td>
+          <td class="text-right font-bold benefit-column"
+              [ngClass]="summary.benefit >= 0 ? 'profit' : 'loss'">
+            <span *ngIf="summary.benefit > 0">+</span>{{ summary.benefit | number:'1.2-2' }} €
+          </td>
+        </tr>
+
+        <!-- État vide si aucune donnée n'est reçue -->
+        <tr *ngIf="salesSummaryList.length === 0">
+          <td colspan="6" class="empty-row">
+            Aucune donnée de vente disponible pour le moment.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
