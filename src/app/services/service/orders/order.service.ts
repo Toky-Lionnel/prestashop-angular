@@ -153,6 +153,9 @@ export class OrderService {
 
       const responseData = await parseStringPromise(response.data);
       const order = responseData?.prestashop?.order?.[0];
+
+      await this.orderStateService.updateOrderState(order?.id?.[0], Number(id_current_state));
+
       return order;
     } catch (error) {
       console.error('Error creating order:', error);

@@ -1,10 +1,17 @@
 <div class="header-top" *ngIf="!isAdmin">
-	<button class="btn-cart" (click)="openCart()">
-		<span class="cart-label">🛒 Panier</span>
-		<span class="cart-badge">{{ cartLength }}</span>
-	</button>
-  <button class="btn-cart" (click)="openOrders()">
-		<span class="cart-label">Commandes</span>
+	<div class="header-actions">
+		<button class="btn-action btn-cart" (click)="openCart()">
+			<span class="cart-label">🛒 Panier</span>
+			<span class="cart-badge">{{ cartLength }}</span>
+		</button>
+
+		<button class="btn-action btn-secondary" (click)="openOrders()">
+			<span class="cart-label">Commandes</span>
+		</button>
+	</div>
+
+	<button class="btn-action btn-logout" (click)="clearCustomerSession()">
+		<span class="cart-label">Déconnecter</span>
 	</button>
 </div>
 

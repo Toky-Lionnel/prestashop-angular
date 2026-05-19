@@ -32,20 +32,20 @@
                     type="button"
                     class="action-btn action-btn--success"
                     (click)="updateOrderStatus(order, 5)"
-                    *ngIf="order.recent_statut !== 'Livré' && order.recent_statut !== 'Annulée' && order.recent_statut !== 'Non commandé'">
-                    Livré
+                    *ngIf="order.recent_statut !== 'Livré' && order.recent_statut !== 'Annulé' && order.recent_statut !== 'Non commandé'">
+                    Livrer
                   </button>
 
                   <button
                     type="button"
                     class="action-btn action-btn--danger"
                     (click)="updateOrderStatus(order, 6)"
-                    *ngIf="order.recent_statut !== 'Annulée' && order.recent_statut !== 'Non commandé' && order.recent_statut !== 'Livré'">
+                    *ngIf="order.recent_statut !== 'Annulé' && order.recent_statut !== 'Non commandé' && order.recent_statut !== 'Livré'">
                     Annuler
                   </button>
 
                   <ng-template #noorder>
-                    <button type="button" class="action-btn action-btn--primary">
+                    <button type="button" (click)="transformToOrder(order)" class="action-btn action-btn--primary">
                       Transformer en commande
                     </button>
                     <span class="no-order">Non commandé</span>

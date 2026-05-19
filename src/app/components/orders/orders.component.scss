@@ -297,7 +297,10 @@
       .order-actions {
         min-width: 0;
         flex: 1;
-        justify-content: space-between;
+        justify-content: flex-end;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
       }
 
       .order-summary {
@@ -305,6 +308,7 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+        justify-content: flex-end;
       }
 
       .action-buttons {
@@ -313,6 +317,7 @@
         justify-content: flex-end;
         gap: 8px;
         flex-wrap: wrap;
+        width: 100%;
       }
 
       .action-btn {
@@ -377,6 +382,7 @@
         font-size: 0.82rem;
         font-weight: 700;
         box-shadow: 0 10px 24px rgba(28, 97, 254, 0.16);
+        white-space: nowrap;
 
         mat-icon {
           margin-right: 4px;
@@ -427,13 +433,20 @@
         .action-buttons,
         .order-summary {
           justify-content: flex-start;
+          align-items: flex-start;
         }
 
         .order-actions {
           flex-direction: column;
           align-items: flex-start;
+          width: 100%;
         }
 
+        .action-buttons {
+          width: 100%;
+        }
+
+        .action-btn,
         .details-btn {
           width: 100%;
         }

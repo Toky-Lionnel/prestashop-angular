@@ -10,6 +10,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CartService } from '../../services/service/cart/cart.service';
 import { OrderStateService } from '../../services/service/order-state/order-state.service';
+import { PrestashopCart, PrestashopCartAssociations, PrestashopCartRow } from '../../models/cart.model';
+import { SessionService } from '../../services/service/session/session.service';
+import { CustomerService } from '../../services/service/customer/customer.service';
+import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
+import { OrderService } from '../../services/service/orders/order.service';
 
 
 @Component({
@@ -34,6 +39,9 @@ export class OrdersComponent {
   public orders: Order[] = inject(MAT_DIALOG_DATA);
   private cartService : CartService = inject(CartService);
   private orderStateService : OrderStateService = inject(OrderStateService);
+  private sessionService : SessionService = inject(SessionService);
+  private customerService : CustomerService = inject(CustomerService);
+  private orderService : OrderService = inject(OrderService);
 
   public currentOrderDetails: any = null;
   public isLoadingDetails: boolean = false;
@@ -92,6 +100,47 @@ export class OrdersComponent {
     if (updatedStatusName) {
       order.recent_statut = updatedStatusName;
     }
+  }
+
+  async transformToOrder(order: Order) {
+    const idCart = order.id; // Utiliser l'ID du panier pour créer la commande
+
+    const customerAdress = await this.customerService.getAddressByIdCustomer(this.sessionService.getCustomer()?.id ?? 0);
+    const cartsItems = await this.cartService.getCartById(idCart ?? 0);
+    const cartRows = cartsItems?.associations[0].cart_rows[0].cart_row;
+
+    const carts : PrestashopCartRow [] = cartRows.map((item : any) => ({
+      product_name: '', // Récupérer la référence du produit
+      id_product: item.id_product[0]._,
+      product_attribute: '', // Récupérer la référence de l'attribut si nécessaire
+      id_product_attribute: item.id_product_attribute[0]._,
+      id_address_delivery: customerAdress ?? 0,
+      quantity: item.quantity
+    }));
+
+    const prestashopAssociations : PrestashopCartAssociations = {
+      cart_rows: carts
+    }
+
+    const prestashopCart : PrestashopCart = {
+      id : idCart ?? undefined,
+      id_currency: 1,
+      id_lang: 1,
+      id_customer: this.sessionService.getCustomer()?.id ?? 0,
+      id_address_delivery: customerAdress ?? 0,
+      id_address_invoice: customerAdress ?? 0,
+      order_state : 'Paiement accepté',
+      line_number: 0,
+      associations: prestashopAssociations
+    };
+    await this.cartService.updateCart(prestashopCart, idCart ?? 0);
+    const orders : PrestashopOrder = transformCartToOrder(prestashopCart);
+    await this.orderService.createOrderData(orders,2);
+
+    alert('La commande a été créée avec succès !');
+
+     // Optionnel : Fermer le dialogue après la création de la commande
+     this.close();
   }
 
 

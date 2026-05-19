@@ -154,7 +154,7 @@ export class ProductListComponent {
       return;
     }
 
-    const orders : Order [] = await this.orderService.getOrdersFull(undefined,idCustomer);
+    const orders : Order [] = await this.orderService.getOrdersFull(undefined,idCustomer,true);
     const carts : Order [] = await this.cartService.getCartMapped(idCustomer) || [];
     this.dialog.open(OrdersComponent, {
       width: '1300px',        // Largeur adaptée pour le tableau
@@ -164,5 +164,13 @@ export class ProductListComponent {
       panelClass: 'custom-dialog-container' // Optionnel : pour du style spécifique
     });
   }
+
+
+  clearCustomerSession() {
+    this.sessionService.clearCustomer();
+    this.router.navigate(['/accueil']);
+    alert("Session client effacée !");
+  }
+
 
 }
