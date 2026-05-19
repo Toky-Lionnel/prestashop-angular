@@ -52,7 +52,7 @@ export class ImportFileComponent {
   zipFile: File | null = null;
   result: string = '';
 
-  image : boolean = false;
+  importImage : boolean = true;
 
   private messageService: MessageService = inject(MessageService);
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
@@ -158,17 +158,6 @@ export class ImportFileComponent {
     }
   }
 
-  onQtyChange(event: Event): void {
-      const input = event.target as HTMLInputElement;
-      console.log(`Value : ${input.value}`);
-
-      if (input.value === 'on') {
-        this.image = false;
-      } else {
-        this.image = true;
-      }
-  }
-
 
   async importExcelFiles() {
     if (this.excelFiles.some((f) => !f) || !this.zipFile) {
@@ -189,7 +178,7 @@ export class ImportFileComponent {
         this.excelFiles.map((f) => transformCSVtoBackend(f as File))
       );
 
-      const errorsHTML = await this.importFileService.importCSV(backendDatas, this.zipFile, this.image);
+      const errorsHTML = await this.importFileService.importCSV(backendDatas, this.zipFile, this.importImage);
       if (errorsHTML && errorsHTML.trim() !== '') {
         this.result = errorsHTML;
         this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });

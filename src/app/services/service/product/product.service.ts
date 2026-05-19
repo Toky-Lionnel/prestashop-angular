@@ -262,33 +262,60 @@ export class ProductService {
 
   private async loadProductImages(idProduct: number) {
     const api = this.interceptor.getApi();
-    const imagesResponse = await api.get(`/api/images/products/${idProduct}`, {
-      responseType: 'text'
-    });
-    const imagesData = await parseStringPromise(imagesResponse.data);
-    return mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
+    try {
+      const imagesResponse = await api.get(`/api/images/products/${idProduct}`, {
+        responseType: 'text'
+      });
+      const imagesData = await parseStringPromise(imagesResponse.data);
+      return mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
+    } catch (error: any) {
+      // Gérer le cas où il n'y a pas d'images (erreur 404)
+      if (error.response?.status === 404) {
+        console.warn(`No images found for product ID: ${idProduct}, returning empty array`);
+        // Retourner un tableau vide ou une image par défaut "indisponible"
+        return [
+          {
+            id: 0,
+            url: 'assets/images/no-image-available.png', // Image placeholder
+            legend: 'Image indisponible'
+          }
+        ];
+      }
+      // Pour les autres erreurs, les relancer
+      throw error;
+    }
   }
 
   private async loadProductCombinationsWithStock(idProduct: number) {
     const api = this.interceptor.getApi();
-    const combinationsResponse = await api.get(
-      `/api/combinations?filter[id_product]=${idProduct}&display=full`,
-      {
-        responseType: 'text'
+    try {
+      const combinationsResponse = await api.get(
+        `/api/combinations?filter[id_product]=${idProduct}&display=full`,
+        {
+          responseType: 'text'
+        }
+      );
+      const combinationsData = await parseStringPromise(combinationsResponse.data);
+      const rawCombinations = combinationsData?.prestashop?.combinations?.[0]?.combination ?? [];
+      const combinationsArray = Array.isArray(rawCombinations) ? rawCombinations : [rawCombinations];
+
+      const attributeValueIds = this.extractAttributeValueIds(combinationsArray);
+      const attributeLookupById = await this.loadAttributeLookup(attributeValueIds);
+
+      return Promise.all(
+        combinationsArray
+          .filter(Boolean)
+          .map((combination: any) => this.mapCombinationWithStock(idProduct, combination, attributeLookupById))
+      );
+    } catch (error: any) {
+      // Gérer le cas où il n'y a pas de combinaisons (erreur 404)
+      if (error.response?.status === 404) {
+        console.warn(`No combinations found for product ID: ${idProduct}, returning empty array`);
+        return [];
       }
-    );
-    const combinationsData = await parseStringPromise(combinationsResponse.data);
-    const rawCombinations = combinationsData?.prestashop?.combinations?.[0]?.combination ?? [];
-    const combinationsArray = Array.isArray(rawCombinations) ? rawCombinations : [rawCombinations];
-
-    const attributeValueIds = this.extractAttributeValueIds(combinationsArray);
-    const attributeLookupById = await this.loadAttributeLookup(attributeValueIds);
-
-    return Promise.all(
-      combinationsArray
-        .filter(Boolean)
-        .map((combination: any) => this.mapCombinationWithStock(idProduct, combination, attributeLookupById))
-    );
+      // Pour les autres erreurs, les relancer
+      throw error;
+    }
   }
 
   private extractAttributeValueIds(combinationsArray: any[]): Set<number> {

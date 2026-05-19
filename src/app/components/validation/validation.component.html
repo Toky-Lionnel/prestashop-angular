@@ -68,7 +68,7 @@
         <strong>{{ calculateTotalQuantity() }}</strong>
       </div>
       <div class="summary-row" *ngIf="indisponible">
-        <span class="alert-text">⚠️ Produits indisponibles :</span>
+        <span class="alert-text">Produits indisponibles :</span>
         <strong class="alert-text">{{ getUnavailableCount() }}</strong>
       </div>
     </div>
@@ -95,7 +95,7 @@
       (click)="onValidate()"
       [disabled]="indisponible"
       [attr.aria-disabled]="indisponible">
-      ✓ Valider la commande
+      Valider la commande
     </button>
     <button
       type="button"

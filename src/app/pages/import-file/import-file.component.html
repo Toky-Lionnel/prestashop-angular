@@ -41,7 +41,15 @@
       <label for="zipFile">Fichier ZIP images</label>
       <input id="zipFile" type="file" accept=".zip" (change)="onZipFileChange($event)" />
       <div *ngIf="zipFile" class="file-name" aria-live="polite">Sélectionné: {{ zipFile.name }}</div>
-      <input type="checkbox" (change)="onQtyChange($event)">
+      <!-- Case simple -->
+      <label>
+        <input
+          type="checkbox"
+          [(ngModel)]="importImage"
+          name="isActive"
+        >
+        À importer
+      </label>
     </div>
 
     <div class="actions-row">

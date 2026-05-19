@@ -87,11 +87,12 @@ export class ImportFileService {
       const customersCSV: CustomerCsvModel[] = customersValidation.validData;
       await this.orderFacadeService.importOrders(customersCSV);
 
+      if (importImage === true) {
         if (zipFile) {
           await this.imagesService.importImages(zipFile);
         }
+      }
       
-
       return ''; // no errors, empty string indicates success
   }
 
