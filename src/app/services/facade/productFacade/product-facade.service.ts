@@ -23,10 +23,14 @@ export class ProductFacadeService {
   private taxService: TaxService = inject(TaxService);
 
   productMap : Map <string,number> = new Map <string,number> ();
-
+  availabiltyMap : Map <number,string> = new Map <number,string> ();
 
   public getProductMap () : Map <string,number> {
     return this.productMap;
+  }
+
+  public getAvailabilityMap() : Map<number, string> {
+    return this.availabiltyMap;
   }
 
   constructor() {}
@@ -131,6 +135,7 @@ export class ProductFacadeService {
         };
         const idProduct = await this.productService.createProduct(prestashopProduct);
         this.productMap.set(product.reference,idProduct);
+        this.availabiltyMap.set(idProduct, product.date_availability_produit);
         console.log(`=== FIN CREATION PRODUIT ${product.line_number}`);
       }
 

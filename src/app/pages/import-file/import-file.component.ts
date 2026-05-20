@@ -142,7 +142,7 @@ export class ImportFileComponent {
           this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
           return;
         }
-        await this.attributeFacadeService.importProductCombinations(validation.validData, productsMap);
+        await this.attributeFacadeService.importProductCombinations(validation.validData, productsMap, this.productFacadeService.getAvailabilityMap());
       } else if (backendData.table_name.toLowerCase() === 'customers') {
         const validation = validateCustomerCsvRows(parsed);
         if (validation.invalidData.length > 0) {

@@ -289,7 +289,6 @@ export class OrderService {
 
   async patchCurrentState(id_order: number, id_order_state: number, date_add : string): Promise<void> {
     const api = this.authInterceptor.getApi();
-
     const date = formatPrestashopDate(date_add);
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -297,7 +296,7 @@ export class OrderService {
           <order>
               <id>${id_order}</id>
               <current_state>${id_order_state}</current_state>
-              <date_add>${date_add}</date_add>
+              <date_add>${date}</date_add>
           </order>
       </prestashop>`
 

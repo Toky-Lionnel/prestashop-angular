@@ -8,6 +8,7 @@ import { CartService } from '../../services/service/cart/cart.service';
 export interface Customer {
   id: number;
   email: string;
+  name: string;
 }
 
 @Component({
@@ -36,14 +37,9 @@ export class AccueilComponent {
 
     this.customers = customersRaw.map((customer: any) => ({
       id: customer.id[0],
-      email: customer.email[0]
+      email: customer.email[0],
+      name: customer.firstname[0] + ' ' + customer.lastname[0]
     }));
-
-    const carts = await this.cartService.getCartMapped();
-
-    console.log(carts);
-
-
   }
 
   selectCustomer(customer: Customer | null): void {

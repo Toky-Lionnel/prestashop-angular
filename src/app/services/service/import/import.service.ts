@@ -84,7 +84,7 @@ export class ImportFileService {
       const productMap = this.productFacadeService.getProductMap();
 
       const combinationsCSV: CombinationCsvModel[] = combinationsValidation.validData;
-      await this.attributeFacadeService.importProductCombinations(combinationsCSV, productMap);
+      await this.attributeFacadeService.importProductCombinations(combinationsCSV, productMap, this.productFacadeService.getAvailabilityMap());
 
       const customersCSV: CustomerCsvModel[] = customersValidation.validData;
       await this.orderFacadeService.importOrders(customersCSV, productMap);

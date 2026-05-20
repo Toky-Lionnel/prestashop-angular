@@ -44,11 +44,11 @@ export class AttributeFacadeService {
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
 
 
-  async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[]) {
+  async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[], mapAvailability : Map<number, string>) : Promise<void> {
     for (const combo of combinations) {
       const idProduct = this.productMap.get(combo.reference);
       if (!idProduct) continue;
-      const date_add = await this.productService.getDateAvailabilityByIdProduct(idProduct) ?? new Date().toISOString();
+      const date_add = mapAvailability.get(idProduct) ?? new Date().toISOString();
       await this.stockFacadeService.updateStockAndCreateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination', date_add);
     }
   }
@@ -117,7 +117,7 @@ export class AttributeFacadeService {
 
 
 
-  async importProductCombinations(combinations: CombinationCsvModel[], mapProducts : Map <string, number>): Promise<void> {
+  async importProductCombinations(combinations: CombinationCsvModel[], mapProducts : Map <string, number>, mapAvailability : Map <number, string>): Promise<void> {
 
     this.productMap = mapProducts;
 
@@ -127,7 +127,7 @@ export class AttributeFacadeService {
     const uniqueAttributes : AttributeModel[] = extractUniqueAttributes(combinationsWithSpec);
 
     await this.importOption(uniqueAttributes);
-    await this.insertionStocksSansDeclinaison(combinationsWithoutSpec);
+    await this.insertionStocksSansDeclinaison(combinationsWithoutSpec, mapAvailability);
 
 
     // Group combinations by reference
@@ -146,7 +146,7 @@ export class AttributeFacadeService {
         continue;
       }
 
-      const date_availability = await this.productService.getDateAvailabilityByIdProduct(idProduct) ?? new Date().toISOString();
+      const date_availability =  mapAvailability.get(idProduct) ?? new Date().toISOString();
 
       for (const combo of combos) {
         const attribute = uniqueAttributes.find(attr => attr.specificite === combo.specificite && attr.karazany === combo.karazany);

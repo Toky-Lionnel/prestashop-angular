@@ -129,7 +129,7 @@ export class CustomerService {
 
   async getAllCustomers() : Promise<any[] | null> {
     const api = this.interceptor.getApi();
-    const response = await api.get('/api/customers?display=[id,email]', {
+    const response = await api.get('/api/customers?display=[id,email,lastname,firstname]', {
       responseType: 'text'
     });
 
