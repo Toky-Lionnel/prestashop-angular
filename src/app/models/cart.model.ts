@@ -156,14 +156,26 @@ export function transformCartCsvRowsToPrestashopCarts(rows: CartCsvModel[], opti
     }
 
     const cart = cartsByGroup.get(groupId)!;
-    cart.associations.cart_rows.push({
-      product_name: row.reference,
-      id_product: 0,
-      product_attribute: row.attribute || '',
-      id_product_attribute: null,
-      id_address_delivery: settings.id_address_delivery,
-      quantity: toNumber(row.qte, settings.default_quantity)
-    });
+    const quantity = toNumber(row.qte, settings.default_quantity);
+
+    const existingRow = cart.associations.cart_rows.find(
+      r =>
+        r.product_name === row.reference &&
+        r.product_attribute === (row.attribute || '')
+    );
+
+    if (existingRow) {
+      existingRow.quantity += quantity;
+    } else {
+      cart.associations.cart_rows.push({
+        product_name: row.reference,
+        id_product: 0,
+        product_attribute: row.attribute || '',
+        id_product_attribute: null,
+        id_address_delivery: settings.id_address_delivery,
+        quantity
+      });
+    }
   }
 
   return [...cartsByGroup.entries()]

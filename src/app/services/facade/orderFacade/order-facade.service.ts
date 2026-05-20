@@ -70,6 +70,7 @@ export class OrderFacadeService {
             throw new Error(`Cannot create order: Product not found for cart line with product name ${row.product_name}`);
           }
           row.id_product = idProduct;
+          row.id_address_delivery = idAddress;
 
           let idProductAttribute: number | null = 0;
 
@@ -81,6 +82,8 @@ export class OrderFacadeService {
           }
           row.id_product_attribute = idProductAttribute ?? 0;
         }
+
+
 
         const idCart = await this.cartService.createCart(cart);
         cart.id = idCart;

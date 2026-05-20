@@ -197,4 +197,9 @@ export class ReinitialisationService {
       }
     }
   }
+
+  async deleteDonneesCommandes () : Promise<void> {
+
+  }
+
 }
