@@ -81,18 +81,20 @@ export class ImportFileService {
       const productsCSV: ProductCsvModel[] = productValidation.validData;
       await this.productFacadeService.importProductsBase(productsCSV);
 
+      const productMap = this.productFacadeService.getProductMap();
+
       const combinationsCSV: CombinationCsvModel[] = combinationsValidation.validData;
-      await this.attributeFacadeService.importProductCombinations(combinationsCSV);
+      await this.attributeFacadeService.importProductCombinations(combinationsCSV, productMap);
 
       const customersCSV: CustomerCsvModel[] = customersValidation.validData;
-      await this.orderFacadeService.importOrders(customersCSV);
+      await this.orderFacadeService.importOrders(customersCSV, productMap);
 
       if (importImage === true) {
         if (zipFile) {
           await this.imagesService.importImages(zipFile);
         }
       }
-      
+
       return ''; // no errors, empty string indicates success
   }
 

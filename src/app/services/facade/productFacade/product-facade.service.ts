@@ -22,6 +22,13 @@ export class ProductFacadeService {
   private categoriesService: CategoriesService = inject(CategoriesService);
   private taxService: TaxService = inject(TaxService);
 
+  productMap : Map <string,number> = new Map <string,number> ();
+
+
+  public getProductMap () : Map <string,number> {
+    return this.productMap;
+  }
+
   constructor() {}
 
   async importProduct(products: PrestashopProduct[]) {
@@ -45,11 +52,8 @@ export class ProductFacadeService {
 
       for (const category of categories) {
         const categoryName = category.name.language[0]?.value?.trim() ?? '';
-        const createdCategoryId =
-          await this.categoriesService.createCategories(category);
-        const resolvedCategoryId =
-          createdCategoryId ??
-          (await this.categoriesService.getIdCategoryByName(categoryName));
+        const createdCategoryId = await this.categoriesService.createCategories(category);
+        const resolvedCategoryId = createdCategoryId;
 
         if (resolvedCategoryId) {
           categoryIdByName.set(categoryName.toLowerCase(), resolvedCategoryId);
@@ -125,11 +129,9 @@ export class ProductFacadeService {
             },
           },
         };
-        await this.productService.createProduct(prestashopProduct);
-
+        const idProduct = await this.productService.createProduct(prestashopProduct);
+        this.productMap.set(product.reference,idProduct);
         console.log(`=== FIN CREATION PRODUIT ${product.line_number}`);
-
-
       }
 
       console.log("==== FIN CREATION DES PRODUITS ====");

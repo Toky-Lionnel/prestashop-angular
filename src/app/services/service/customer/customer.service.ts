@@ -35,7 +35,17 @@ export class CustomerService {
         'Content-Type': 'application/xml'
       }
     });
-    return parseStringPromise(response.data);
+
+    const responseData = await parseStringPromise(response.data);
+    const idAdress = responseData?.prestashop?.address?.[0]?.id?.[0];
+
+    if (!idAdress) {
+      console.warn(responseData);
+      console.error('Failed to create address for customer ID:', address.id_customer);
+      return null;
+    }
+
+    return idAdress;
   }
 
 

@@ -3,7 +3,7 @@ import { OrderService } from '../../service/orders/order.service';
 import { CartService } from '../../service/cart/cart.service';
 import { PrestashopCart, transformCartCsvRowsToPrestashopCarts } from '../../../models/cart.model';
 import { PrestashopOrder, transformCartToOrder } from '../../../models/order.model';
-import { OrderStateService } from '../../service/order-state/order-state.service';
+import { OrderStateService, PrestashopOrderState } from '../../service/order-state/order-state.service';
 import { CustomerService } from '../../service/customer/customer.service';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 import { PrestashopProduct } from '../../../models/product.model';
@@ -15,6 +15,7 @@ import { CustomerFacadeService } from '../customerFacade/customer-facade.service
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../../models/cart-csv.model';
 import { StockFacadeService } from '../stockFacade/stock-facade.service';
 import { PrestashopOrderHistory } from '../../../models/order-history.model';
+import { AttributeFacadeService } from '../attributeFacade/attribute-facade.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,24 +25,83 @@ export class OrderFacadeService {
   private orderService: OrderService = inject(OrderService);
   private cartService: CartService = inject(CartService);
   private orderHistoryService: OrderStateService = inject(OrderStateService);
-  private customerService : CustomerService = inject(CustomerService);
-  private productService : ProductService = inject(ProductService);
   private attributeService : AttributeService = inject(AttributeService);
   private stockFacadeService : StockFacadeService = inject(StockFacadeService);
   private customerFacade : CustomerFacadeService = inject(CustomerFacadeService);
+  private attributeFacade : AttributeFacadeService = inject(AttributeFacadeService);
 
-  constructor() { }
+  productMap : Map <string,number> = new Map <string,number> ();
+
+  private customerCache = new Map<string, number>();
+  private addressCache = new Map<number, number>();
+  private combinationCache = new Map<string, number>();
+  private orderStateCache : PrestashopOrderState [] = [];
+
+  // async getCachedCustomerId(email: string): Promise<number> {
+  //   const cached = this.customerCache.get(email);
+  //   if (cached) return cached;
+
+  //   const id = await this.customerService.getIdCustomerByEmail(email);
+
+  //   if (!id) {
+  //     throw new Error(`Customer not found: ${email}`);
+  //   }
+
+  //   this.customerCache.set(email, id);
+  //   return id;
+  // }
+
+  async getCachedCombinationId(productId: number,attribute: string): Promise<number> {
+    const key = `${productId}_${attribute}`;
+
+    const cached = this.combinationCache.get(key);
+    if (cached) return cached;
+
+    const id = await this.attributeService.getIdCombination(productId, attribute);
+
+    if (!id) {
+      throw new Error(`Combination not found: ${key}`);
+    }
+
+    this.combinationCache.set(key, id);
+    return id;
+  }
 
 
-  async importOrders (customers : CustomerCsvModel []) {
+  // async getCachedAddressId(customerId: number): Promise<number> {
+  //   const cached = this.addressCache.get(customerId);
+  //   if (cached) return cached;
 
+  //   const idAddress = await this.customerService.getAddressByIdCustomer(customerId);
+
+  //   if (!idAddress) {
+  //     throw new Error(`Address not found for customer ${customerId}`);
+  //   }
+
+  //   this.addressCache.set(customerId, idAddress);
+  //   return idAddress;
+  // }
+
+  constructor() {
+    this.initializeCache();
+  }
+
+  private async initializeCache(): Promise<void> {
+    this.orderStateCache = await this.orderHistoryService.loadOrderStates();
+  }
+
+  async importOrders (customers : CustomerCsvModel [], productMap : Map<string, number>) : Promise<void> {
     const uniqueCustomers : CustomerCsvModel [] = uniqueCustomerCsvRows(customers);
     const customersModel : PrestashopCustomer [] = transformCustomerCsvToModels(uniqueCustomers);
-    await this.customerFacade.importCustomers(customersModel);
+
+    this.productMap = productMap;
+
+    const { customerMap, adressMap } = await this.customerFacade.importCustomers(customersModel);
+    this.customerCache = customerMap;
+    this.addressCache = adressMap;
 
     const cartsCSV: CartCsvModel [] = transformCustomersCsvToCartCsvRows(customers);
     const cartsPrestashop : PrestashopCart [] = transformCartCsvRowsToPrestashopCarts(cartsCSV);
-
     await this.createOrder(cartsPrestashop);
   }
 
@@ -51,12 +111,12 @@ export class OrderFacadeService {
     for (const cart of carts) {
 
       try {
-        const idCustomer = await this.customerService.getIdCustomerByEmail(cart.customer_email ?? '');
+        const idCustomer = this.customerCache.get(cart.customer_email ?? '');
         if (!idCustomer) {
           throw new Error(`Cannot create order: Customer not found for email ${cart.customer_email}`);
         }
 
-        const idAddress = await this.customerService.getAddressByIdCustomer(idCustomer);
+        const idAddress = this.addressCache.get(idCustomer);
         if (!idAddress) {
           throw new Error(`Cannot create order: Address not found for customer ID ${idCustomer}`);
         }
@@ -64,26 +124,23 @@ export class OrderFacadeService {
         cart.id_address_invoice = idAddress;
         cart.id_customer = idCustomer;
 
-        for (const row of cart.associations.cart_rows) {
-          const idProduct = await this.productService.getIdProductByReference(row.product_name);
-          if (!idProduct) {
-            throw new Error(`Cannot create order: Product not found for cart line with product name ${row.product_name}`);
-          }
-          row.id_product = idProduct;
-          row.id_address_delivery = idAddress;
+        await Promise.all(
+          cart.associations.cart_rows.map(async (row) => {
+            const idProduct = this.productMap.get(row.product_name);
 
-          let idProductAttribute: number | null = 0;
-
-          if ((row.product_attribute ?? '') !== '') {
-            idProductAttribute = await this.attributeService.getIdCombination(idProduct,row.product_attribute);
-            if (!idProductAttribute) {
-              throw new Error(`Cannot create order: Combination not found for cart line with product name ${row.product_name} and attribute ${row.product_attribute}`);
+            if (!idProduct) {
+              throw new Error(`Product not found: ${row.product_name}`);
             }
-          }
-          row.id_product_attribute = idProductAttribute ?? 0;
-        }
 
-
+            row.id_product = idProduct;
+            row.id_address_delivery = idAddress;
+            if (row.product_attribute) {
+              row.id_product_attribute = await this.getCachedCombinationId(idProduct, row.product_attribute);
+            } else {
+              row.id_product_attribute = 0;
+            }
+          })
+        );
 
         const idCart = await this.cartService.createCart(cart);
         cart.id = idCart;
@@ -92,9 +149,7 @@ export class OrderFacadeService {
         if ((cart.order_state ?? '').trim() !== '') {
           const order : PrestashopOrder = transformCartToOrder(cart);
 
-          await this.orderHistoryService.loadOrderStates();
           const id_order_state = this.orderHistoryService.getOrderStateIdByName(cart.order_state ?? '');
-
 
           const orderData = await this.orderService.createOrderData(order,id_order_state ?? undefined);
           const idOrder = orderData?.id?.[0];
@@ -108,15 +163,10 @@ export class OrderFacadeService {
         console.error('Error creating order for cart with line number', cart.line_number, ':', error);
         throw error;
       }
-
       console.log(`=== FIN CREATION CART ${cart.line_number} ===`);
-
-
     }
 
     console.log("=== FIN CREATION FEUILLE 3");
-
-
   }
 
   async validateOrders(carts: PrestashopCart[], file_name: string,
@@ -202,9 +252,6 @@ export class OrderFacadeService {
 
   private async updateFirstOrderState(id_order: number, order_state_name: string, date_add: string): Promise<boolean> {
     const firstOrderHistoryId = await this.orderHistoryService.getFirstOrderHistoryId(id_order);
-
-    console.log(firstOrderHistoryId);
-
 
     if (!firstOrderHistoryId) {
       return false;

@@ -13,10 +13,16 @@ export class CustomerFacadeService {
 
   private customerService : CustomerService = inject(CustomerService);
 
-  async importCustomers(customers: PrestashopCustomer[]): Promise<void> {
+   customerMap : Map<string,number> = new Map<string,number>();
+   adressMap : Map<number,number> = new Map<number,number>();
+
+
+
+  async importCustomers(customers: PrestashopCustomer[]): Promise<any> {
     for (const customer of customers) {
       await this.createCustomer(customer);
     }
+    return { customerMap: this.customerMap, adressMap: this.adressMap };
   }
 
 
@@ -26,12 +32,24 @@ export class CustomerFacadeService {
     const customerData = responseCustomer?.prestashop?.customer?.[0];
     const idCustomer = customerData?.id?.[0];
 
+    this.customerMap.set(customer.email, idCustomer ?? 0);
+
+    if (!idCustomer) {
+      throw new Error(`Failed to create customer with email ${customer.email}`);
+    }
+
     const address : PrestashopAddress = transformCustomerToAddress(customer);
     address.id_customer = idCustomer;
     address.alias = customer.address;
     address.address1 = `Adresse de ${customer.firstname} ${customer.lastname}`;
 
-    await this.customerService.createAddressCustomer(address);
+    const id_adress = await this.customerService.createAddressCustomer(address);
+
+    if (!id_adress) {
+      throw new Error(`Failed to create address for customer with email ${customer.email}`);
+     }
+
+    this.adressMap.set(idCustomer, id_adress ?? 0);
   }
 
 
