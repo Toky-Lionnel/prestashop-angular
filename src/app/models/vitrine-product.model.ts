@@ -45,7 +45,7 @@ export interface VitrineProductDetail extends VitrineProduct {
   shortDescription: string | null;
   availableDate: string | null;
   categories: VitrineProductCategory[];
-  images: VitrineProductImage[];
+  images?: VitrineProductImage[];
   combinations: VitrineProductCombination[];
 }
 

@@ -26,7 +26,7 @@
         </ng-template>
       </div>
 
-      <div class="sheet__thumbnails" *ngIf="product.images.length > 1">
+      <div class="sheet__thumbnails" *ngIf="product.images && product.images.length > 1">
         <button
           type="button"
           class="sheet__thumbnail"

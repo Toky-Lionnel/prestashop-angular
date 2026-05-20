@@ -194,6 +194,36 @@ export class ProductService {
     return detail;
   }
 
+  async getProductDetailSansImagesById(idProduct: number,categoryNameById?: Map<number, string>): Promise<VitrineProductDetail | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get( `/api/products?filter[id]=[${idProduct}]&display=full`, {
+        responseType: 'text'
+      }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const product = responseData?.prestashop?.products?.[0]?.product?.[0];
+
+    if (!product) {
+      return null;
+    }
+
+    const categoryMap = categoryNameById ?? new Map((await this.categoriesService.getAll()).map((category) => [category.id, category.name] as const));
+
+    const [combinations, productStock] = await Promise.all([
+      this.loadProductCombinationsWithStock(idProduct),
+      this.stocksService.getStockQuantity(idProduct)
+    ]);
+
+    const detail = mapPrestashopProductToDetail(product, {
+      categoryNameById: categoryMap,
+      combinations
+    });
+
+    detail.stock_available = productStock;
+    return detail;
+  }
+
   private async loadProductImages(idProduct: number) {
     const api = this.interceptor.getApi();
     try {

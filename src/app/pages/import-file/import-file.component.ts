@@ -32,6 +32,7 @@ import { TaxService } from '../../services/service/tax/tax.service';
 import { StocksService } from '../../services/service/stocks/stocks.service';
 import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
 import { VenteService } from '../../services/service/vente/vente.service';
+import { CategoriesService } from '../../services/service/categories/categories.service';
 
 @Component({
   selector: 'app-import-file',
@@ -77,6 +78,7 @@ export class ImportFileComponent {
   private stockStatService : StockStatService = inject(StockStatService);
 
   private venteService : VenteService = inject(VenteService);
+  private categorieService : CategoriesService = inject(CategoriesService);
 
   constructor() {}
 

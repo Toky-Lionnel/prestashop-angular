@@ -53,6 +53,25 @@ export class CategoriesService {
     return Number(idCategory);
   }
 
+  async getNameCategoryById(idCategory: number): Promise<string | null> {
+    const api = this.intereceptor.getApi();
+
+    const response = await api.get(`/api/categories/${idCategory}?display=[name]`,{
+        responseType: 'text'
+      }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const category = responseData?.prestashop?.category;
+    const name = category[0]?.name?.[0]?.language?.[0]?._;
+
+    if (!name) {
+      return null;
+    }
+
+    return name;
+  }
+
   async getAll(): Promise<CategoryOption[]> {
     const api = this.intereceptor.getApi();
     const response = await api.get('/api/categories', {

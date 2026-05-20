@@ -42,16 +42,22 @@ export class DashboardComponent {
   }
 
   async ngOnInit() {
-    const orders : Order [] = await this.orderService.getOrdersFull();
+    const [orders,ordersToday,stocksCategorySummary,salesCategorySummary] =
+    await Promise.all([
+      this.orderService.getOrdersFull(),
+      this.orderService.getOrdersFull(this.selectedDate),
+      this.stockStatService.getCategoryStockSummary(),
+      this.venteService.getSalesByCategory()
+    ]);
+
     this.total_orders_general = this.calculTotalOrders(orders);
     this.nb_orders_general = orders.length;
 
-    const ordersToday : Order [] = await this.orderService.getOrdersFull(this.selectedDate);
     this.total_orders_jour = this.calculTotalOrders(ordersToday);
     this.nb_orders_jour = ordersToday.length;
 
-    this.stocksCategorySummary = await this.stockStatService.getCategoryStockSummary();
-    this.salesCategorySummary = await this.venteService.getSalesByCategory();
+    this.stocksCategorySummary = stocksCategorySummary;
+    this.salesCategorySummary = salesCategorySummary;
   }
 
   async getDataOrders() {

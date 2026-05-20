@@ -272,7 +272,7 @@ export class CartService {
 
   async getProductNameAndCombinationAndPriceTTC(id_product: number, id_product_attribute: number): Promise<{ productName: string | null; combinationName: string | null; price_ttc: number | null }> {
     try {
-      const detail = await this.productService.getProductDetailById(id_product);
+      const detail = await this.productService.getProductDetailSansImagesById(id_product);
       if (!detail) return { productName: null, combinationName: null, price_ttc: null };
 
       const basePriceHt = Number(detail.price ?? 0);

@@ -8,6 +8,7 @@ import { OrderStateService, PrestashopOrderStateLanguage } from '../order-state/
 import { CustomerService } from '../customer/customer.service';
 import { PrestashopCartRow } from '../../../models/cart.model';
 import { StockFacadeService } from '../../facade/stockFacade/stock-facade.service';
+import { formatPrestashopDate } from '../../../utils/prestashop-date.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -286,14 +287,17 @@ export class OrderService {
   }
 
 
-  async patchCurrentState(id_order: number, id_order_state: number): Promise<void> {
+  async patchCurrentState(id_order: number, id_order_state: number, date_add : string): Promise<void> {
     const api = this.authInterceptor.getApi();
+
+    const date = formatPrestashopDate(date_add);
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
       <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
           <order>
               <id>${id_order}</id>
               <current_state>${id_order_state}</current_state>
+              <date_add>${date_add}</date_add>
           </order>
       </prestashop>`
 
@@ -372,6 +376,32 @@ export class OrderService {
     }
   }
 
+  async getReservedOrders () : Promise<any> {
+    const api = this.authInterceptor.getApi();
+    try {
+      const response = await api.get('/api/orders?filter[current_state]=[2]&display=full', {
+        responseType: 'text'
+      });
+
+      const orderData = await parseStringPromise(response.data);
+      const orders = orderData.prestashop.orders[0].order;
+      const rows = [];
+
+      for (const o of orders) {
+        const data = o.associations[0].order_rows[0].order_row;
+        if(Array.isArray(data)) {
+          rows.push(...data);
+        } else {
+        rows.push(data);
+        }
+      }
+      return rows;
+    } catch (error) {
+      console.error('Error fetching carts with payment:', error);
+      return null;
+    }
+  }
+
 
   async getOrderCartRows(id_order: number): Promise<PrestashopCartRow[]> {
     const api = this.authInterceptor.getApi();
@@ -423,40 +453,39 @@ export class OrderService {
   }
 
 
-   private toNumber(value: unknown, fallback: number): number {
-      if (value === null || value === undefined || value === '') {
-        return fallback;
-      }
-
-      const parsed = Number(value);
-
-      return Number.isFinite(parsed)
-        ? parsed
-        : fallback;
+  private toNumber(value: unknown, fallback: number): number {
+    if (value === null || value === undefined || value === '') {
+      return fallback;
     }
 
-    private normalizeList<T>(value: T | T[] | null | undefined): T[] {
-      if (!value) {
-        return [];
-      }
+    const parsed = Number(value);
 
-      return Array.isArray(value) ? value : [value];
+    return Number.isFinite(parsed)
+      ? parsed
+      : fallback;
+  }
+
+  private normalizeList<T>(value: T | T[] | null | undefined): T[] {
+    if (!value) {
+      return [];
     }
 
-    private extractXmlText(value: any): string {
-      if (value === null || value === undefined) {
-        return '';
-      }
+    return Array.isArray(value) ? value : [value];
+  }
 
-      if (typeof value === 'object' && '_' in value) {
-        return String(value._ ?? '');
-      }
-
-      return String(value);
+  private extractXmlText(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
     }
 
-    private extractNameValue(name: any): PrestashopOrderStateLanguage[] {
+    if (typeof value === 'object' && '_' in value) {
+      return String(value._ ?? '');
+    }
 
+    return String(value);
+  }
+
+  private extractNameValue(name: any): PrestashopOrderStateLanguage[] {
     const rawLanguages = name?.language;
 
     const languages = Array.isArray(rawLanguages)

@@ -122,7 +122,7 @@ export class OrderFacadeService {
           const idOrder = orderData?.id?.[0];
 
           // update de la date via GET + PUT
-          await this.orderService.patchCurrentState(idOrder ?? 0, id_order_state ?? 0);
+          await this.orderService.patchCurrentState(idOrder ?? 0, id_order_state ?? 0, cart.date_add ?? '');
           await this.createOrderState(idOrder ?? 0, cart.order_state ?? '', cart.associations, cart.date_add ?? '');
         }
 

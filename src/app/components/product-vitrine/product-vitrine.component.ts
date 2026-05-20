@@ -78,7 +78,7 @@ export class ProductVitrineComponent {
   @Input()
   set product(value: VitrineProductDetail) {
     this._product = value;
-    this.selectedImageUrl = value.images[0]?.url ?? value.imageUrl;
+    this.selectedImageUrl = value.images?.[0]?.url ?? value.imageUrl;
     this.selectedCombinationId = this.getDefaultCombination(value)?.id ?? value.combinations[0]?.id ?? null;
     this.quantity = 1;
   }
@@ -88,7 +88,7 @@ export class ProductVitrineComponent {
   }
 
   get featuredImageUrl(): string | null {
-    return this.selectedImageUrl ?? this.product.images[0]?.url ?? this.product.imageUrl;
+    return this.selectedImageUrl ?? this.product.images?.[0]?.url ?? this.product.imageUrl;
   }
 
   get selectedCombination(): VitrineProductCombination | null {
