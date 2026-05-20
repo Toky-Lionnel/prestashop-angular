@@ -43,28 +43,6 @@ export class ProductService {
     return id;
   }
 
-  async getIdProductByName(name: string): Promise<number | null> {
-    const api = this.interceptor.getApi();
-    const response = await api.get(
-      `/api/products?filter[name][1]=${encodeURIComponent(name)}&display=[id]`,
-      {
-        responseType: 'text'
-      }
-    );
-
-    const json = await parseStringPromise(response.data);
-    const products = json?.prestashop?.products?.[0];
-    const product = products?.product?.[0];
-    const idProduct = product?.id?.[0];
-
-    if (!idProduct) {
-      console.error('No product found with name:', name);
-      return null;
-    }
-
-    return Number(idProduct);
-  }
-
   async getDateAvailabilityByIdProduct(idProduct: number): Promise<string | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(
@@ -183,54 +161,10 @@ export class ProductService {
     return mapPrestashopGetAllResponseToVitrine(json);
   }
 
-  async getDetailedVitrineProducts(
-    name: string | null = null,
-    priceMin: number | null = null,
-    priceMax: number | null = null,
-    categoryId: number | null = null
-  ): Promise<VitrineProductDetail[]> {
-    const summaries = await this.getAllVitrineProducts(null, priceMin, priceMax, categoryId);
-    const filteredSummaries = name !== null && name.trim() !== ''
-      ? summaries.filter((product) => product.name.toLowerCase().includes(name.trim().toLowerCase()))
-      : summaries;
 
-    const categories = await this.categoriesService.getAll();
-    const categoryNameById = new Map(categories.map((category) => [category.id, category.name] as const));
-
-    return Promise.all(
-      filteredSummaries.map(async (summary) => {
-        const detail = await this.getProductDetailById(summary.id, categoryNameById);
-
-        if (!detail) {
-          return {
-            ...summary,
-            reference: null,
-            description: null,
-            shortDescription: null,
-            availableDate: null,
-            categories: [],
-            images: summary.imageUrl ? [{ id: 0, url: summary.imageUrl, legend: null }] : [],
-            combinations: []
-          } as VitrineProductDetail;
-        }
-
-        return {
-          ...detail,
-          tag: summary.tag,
-          categoryName: detail.categoryName ?? summary.categoryName
-        };
-      })
-    );
-  }
-
-  async getProductDetailById(
-    idProduct: number,
-    categoryNameById?: Map<number, string>
-  ): Promise<VitrineProductDetail | null> {
+  async getProductDetailById(idProduct: number,categoryNameById?: Map<number, string>): Promise<VitrineProductDetail | null> {
     const api = this.interceptor.getApi();
-    const response = await api.get(
-      `/api/products?filter[id]=[${idProduct}]&display=full`,
-      {
+    const response = await api.get( `/api/products?filter[id]=[${idProduct}]&display=full`, {
         responseType: 'text'
       }
     );
@@ -269,10 +203,8 @@ export class ProductService {
       const imagesData = await parseStringPromise(imagesResponse.data);
       return mapPrestashopProductImagesToVitrineImages(idProduct, imagesData);
     } catch (error: any) {
-      // Gérer le cas où il n'y a pas d'images (erreur 404)
       if (error.response?.status === 404) {
         console.warn(`No images found for product ID: ${idProduct}, returning empty array`);
-        // Retourner un tableau vide ou une image par défaut "indisponible"
         return [
           {
             id: 0,
@@ -281,7 +213,6 @@ export class ProductService {
           }
         ];
       }
-      // Pour les autres erreurs, les relancer
       throw error;
     }
   }
@@ -354,11 +285,8 @@ export class ProductService {
     return attributeLookupById;
   }
 
-  private async mapCombinationWithStock(
-    productId: number,
-    combination: any,
-    attributeLookupById: Map<number, any>
-  ) {
+  private async mapCombinationWithStock(productId: number,
+    combination: any,attributeLookupById: Map<number, any>) {
     const combinationId = Number(combination?.id?.[0] ?? 0);
     const stock = await this.stocksService.getStockQuantity(productId, combinationId);
 
@@ -379,7 +307,6 @@ export class ProductService {
 
     const combinationData = mapPrestashopCombinationToVitrineCombination(productId, combination, attributeNameById);
     combinationData.stock_available = stock;
-
     return combinationData;
   }
 

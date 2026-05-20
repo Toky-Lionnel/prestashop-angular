@@ -1,7 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { AxiosAuthInterceptor } from '../../../interceptors/auth/AxiosAuthInterceptor';
-import { CartService } from '../cart/cart.service';
-import { OrderService } from '../orders/order.service';
 import { ProductService } from '../product/product.service';
 import { OrderDetail, mapPrestashopOrderDetailToModel } from '../../../models/order-detail.model';
 import { CategoriesService } from '../categories/categories.service';
@@ -14,8 +12,6 @@ import { parseStringPromise } from 'xml2js';
 export class VenteService {
 
   private interceptor : AxiosAuthInterceptor = inject(AxiosAuthInterceptor);
-  private cartService : CartService = inject(CartService);
-  private orderService : OrderService = inject(OrderService);
   private productService : ProductService = inject(ProductService);
   private categoriesService : CategoriesService = inject(CategoriesService);
 

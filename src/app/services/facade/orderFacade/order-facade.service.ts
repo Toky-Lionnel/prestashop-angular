@@ -4,18 +4,14 @@ import { CartService } from '../../service/cart/cart.service';
 import { PrestashopCart, transformCartCsvRowsToPrestashopCarts } from '../../../models/cart.model';
 import { PrestashopOrder, transformCartToOrder } from '../../../models/order.model';
 import { OrderStateService, PrestashopOrderState } from '../../service/order-state/order-state.service';
-import { CustomerService } from '../../service/customer/customer.service';
 import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 import { PrestashopProduct } from '../../../models/product.model';
 import { PrestashopCustomer, transformCustomerCsvToModels } from '../../../models/customer.model';
-import { ProductService } from '../../service/product/product.service';
 import { AttributeService } from '../../service/attribute/attribute.service';
 import { CustomerCsvModel, uniqueCustomerCsvRows } from '../../../models/customer-csv.model';
 import { CustomerFacadeService } from '../customerFacade/customer-facade.service';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../../models/cart-csv.model';
 import { StockFacadeService } from '../stockFacade/stock-facade.service';
-import { PrestashopOrderHistory } from '../../../models/order-history.model';
-import { AttributeFacadeService } from '../attributeFacade/attribute-facade.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +24,6 @@ export class OrderFacadeService {
   private attributeService : AttributeService = inject(AttributeService);
   private stockFacadeService : StockFacadeService = inject(StockFacadeService);
   private customerFacade : CustomerFacadeService = inject(CustomerFacadeService);
-  private attributeFacade : AttributeFacadeService = inject(AttributeFacadeService);
 
   productMap : Map <string,number> = new Map <string,number> ();
 
@@ -36,20 +31,6 @@ export class OrderFacadeService {
   private addressCache = new Map<number, number>();
   private combinationCache = new Map<string, number>();
   private orderStateCache : PrestashopOrderState [] = [];
-
-  // async getCachedCustomerId(email: string): Promise<number> {
-  //   const cached = this.customerCache.get(email);
-  //   if (cached) return cached;
-
-  //   const id = await this.customerService.getIdCustomerByEmail(email);
-
-  //   if (!id) {
-  //     throw new Error(`Customer not found: ${email}`);
-  //   }
-
-  //   this.customerCache.set(email, id);
-  //   return id;
-  // }
 
   async getCachedCombinationId(productId: number,attribute: string): Promise<number> {
     const key = `${productId}_${attribute}`;
@@ -67,20 +48,6 @@ export class OrderFacadeService {
     return id;
   }
 
-
-  // async getCachedAddressId(customerId: number): Promise<number> {
-  //   const cached = this.addressCache.get(customerId);
-  //   if (cached) return cached;
-
-  //   const idAddress = await this.customerService.getAddressByIdCustomer(customerId);
-
-  //   if (!idAddress) {
-  //     throw new Error(`Address not found for customer ${customerId}`);
-  //   }
-
-  //   this.addressCache.set(customerId, idAddress);
-  //   return idAddress;
-  // }
 
   constructor() {
     this.initializeCache();
@@ -155,7 +122,7 @@ export class OrderFacadeService {
           const idOrder = orderData?.id?.[0];
 
           // update de la date via GET + PUT
-          await this.orderService.updateOrderWithFullData(Number(idOrder), cart.date_add ?? '', id_order_state ?? 0);
+          await this.orderService.patchCurrentState(idOrder ?? 0, id_order_state ?? 0);
           await this.createOrderState(idOrder ?? 0, cart.order_state ?? '', cart.associations, cart.date_add ?? '');
         }
 
@@ -257,7 +224,6 @@ export class OrderFacadeService {
       return false;
     }
 
-    await this.orderHistoryService.loadOrderStates();
     const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
     if (!id_order_state) {
       throw new Error(`Cannot update order state: Order state not found for name ${order_state_name}`);
@@ -276,8 +242,6 @@ export class OrderFacadeService {
 
 
   async createOrderState(id_order: number, order_state_name: string, cart_associations: any , date_add : string): Promise<void> {
-    await this.orderHistoryService.loadOrderStates();
-
     const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
     if (!id_order_state) {
       throw new Error(`Cannot create order state: Order state not found for name ${order_state_name}`);
@@ -294,10 +258,4 @@ export class OrderFacadeService {
       }
     }
   }
-
-  async updateOrderStatus(orderId: number, status: number) {
-      await this.orderHistoryService.updateOrderState(orderId, status);
-  }
-
-
 }

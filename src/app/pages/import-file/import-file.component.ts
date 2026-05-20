@@ -123,6 +123,8 @@ export class ImportFileComponent {
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
       const parsed = JSON.parse(backendData.data || '[]');
 
+      const productsMap : Map <string, number> = this.productFacadeService.getProductMap();
+
       if (backendData.table_name.toLowerCase() === 'products') {
         const validation = validateProductCsvRows(parsed);
         if (validation.invalidData.length > 0) {
@@ -138,7 +140,7 @@ export class ImportFileComponent {
           this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
           return;
         }
-        await this.attributeFacadeService.importProductCombinations(validation.validData);
+        await this.attributeFacadeService.importProductCombinations(validation.validData, productsMap);
       } else if (backendData.table_name.toLowerCase() === 'customers') {
         const validation = validateCustomerCsvRows(parsed);
         if (validation.invalidData.length > 0) {
@@ -146,7 +148,7 @@ export class ImportFileComponent {
           this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
           return;
         }
-        await this.orderFacadeService.importOrders(validation.validData);
+        await this.orderFacadeService.importOrders(validation.validData, productsMap);
       }
 
       this.messageService.add({ severity: 'success', summary: 'Import réussi', detail: 'Le fichier a été importé avec succès' });

@@ -49,7 +49,7 @@ export class AttributeFacadeService {
       const idProduct = this.productMap.get(combo.reference);
       if (!idProduct) continue;
       const date_add = await this.productService.getDateAvailabilityByIdProduct(idProduct) ?? new Date().toISOString();
-      await this.stockFacadeService.updateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination', date_add);
+      await this.stockFacadeService.updateStockAndCreateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination', date_add);
     }
   }
 
@@ -190,7 +190,7 @@ export class AttributeFacadeService {
           }
 
         // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
-        await this.stockFacadeService.updateStockMouvement(
+        await this.stockFacadeService.updateStockAndCreateStockMouvement(
           idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import', date_availability
         );
 

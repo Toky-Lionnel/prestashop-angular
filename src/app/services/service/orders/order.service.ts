@@ -285,6 +285,29 @@ export class OrderService {
     }
   }
 
+
+  async patchCurrentState(id_order: number, id_order_state: number): Promise<void> {
+    const api = this.authInterceptor.getApi();
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+          <order>
+              <id>${id_order}</id>
+              <current_state>${id_order_state}</current_state>
+          </order>
+      </prestashop>`
+
+    try {
+      await api.patch('/api/orders/' + id_order, xml, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+    } catch (error) {
+      console.error('Error updating order state:', error);
+    }
+  }
+
   async updateOrderWithFullData(id_order: number, newDateAdd: string, id_order_state: number): Promise<number | null> {
     const api = this.authInterceptor.getApi();
 

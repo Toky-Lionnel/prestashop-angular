@@ -6,7 +6,7 @@ import {PrestashopProduct} from '../../../models/product.model';
 import { PrestashopStockMovement, buildStockMovementXML, buildStockUpdateMovementXML } from '../../../models/stock-mvt.model';
 import { PrestashopStockMovementReason, buildStockMovementReasonXML } from '../../../models/stock-mvt-reason.model';
 import { PrestashopStockMovementListItem, PrestashopStockMovementGroup } from '../../../models/stock-mvt-list.model';
-
+import { formatPrestashopDate } from '../../../utils/prestashop-date.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -324,16 +324,12 @@ export class StocksService {
     });
 
     const responseData = await parseStringPromise(response.data);
-    console.log(responseData);
-
     return responseData?.prestashop?.stock_mvt?.[0] ?? null;
   }
 
   async updateStockMovement(id: number, stockMovement: PrestashopStockMovement): Promise<boolean> {
     const api = this.interceptor.getApi();
     const xmlData = buildStockUpdateMovementXML(stockMovement, id);
-
-    console.log(`Xml update : ${xmlData}`);
 
     try {
       await api.put(`/api/stock_movements/${id}`, xmlData, {
@@ -347,4 +343,28 @@ export class StocksService {
       return false;
     }
   }
+
+
+  async patchStockMovement(idStockMvt: number, date_add : string) {
+    const api = this.interceptor.getApi();
+    const date = formatPrestashopDate(date_add);
+
+    const xml = `<prestashop>
+        <stock_movement>
+          <id>${idStockMvt}</id>
+          <date_add>${date}</date_add>
+        </stock_movement>
+      </prestashop>`;
+
+    try {
+      await api.patch('/api/stock_movements/' + idStockMvt, xml, {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+    } catch (error) {
+      console.error('Error updating date state:', error);
+    }
+  }
+  
 }
