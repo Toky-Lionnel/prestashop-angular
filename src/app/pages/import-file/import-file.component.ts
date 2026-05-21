@@ -23,12 +23,16 @@ import { getErrorsAsHTML } from '../../utils/validation-error-display';
 import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
-import { ProductCsvModel, transformProductCsvRowsToModel } from '../../models/product-csv.model';
-import { CombinationCsvModel, transformCombinationCsvRowsToModel } from '../../models/combination-csv.model';
+import { ProductCsvModel, validateProductCsvRows } from '../../models/product-csv.model';
+import { CombinationCsvModel, validateCombinationCsvRows } from '../../models/combination-csv.model';
 import { AttributeFacadeService } from '../../services/facade/attributeFacade/attribute-facade.service';
-import { CustomerCsvModel, transformCustomerCsvRowsToModel } from '../../models/customer-csv.model';
+import { CustomerCsvModel, validateCustomerCsvRows } from '../../models/customer-csv.model';
 import { CartCsvModel, transformCustomersCsvToCartCsvRows } from '../../models/cart-csv.model';
 import { TaxService } from '../../services/service/tax/tax.service';
+import { StocksService } from '../../services/service/stocks/stocks.service';
+import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
+import { VenteService } from '../../services/service/vente/vente.service';
+import { CategoriesService } from '../../services/service/categories/categories.service';
 
 @Component({
   selector: 'app-import-file',
@@ -46,7 +50,10 @@ export class ImportFileComponent {
   isLoading = false;
   backFile: File | null = null;
   excelFiles: Array<File | null> = [null, null, null];
+  zipFile: File | null = null;
   result: string = '';
+
+  importImage : boolean = true;
 
   private messageService: MessageService = inject(MessageService);
   private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
@@ -67,6 +74,11 @@ export class ImportFileComponent {
   private sessionService : SessionService = inject(SessionService);
   private router: Router = inject(Router);
   private taxService : TaxService = inject(TaxService);
+  private stockService : StocksService = inject(StocksService);
+  private stockStatService : StockStatService = inject(StockStatService);
+
+  private venteService : VenteService = inject(VenteService);
+  private categorieService : CategoriesService = inject(CategoriesService);
 
   constructor() {}
 
@@ -87,8 +99,13 @@ export class ImportFileComponent {
     this.excelFiles[index] = input.files?.[0] ?? null;
   }
 
+  onZipFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.zipFile = input.files?.[0] ?? null;
+  }
+
   get isExcelImportDisabled(): boolean {
-    return this.isLoading || this.excelFiles.some((f) => f === null);
+    return this.isLoading || this.excelFiles.some((f) => f === null) || !this.zipFile;
   }
 
   async importBackFile() {
@@ -105,33 +122,41 @@ export class ImportFileComponent {
     this.isLoading = true;
 
     try {
-
       const backendData: BackendData = await transformCSVtoBackend(this.backFile);
+      const parsed = JSON.parse(backendData.data || '[]');
+
+      const productsMap : Map <string, number> = this.productFacadeService.getProductMap();
 
       if (backendData.table_name.toLowerCase() === 'products') {
-          const productsCSV : ProductCsvModel [] = transformProductCsvRowsToModel(JSON.parse(backendData.data));
-          await this.productFacadeService.importProductsBase(productsCSV);
+        const validation = validateProductCsvRows(parsed);
+        if (validation.invalidData.length > 0) {
+          this.result = getErrorsAsHTML(validation, backendData.filename || 'products');
+          this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
+          return;
+        }
+        await this.productFacadeService.importProductsBase(validation.validData);
       } else if (backendData.table_name.toLowerCase() === 'combinations') {
-        const combinationsCSV : CombinationCsvModel [] = transformCombinationCsvRowsToModel(JSON.parse(backendData.data));
-        await this.attributeFacadeService.importProductCombinations(combinationsCSV);
+        const validation = validateCombinationCsvRows(parsed);
+        if (validation.invalidData.length > 0) {
+          this.result = getErrorsAsHTML(validation, backendData.filename || 'combinations');
+          this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
+          return;
+        }
+        await this.attributeFacadeService.importProductCombinations(validation.validData, productsMap, this.productFacadeService.getAvailabilityMap());
       } else if (backendData.table_name.toLowerCase() === 'customers') {
-        const customersCSV : CustomerCsvModel [] = transformCustomerCsvRowsToModel(JSON.parse(backendData.data));
-        await this.orderFacadeService.importOrders(customersCSV);
+        const validation = validateCustomerCsvRows(parsed);
+        if (validation.invalidData.length > 0) {
+          this.result = getErrorsAsHTML(validation, backendData.filename || 'customers');
+          this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
+          return;
+        }
+        await this.orderFacadeService.importOrders(validation.validData, productsMap);
       }
 
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Import réussi',
-        detail: 'Le fichier a été importé avec succès'
-      });
+      this.messageService.add({ severity: 'success', summary: 'Import réussi', detail: 'Le fichier a été importé avec succès' });
 
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erreur lors de l\'import',
-        detail: error.message || 'Une erreur est survenue'
-      });
+      this.messageService.add({ severity: 'error', summary: 'Erreur lors de l\'import', detail: error.message || 'Une erreur est survenue' });
     } finally {
       this.isLoading = false;
     }
@@ -139,11 +164,11 @@ export class ImportFileComponent {
 
 
   async importExcelFiles() {
-    if (this.excelFiles.some((f) => !f)) {
+    if (this.excelFiles.some((f) => !f) || !this.zipFile) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Fichiers manquants',
-        detail: 'Veuillez sélectionner les 3 fichiers requis'
+        detail: 'Veuillez sélectionner les 3 fichiers CSV et le fichier ZIP'
       });
       return;
     }
@@ -157,13 +182,14 @@ export class ImportFileComponent {
         this.excelFiles.map((f) => transformCSVtoBackend(f as File))
       );
 
-      await this.importFileService.importCSV(backendDatas);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Import réussi',
-        detail: 'Les fichiers ont été traités'
-      });
+      const errorsHTML = await this.importFileService.importCSV(backendDatas, this.zipFile, this.importImage);
+      if (errorsHTML && errorsHTML.trim() !== '') {
+        this.result = errorsHTML;
+        this.messageService.add({ severity: 'error', summary: 'Erreurs détectées', detail: 'Consultez le rapport ci-dessous' });
+      } else {
+        this.result = '';
+        this.messageService.add({ severity: 'success', summary: 'Import réussi', detail: 'Les fichiers ont été traités' });
+      }
 
     } catch (error: any) {
       this.messageService.add({
@@ -178,6 +204,7 @@ export class ImportFileComponent {
 
   clearFiles() {
     this.backFile = null;
+    this.zipFile = null;
     this.result = '';
   }
 
@@ -186,6 +213,19 @@ export class ImportFileComponent {
     this.sessionService.clear();
 
     // Optionally, navigate to the login page
-    await this.router.navigate(['/login']);
+    await this.router.navigate(['/loginadmin']);
   }
+
+  async onDashboard() {
+    await this.router.navigate(['/admin/dashboard']);
+  }
+
+  async listeProducts() {
+    this.router.navigate(['/admin/products']);
+  }
+
+  async listeOrders() {
+    this.router.navigate(['/admin/orders']);
+  }
+
 }

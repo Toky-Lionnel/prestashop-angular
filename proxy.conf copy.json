@@ -1,0 +1,15 @@
+{
+  "/api": {
+    "target": "http://localhost/EVALUATION/prestashop_front",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": ""
+    }
+  },
+  "/EVALUATION": {
+    "target": "http://localhost",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

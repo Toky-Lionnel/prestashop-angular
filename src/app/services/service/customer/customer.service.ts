@@ -35,7 +35,17 @@ export class CustomerService {
         'Content-Type': 'application/xml'
       }
     });
-    return parseStringPromise(response.data);
+
+    const responseData = await parseStringPromise(response.data);
+    const idAdress = responseData?.prestashop?.address?.[0]?.id?.[0];
+
+    if (!idAdress) {
+      console.warn(responseData);
+      console.error('Failed to create address for customer ID:', address.id_customer);
+      return null;
+    }
+
+    return idAdress;
   }
 
 
@@ -59,6 +69,21 @@ export class CustomerService {
   }
 
 
+  async getDetailsAddressByIdCustomer (id: number) : Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/addresses?filter[id_customer]=${id}&display=full`, {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const addresses = json?.prestashop?.addresses?.[0];
+    const address = addresses?.address?.[0];
+    console.log(address);
+
+    return address || null;
+  }
+
+
   async getIdCustomerByEmail (email: string) : Promise<number | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/customers?filter[email]=${email}&display=[id]`, {
@@ -78,6 +103,20 @@ export class CustomerService {
     return Number(id);
   }
 
+
+  async getCustomerByEmail (email: string) : Promise<any | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(`/api/customers?filter[email]=${email}&display=full`, {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const customers = json?.prestashop?.customers?.[0];
+    const customer = customers?.customer?.[0];
+
+    return customer || null;
+  }
+
   async getCustomerById (id: number) : Promise<any | null> {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/customers/${id}`, {
@@ -86,6 +125,17 @@ export class CustomerService {
 
     const json = await parseStringPromise(response.data);
     return json?.prestashop?.customer?.[0] || null;
+  }
+
+  async getAllCustomers() : Promise<any[] | null> {
+    const api = this.interceptor.getApi();
+    const response = await api.get('/api/customers?display=[id,email,lastname,firstname]', {
+      responseType: 'text'
+    });
+
+    const json = await parseStringPromise(response.data);
+    const customers = json?.prestashop?.customers?.[0]?.customer || [];
+    return customers;
   }
 
 }

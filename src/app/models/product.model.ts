@@ -1,3 +1,5 @@
+import { formatPrestashopDate } from "../utils/prestashop-date.utils";
+
 export interface PrestashopLanguageEntry {
   id: number;
   value: string;
@@ -159,7 +161,7 @@ export function buildProductXML(data: PrestashopProduct): string {
     <price><![CDATA[${escapeCDATA(data.price)}]]></price>
     <wholesale_price><![CDATA[${escapeCDATA(data.wholesale_price ?? 0)}]]></wholesale_price>
 
-    <date_availability><![CDATA[${escapeCDATA(data.date_availability ?? '')}]]></date_availability>
+    <available_date><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_availability ?? ''))}]]></available_date>
     <reference><![CDATA[${escapeCDATA(data.reference ?? '')}]]></reference>
 
 ${buildLocalizedFieldXML('name', data.name)}

@@ -1,38 +1,62 @@
-<button (click)="OnReset()">Reinitialisation</button>
+<header class="page-header" role="banner">
+  <div class="top-actions" role="navigation" aria-label="Actions rapides">
+    <button class="btn btn-secondary" (click)="OnReset()" aria-label="Réinitialiser">Réinitialisation</button>
+    <button class="btn btn-secondary" (click)="onLogout()" aria-label="Se déconnecter">Déconnexion</button>
+    <button class="btn btn-secondary" (click)="onDashboard()" aria-label="Aller au dashboard">Dashboard</button>
+    <button class="btn btn-secondary" (click)="listeProducts()" aria-label="Liste des produits">Listes des produits</button>
+    <button class="btn btn-secondary" (click)="listeOrders()" aria-label="Liste des commandes">Orders</button>
+  </div>
+</header>
 
-<button (click)="onLogout()">Deconnexion</button>
-
-<div class="import-container">
-  <h1>Importer des fichiers CSV</h1>
-  <div [innerHTML]="result"></div>
+<main>
+  <div class="import-container">
+    <h1>Importer des fichiers CSV</h1>
+    <div [innerHTML]="result" class="result" *ngIf="result"></div>
 
   <p-toast></p-toast>
 
   <div class="import-block">
     <h2>Import venant d'Excel</h2>
-    <p class="hint">Vous devez choisir exactement 3 fichiers.</p>
+    <p class="hint">Vous devez choisir exactement 3 fichiers CSV et un fichier ZIP d'images.</p>
 
     <div class="field-row">
       <label for="excelFile1">Fichier 1</label>
       <input id="excelFile1" type="file" accept=".csv" (change)="onExcelFileChange($event, 0)" />
-      <div *ngIf="excelFiles[0]" class="file-name">Sélectionné: {{ excelFiles[0]?.name }}</div>
+      <div *ngIf="excelFiles[0]" class="file-name" aria-live="polite">Sélectionné: {{ excelFiles[0]?.name }}</div>
     </div>
 
     <div class="field-row">
       <label for="excelFile2">Fichier 2</label>
       <input id="excelFile2" type="file" accept=".csv" (change)="onExcelFileChange($event, 1)" />
-      <div *ngIf="excelFiles[1]" class="file-name">Sélectionné: {{ excelFiles[1]?.name }}</div>
+      <div *ngIf="excelFiles[1]" class="file-name" aria-live="polite">Sélectionné: {{ excelFiles[1]?.name }}</div>
     </div>
 
     <div class="field-row">
       <label for="excelFile3">Fichier 3</label>
       <input id="excelFile3" type="file" accept=".csv" (change)="onExcelFileChange($event, 2)" />
-      <div *ngIf="excelFiles[2]" class="file-name">Sélectionné: {{ excelFiles[2]?.name }}</div>
+      <div *ngIf="excelFiles[2]" class="file-name" aria-live="polite">Sélectionné: {{ excelFiles[2]?.name }}</div>
     </div>
 
-    <button type="button" class="btn" (click)="importExcelFiles()" [disabled]="isExcelImportDisabled">
-      Importer les 3 fichiers Excel
-    </button>
+    <div class="field-row">
+      <label for="zipFile">Fichier ZIP images</label>
+      <input id="zipFile" type="file" accept=".zip" (change)="onZipFileChange($event)" />
+      <div *ngIf="zipFile" class="file-name" aria-live="polite">Sélectionné: {{ zipFile.name }}</div>
+      <!-- Case simple -->
+      <label>
+        <input
+          type="checkbox"
+          [(ngModel)]="importImage"
+          name="isActive"
+        >
+        À importer
+      </label>
+    </div>
+
+    <div class="actions-row">
+      <button type="button" class="btn" (click)="importExcelFiles()" [disabled]="isExcelImportDisabled">
+        Importer les 3 fichiers CSV et le ZIP
+      </button>
+    </div>
   </div>
 
   <hr />
@@ -51,3 +75,4 @@
     </button>
   </div>
 </div>
+</main>

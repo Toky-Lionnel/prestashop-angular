@@ -1,0 +1,44 @@
+<div class="category-stock-card">
+  <div class="card-header">
+    <div class="header-title">
+      <h2>État des stocks par catégorie</h2>
+      <p>Vue d'ensemble des volumes globaux, réservations et disponibilités</p>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Catégorie</th>
+          <th class="text-right">Stock Physique</th>
+          <th class="text-right text-warning">Stock Réservé</th>
+          <th class="text-right text-success">Stock Disponible</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let summary of categoriesStock">
+          <td class="name-column font-semibold">
+            {{ summary.categoryName || 'Sans catégorie' }}
+          </td>
+          <td class="text-right font-medium">
+            {{ summary.physicalQuantity | number }}
+          </td>
+          <td class="text-right text-warning font-medium">
+            {{ summary.reservedQuantity | number }}
+          </td>
+          <td class="text-right font-bold" [ngClass]="{'text-danger': isStockCritical(summary.availableQuantity)}">
+            {{ summary.availableQuantity | number }}
+          </td>
+        </tr>
+
+        <!-- État vide si aucune valeur n'est passée -->
+        <tr *ngIf="categoriesStock.length === 0">
+          <td colspan="6" class="empty-row">
+            Aucune donnée de stock disponible pour les catégories.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

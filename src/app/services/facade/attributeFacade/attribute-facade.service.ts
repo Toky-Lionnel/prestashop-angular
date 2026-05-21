@@ -1,35 +1,60 @@
 import { inject, Injectable } from '@angular/core';
 import { CombinationCsvModel } from '../../../models/combination-csv.model';
-import { StocksService } from '../../service/stocks/stocks.service';
 import { AttributeService } from '../../service/attribute/attribute.service';
 import { ProductService } from '../../service/product/product.service';
 import { PrestashopCombination, PrestashopProductOption, PrestashopProductOptionValue } from '../../../models/attribute.model';
 import { AttributeModel, extractUniqueAttributes } from '../../../models/attribute-csv.model';
 import { TaxService } from '../../service/tax/tax.service';
+import { StockFacadeService } from '../stockFacade/stock-facade.service';
+import { ProductFacadeService } from '../productFacade/product-facade.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AttributeFacadeService {
 
-  constructor() { }
+  productMap : Map <string,number> = new Map <string,number> ();
 
-  private stocksService : StocksService = inject(StocksService);
+  // map pour les options spécificités (ex : taille)
+  productOptionMap : Map<string,number> = new Map<string,number>();
+
+  // map karazany (ex : S)
+  productOptionValueMap : Map<string,number> = new Map<string,number>();
+
+
+  getProductMap() : Map <string,number> {
+    return this.productMap;
+  }
+
+  getProductOptionMap() : Map<string,number> {
+    return this.productOptionMap;
+  }
+
+  getProductOptionValueMap() : Map<string,number> {
+    return this.productOptionValueMap;
+  }
+
+  constructor() {
+  }
+
   private attributeService : AttributeService = inject(AttributeService);
   private productService : ProductService = inject(ProductService);
   private taxService : TaxService = inject(TaxService);
+  private stockFacadeService : StockFacadeService = inject(StockFacadeService);
+  private productFacadeService : ProductFacadeService = inject(ProductFacadeService);
 
-  async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[]) {
+
+  async insertionStocksSansDeclinaison(combinations: CombinationCsvModel[], mapAvailability : Map<number, string>) : Promise<void> {
     for (const combo of combinations) {
-      const idProduct = await this.productService.getIdProductByReference(combo.reference);
+      const idProduct = this.productMap.get(combo.reference);
       if (!idProduct) continue;
-      const idStock = await this.stocksService.getIdStockProductsId(idProduct);
-      await this.stocksService.updateStockWithIdProduct(idStock, idProduct, combo.stock_initial, 0);
+      const date_add = mapAvailability.get(idProduct) ?? new Date().toISOString();
+      await this.stockFacadeService.updateStockAndCreateStockMouvement(idProduct, 0, combo.stock_initial, 'Initial stock import for product without combination', date_add);
     }
   }
 
-  async importProductOption(attribute: AttributeModel) : Promise<number | null> {
-    const idOption = await this.attributeService.getProductOptionIdByName(attribute.specificite);
+  async importProductOption(specificite: string) : Promise<number | null> {
+    const idOption = this.productOptionMap.get(specificite);
     if (idOption) {
       return idOption;
     }
@@ -37,38 +62,50 @@ export class AttributeFacadeService {
     const productOption: PrestashopProductOption = {
       id: 0,
       group_type: 'select',
-      name: { language: [{ id: 1 , value: attribute.specificite }] },
-      public_name: { language: [{ id: 1 , value: attribute.specificite }] },
+      name: { language: [{ id: 1 , value: specificite }] },
+      public_name: { language: [{ id: 1 , value: specificite }] },
     };
-    return await this.attributeService.createProductOption(productOption);
+
+    const idOptionCreated = await this.attributeService.createProductOption(productOption);
+    this.productOptionMap.set(specificite,idOptionCreated ?? 0);
+    return idOptionCreated;
   }
 
 
-  async importProductOptionValue(attribute: AttributeModel) : Promise<number | null> {
-    const idOption = await this.importProductOption(attribute);await this.attributeService.getProductOptionIdByName(attribute.specificite);
+  async importProductOptionValue(attribute: AttributeModel): Promise<number | null> {
+    const key = `${attribute.specificite}_${attribute.karazany}`;
+    const cachedId = this.productOptionValueMap.get(key);
+
+    if (cachedId) {
+      return cachedId;
+    }
+
+    const idOption = this.productOptionMap.get(attribute.specificite);
     if (!idOption) {
-      throw new Error(`Failed to create or retrieve product option for specificite: ${attribute.specificite}`);
+      throw new Error(
+        `Failed to create or retrieve product option for specificite: ${attribute.specificite}`
+      );
     }
 
-    const attributeValue = attribute.karazany;
-
-    const idOptionValue = await this.attributeService.getProductOptionValueIdByName(idOption, attributeValue);
-    if (idOptionValue) {
-      return idOptionValue;
-    }
-
+    // Création
     const productOptionValue: PrestashopProductOptionValue = {
       id_attribute_group: idOption,
-      name:  { language : [ {id : 1 , value: attributeValue} ]}
+      name: {
+        language: [ { id: 1, value: attribute.karazany }]
+      }
     };
 
-    return await this.attributeService.createProductOptionValue(productOptionValue);
+    const createdId = await this.attributeService.createProductOptionValue(productOptionValue);
+    if (createdId) {
+      this.productOptionValueMap.set(key, createdId);
+    }
+    return createdId;
   }
 
 
   async importOption (uniqueAttributes : AttributeModel []) : Promise <void> {
     for (const attribute of uniqueAttributes) {
-      await this.importProductOption(attribute);
+      await this.importProductOption(attribute.specificite);
     }
 
     for (const attribute of uniqueAttributes) {
@@ -80,7 +117,9 @@ export class AttributeFacadeService {
 
 
 
-  async importProductCombinations(combinations: CombinationCsvModel[]): Promise<void> {
+  async importProductCombinations(combinations: CombinationCsvModel[], mapProducts : Map <string, number>, mapAvailability : Map <number, string>): Promise<void> {
+
+    this.productMap = mapProducts;
 
     const combinationsWithoutSpec = combinations.filter((c) => !c.specificite || c.specificite.trim() === '');
     const combinationsWithSpec = combinations.filter((c) => c.specificite && c.specificite.trim() !== '');
@@ -88,7 +127,7 @@ export class AttributeFacadeService {
     const uniqueAttributes : AttributeModel[] = extractUniqueAttributes(combinationsWithSpec);
 
     await this.importOption(uniqueAttributes);
-    await this.insertionStocksSansDeclinaison(combinationsWithoutSpec);
+    await this.insertionStocksSansDeclinaison(combinationsWithoutSpec, mapAvailability);
 
 
     // Group combinations by reference
@@ -101,11 +140,13 @@ export class AttributeFacadeService {
     }
 
     for (const [reference, combos] of combinationsByReference.entries()) {
-      const idProduct = await this.productService.getIdProductByReference(reference);
+      const idProduct =  this.productMap.get(reference);
       if (!idProduct) {
         console.warn(`Product with reference ${reference} not found. Skipping combinations.`);
         continue;
       }
+
+      const date_availability =  mapAvailability.get(idProduct) ?? new Date().toISOString();
 
       for (const combo of combos) {
         const attribute = uniqueAttributes.find(attr => attr.specificite === combo.specificite && attr.karazany === combo.karazany);
@@ -114,13 +155,13 @@ export class AttributeFacadeService {
           continue;
         }
 
-        const idOption = await this.attributeService.getProductOptionIdByName(attribute.specificite);
+        const idOption = this.productOptionMap.get(attribute.specificite);
         if (!idOption) {
           console.warn(`Failed to import product option for attribute ${attribute.specificite}. Skipping this combination.`);
           continue;
         }
 
-        const idOptionValue = await this.attributeService.getProductOptionValueIdByName(idOption,attribute.karazany);
+        const idOptionValue = this.productOptionValueMap.get(`${attribute.specificite}_${attribute.karazany}`);
         if (!idOptionValue) {
           console.warn(`Failed to import product option value for attribute ${attribute.specificite} - ${attribute.karazany}. Skipping this combination.`);
           continue;
@@ -148,18 +189,17 @@ export class AttributeFacadeService {
             continue;
           }
 
-          let idStock = await this.stocksService.getIdStockByProductAndAttribute(
-              idProduct,createdCombinationId
-            );
+        // mise à jour du stock pour la combinaison créée + creation du mouvement de stock correspondant
+        await this.stockFacadeService.updateStockAndCreateStockMouvement(
+          idProduct, createdCombinationId, combo.stock_initial, 'Initial stock import', date_availability
+        );
 
-
-          if (idStock) {
-            await this.stocksService.updateStockWithIdProduct(
-              idStock,idProduct,combo.stock_initial,createdCombinationId
-            );
-          };
       }
+
+      console.log(`==== FIN CREATION COMBINAISON ${idProduct}`);
     }
+
+    console.log("=== FIN CREATION FEUILLE 2");
   }
 
   async calculDifferenceHorsTaxe(

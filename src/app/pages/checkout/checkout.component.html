@@ -1,0 +1,108 @@
+<div class="checkout-container">
+  <div class="container">
+    <header class="checkout-header">
+      <h1>Validation de la commande</h1>
+      <p>Dernière étape avant de recevoir vos produits</p>
+    </header>
+
+    <div class="checkout-grid">
+      <!-- GAUCHE : FORMULAIRES -->
+      <div class="checkout-form-section">
+
+        <!-- Section Adresse -->
+        <section class="checkout-card">
+          <div class="card-header">
+            <span class="step-number">1</span>
+            <h2>Adresse de livraison</h2>
+          </div>
+
+          <div *ngIf="userHasAddress" class="address-preview">
+            <p><strong>Utiliser mon adresse enregistrée :</strong></p>
+            <p> {{ userAddress?.address1[0] }} -  {{ userAddress?.postcode[0] }} </p>
+            <button class="btn-link" (click)="userHasAddress = false">Modifier l'adresse</button>
+          </div>
+
+          <form *ngIf="!userHasAddress" [formGroup]="checkoutForm" class="address-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pays</label>
+                <input type="text" formControlName="country" placeholder="Ex: France">
+              </div>
+              <div class="form-group">
+                <label>Code Postal</label>
+                <input type="text" formControlName="zipCode" placeholder="Ex: 75000">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Ville</label>
+              <input type="text" formControlName="city" placeholder="Ex: Paris">
+            </div>
+            <div class="form-group">
+              <label>Rue et numéro</label>
+              <input type="text" formControlName="street" placeholder="Ex: 12 bis rue des Fleurs">
+            </div>
+          </form>
+        </section>
+
+        <!-- Section Mode de Paiement -->
+        <section class="checkout-card">
+          <div class="card-header">
+            <span class="step-number">2</span>
+            <h2>Mode de paiement</h2>
+          </div>
+          <div class="payment-readonly">
+            <div class="payment-option active">
+              <span class="icon">🚚</span>
+              <div>
+                <strong>Paiement à la livraison</strong>
+                <p>Payez en espèces ou par carte dès réception de votre colis.</p>
+              </div>
+              <span class="badge-check">✓</span>
+            </div>
+          </div>
+        </section>
+
+       <p (click)="goToCart()"> Retour à la cart </p>
+      </div>
+
+      <!-- DROITE : RECAPITULATIF -->
+      <aside class="checkout-summary">
+        <div class="summary-card">
+          <h3>Récapitulatif du panier</h3>
+
+          <div class="summary-items">
+            <div class="summary-item" *ngFor="let item of (cartItems$ | async)">
+              <div class="item-info">
+                <span class="item-name">{{ item.productNameWithAttribute }}</span>
+                <span class="item-qty">Qté: {{ item.quantity }}</span>
+              </div>
+              <span class="item-price">{{ (item.price * item.quantity) | number:'1.2-2' }} €</span>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="summary-totals">
+            <div class="total-row">
+              <span>Sous-total</span>
+              <span>{{ (totalPrice$ | async) | number:'1.2-2' }} €</span>
+            </div>
+            <div class="total-row delivery">
+              <span>Frais de livraison</span>
+              <span class="free">Gratuit</span>
+            </div>
+            <div class="total-row final">
+              <span>Total à payer</span>
+              <span class="amount">{{ (totalPrice$ | async) | number:'1.2-2' }} €</span>
+            </div>
+          </div>
+
+          <button class="btn-confirm" (click)="confirmOrder()">
+            Confirmer ma commande
+          </button>
+          <p class="terms-text">En confirmant, vous acceptez nos conditions générales de vente.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

@@ -1,16 +1,57 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { UserCartService } from '../user-cart/user-cart.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SessionService {
+
   private userData: any = null;
+  private customerData: any = null;
+  private cartService : UserCartService = inject(UserCartService);
 
   constructor() {
     const stored = localStorage.getItem('userData');
     if (stored) {
       this.userData = JSON.parse(stored);
     }
+  }
+
+  setCustomer(customer: any) {
+    this.customerData = {
+      id : customer.id[0],
+      email: customer.email[0],
+    };
+    localStorage.setItem('customerData', JSON.stringify(this.customerData));
+  }
+
+
+  setCustomerData(customer: any) {
+    this.customerData = {
+      id : customer.id,
+      email: customer.email,
+    };
+    localStorage.setItem('customerData', JSON.stringify(this.customerData));
+  }
+
+  getCustomer() {
+    const data = localStorage.getItem('customerData');
+    if (data) {
+      this.customerData = JSON.parse(data);
+    }
+    return this.customerData;
+  }
+
+  getCartId() {
+    const cartId = localStorage.getItem('cart_id');
+    return cartId ? parseInt(cartId, 10) : null;
+  }
+
+  clearCustomer() {
+    this.cartService.clearCart();
+    this.customerData = null;
+    localStorage.removeItem('customerData');
+    localStorage.removeItem('cart_id');
   }
 
   setUser(email: any) {
@@ -21,6 +62,10 @@ export class SessionService {
   }
 
   getUser() {
+    const data = localStorage.getItem('userData');
+    if (data) {
+      this.userData = JSON.parse(data);
+    }
     return this.userData;
   }
 

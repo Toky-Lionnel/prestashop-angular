@@ -1,5 +1,7 @@
 
+import { CartItem } from '../services/service/user-cart/user-cart.service';
 import { CartCsvModel } from './cart-csv.model';
+import { formatPrestashopDate } from '../utils/prestashop-date.utils';
 
 export interface PrestashopCartRow {
   product_name: string;
@@ -154,14 +156,26 @@ export function transformCartCsvRowsToPrestashopCarts(rows: CartCsvModel[], opti
     }
 
     const cart = cartsByGroup.get(groupId)!;
-    cart.associations.cart_rows.push({
-      product_name: row.reference,
-      id_product: 0,
-      product_attribute: row.attribute || '',
-      id_product_attribute: null,
-      id_address_delivery: settings.id_address_delivery,
-      quantity: toNumber(row.qte, settings.default_quantity)
-    });
+    const quantity = toNumber(row.qte, settings.default_quantity);
+
+    const existingRow = cart.associations.cart_rows.find(
+      r =>
+        r.product_name === row.reference &&
+        r.product_attribute === (row.attribute || '')
+    );
+
+    if (existingRow) {
+      existingRow.quantity += quantity;
+    } else {
+      cart.associations.cart_rows.push({
+        product_name: row.reference,
+        id_product: 0,
+        product_attribute: row.attribute || '',
+        id_product_attribute: null,
+        id_address_delivery: settings.id_address_delivery,
+        quantity
+      });
+    }
   }
 
   return [...cartsByGroup.entries()]
@@ -179,7 +193,7 @@ const escapeCDATA = (value: string | number) => {
 };
 
 const buildCartRowXML = (row: PrestashopCartRow): string => {
-  return `                <cart_row>
+  return `<cart_row>
                     <id_product><![CDATA[${escapeCDATA(row.id_product)}]]></id_product>
                     <id_product_attribute><![CDATA[${escapeCDATA(row.id_product_attribute ?? '')}]]></id_product_attribute>
                     <id_address_delivery><![CDATA[${escapeCDATA(row.id_address_delivery)}]]></id_address_delivery>
@@ -198,6 +212,7 @@ export function buildCartXML(data: PrestashopCart): string {
         <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
         <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
         <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <date_add><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_add>
         <associations>
             <cart_rows>
                 ${cartRows}
@@ -205,4 +220,95 @@ export function buildCartXML(data: PrestashopCart): string {
         </associations>
     </cart>
 </prestashop>`;
+}
+
+export function buildCartUpdateXML(data: PrestashopCart): string {
+  const cartRows = data.associations.cart_rows.map((row) => buildCartRowXML(row)).join('\n');
+
+  const dateUpdate = formatPrestashopDateCart(new Date());
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id><![CDATA[${escapeCDATA(data.id ?? '')}]]></id>
+        <id_currency><![CDATA[${escapeCDATA(data.id_currency)}]]></id_currency>
+        <id_lang><![CDATA[${escapeCDATA(data.id_lang)}]]></id_lang>
+        <id_customer><![CDATA[${escapeCDATA(data.id_customer)}]]></id_customer>
+        <id_shop>1</id_shop>
+        <id_shop_group>1</id_shop_group>
+        <date_add><![CDATA[${escapeCDATA(formatPrestashopDate(data.date_add ?? ''))}]]></date_add>
+        <date_upd><![CDATA[${escapeCDATA(dateUpdate)}]]></date_upd>
+        <id_address_delivery><![CDATA[${escapeCDATA(data.id_address_delivery)}]]></id_address_delivery>
+        <id_address_invoice><![CDATA[${escapeCDATA(data.id_address_invoice)}]]></id_address_invoice>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}
+
+
+export function buildUserCartXML(cartItems: CartItem[], id_customer : number): string {
+  const cartRows = cartItems.map((item) => buildCartRowXML({
+    product_name: '',
+    id_product: item.productId,
+    product_attribute: '',
+    id_product_attribute: item.attributeId,
+    id_address_delivery: 0,
+    quantity: item.quantity
+  })).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id_currency><![CDATA[1]]></id_currency>
+        <id_lang><![CDATA[1]]></id_lang>
+        <id_customer><![CDATA[${escapeCDATA(id_customer)}]]></id_customer>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}
+
+export function buildUserCartXMLUpdate(cartItems: CartItem[], cartId: number, id_customer: number): string {
+  const cartRows = cartItems.map((item) => buildCartRowXML({
+    product_name: '',
+    id_product: item.productId,
+    product_attribute: '',
+    id_product_attribute: item.attributeId,
+    id_address_delivery: 0,
+    quantity: item.quantity
+  })).join('\n');
+
+  const dateUpdate = formatPrestashopDateCart(new Date());
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <cart>
+        <id><![CDATA[${cartId}]]></id>
+        <id_currency><![CDATA[1]]></id_currency>
+        <id_customer><![CDATA[${escapeCDATA(id_customer)}]]></id_customer>
+        <id_shop>1</id_shop>
+        <id_shop_group>1</id_shop_group>
+        <id_lang><![CDATA[1]]></id_lang>
+        <date_upd><![CDATA[${dateUpdate}]]></date_upd>
+        <associations>
+            <cart_rows>
+                ${cartRows}
+            </cart_rows>
+        </associations>
+    </cart>
+</prestashop>`;
+}
+
+function formatPrestashopDateCart(date: Date): string {
+  return date
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ');
 }

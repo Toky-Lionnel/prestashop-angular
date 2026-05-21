@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { OrderStateService } from '../../services/service/order-state/order-state.service';
 import { transformToOrderHistory } from '../../models/order-history.model';
 import { FormsModule } from '@angular/forms';
+import { CartService } from '../../services/service/cart/cart.service';
 
 @Component({
   selector: 'app-orders-list',
@@ -19,13 +20,17 @@ export class OrdersListComponent {
   pendingValidation: Record<number, boolean> = {};
   successMessageByOrder: Record<number, string> = {};
   errorMessageByOrder: Record<number, string> = {};
+  expandedOrderId: number | null = null;
 
   private orderService: OrderService = inject(OrderService);
   private orderStateService: OrderStateService = inject(OrderStateService);
+  private cartService: CartService = inject(CartService);
 
   async ngOnInit() {
     this.orderStates = await this.orderStateService.loadOrderStates();
-    this.orders = await this.orderService.getOrdersFull();
+    const carts : Order [] = await this.cartService.getCartMapped();
+    this.orders = await this.orderService.getOrdersFull(undefined, undefined , true);
+    this.orders = [...this.orders, ...carts];
     this.initializeSelectedStates();
   }
 
@@ -67,7 +72,8 @@ export class OrdersListComponent {
     this.errorMessageByOrder[order.id] = '';
 
     try {
-      const orderHistory = transformToOrderHistory(order.id, selectedStateId, null);
+      const orderHistory = transformToOrderHistory(order.id,selectedStateId, null);
+
       await this.orderStateService.createOrderState(orderHistory);
 
       order.recent_statut = this.getStateLabelById(selectedStateId);
@@ -80,15 +86,51 @@ export class OrdersListComponent {
     }
   }
 
-    getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-      const normalizedStatus = status?.toLowerCase() ?? '';
+  async toggleOrderDetails(order: Order): Promise<void> {
 
-      if (normalizedStatus.includes('livr') || normalizedStatus.includes('complet')) return 'success';
-      if (normalizedStatus.includes('cours') || normalizedStatus.includes('expédi') || normalizedStatus.includes('transit')) return 'info';
-      if (normalizedStatus.includes('attente') || normalizedStatus.includes('paiement')) return 'warn';
-      if (normalizedStatus.includes('annul') || normalizedStatus.includes('refus') || normalizedStatus.includes('erreur')) return 'danger';
-
-      return 'secondary';
+    if (order.recent_statut !== 'Non commandé') {
+      const products = order.products.map((p) => `Produit: ${p.product_name}, Prix: ${p.product_price}, Quantité: ${p.quantity}`).join('\n');
+      alert(products);
+      return;
     }
+
+    const details = await this.cartService.getCartDetails(order);
+    const products = details.products.map((p) => `Produit: ${p.product_name}, Prix: ${p.product_price}, Quantité: ${p.quantity}`).join('\n');
+
+    if (products.length === 0) {
+      alert(`Aucun produit trouvé pour le panier ${order.id}.`);
+      return;
+    }
+
+    alert(`Détails du panier ${order.id} :\n${products}`);
+  }
+
+  isCart(order: Order): boolean {
+    return order.recent_statut === 'Non commandé';
+  }
+
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    const normalizedStatus = status?.toLowerCase() ?? '';
+
+    if (normalizedStatus.includes('livr') || normalizedStatus.includes('complet')) return 'success';
+    if (normalizedStatus.includes('cours') || normalizedStatus.includes('expédi') || normalizedStatus.includes('transit')) return 'info';
+    if (normalizedStatus.includes('attente') || normalizedStatus.includes('paiement')) return 'warn';
+    if (normalizedStatus.includes('annul') || normalizedStatus.includes('refus') || normalizedStatus.includes('erreur')) return 'danger';
+
+    return 'secondary';
+  }
+
+  async updateOrderStatus(order: Order, status: number) {
+    await this.orderStateService.updateOrderState(order.id, status);
+    // Mettre à jour le statut localement pour refléter le changement immédiatement
+
+    if (status == 5) {
+      await this.orderService.insertMouvementStocks(order.id);
+    }
+    const updatedStatusName = this.orderStateService.getOrderStateNameById(status);
+    if (updatedStatusName) {
+      order.recent_statut = updatedStatusName;
+    }
+  }
 
 }

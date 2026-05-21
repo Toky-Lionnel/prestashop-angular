@@ -106,42 +106,68 @@ export async function transformCSVtoBackend(
 }
 
 function detectTableName(headers: string[]): string {
-  const normalizedHeaders = headers.map((header) =>
-    header.trim().toLowerCase(),
+  const normalizedHeaders = headers.map((h) =>
+    h.trim().toLowerCase(),
   );
-  const hasHeaders = (expectedHeaders: string[]) =>
-    expectedHeaders.every((header) => normalizedHeaders.includes(header));
 
-  // if (hasHeaders(["name", "price" , "quantity"])) {
-  //   return "PRODUCT";
-  // }
+  const tables = [
+    {
+      name: "PRODUCTS",
+      headers: [
+        "date_availability_produit",
+        "nom",
+        "reference",
+        "prix_ttc",
+        "taxe",
+        "categorie",
+        "prix_achat",
+      ],
+    },
+    {
+      name: "COMBINATIONS",
+      headers: [
+        "reference",
+        "specificité",
+        "karazany",
+        "stock_initial",
+        "prix_vente_ttc",
+      ],
+    },
+    {
+      name: "CUSTOMERS",
+      headers: [
+        "date",
+        "nom",
+        "email",
+        "pwd",
+        "adresse",
+        "achat",
+        "etat",
+      ],
+    },
+  ];
 
-  // if ( hasHeaders(["produit", "quantite","panier"])) {
-  //   return "ORDER";
-  // }
+  let bestMatch = "";
+  let bestScore = 0;
 
-  // if (hasHeaders(["panier", "mode paiement", "montant"])) {
-  //   return "ORDER-PAYEMENT";
-  // }
+  for (const table of tables) {
+    const matchedHeaders = table.headers.filter((header) =>
+      normalizedHeaders.includes(header),
+    );
 
-  // if (hasHeaders(["nom", "prenom", "email", "adresse"])) {
-  //   return "CUSTOMER";
-  // }
+    const score =
+      matchedHeaders.length / table.headers.length;
 
-
-  if (hasHeaders(["date_availability_produit", "nom" , "reference", "prix_ttc", "taxe", "categorie", "prix_achat"])) {
-    return "PRODUCTS";
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = table.name;
+    }
   }
 
-  if (hasHeaders(["reference", "karazany", "stock_initial"])) {
-    return "COMBINATIONS";
+  // seuil minimal de confiance
+  if (bestScore >= 0.4) {
+    return bestMatch;
   }
 
-  if (hasHeaders(["date", "nom", "email", "pwd", "adresse", "achat", "etat"])) {
-    return "CUSTOMERS";
-  }
-
-
-
-  return "EXPENSE";
+  return "UNKNOWN";
 }

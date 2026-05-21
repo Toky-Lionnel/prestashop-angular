@@ -1,3 +1,5 @@
+import { createEmptyValidationResult, ImportValidationResult, FieldValidationError } from './validation.model';
+
 export interface ProductCsvModel {
   date_availability_produit: string;
   nom: string;
@@ -42,12 +44,58 @@ export function transformProductCsvRowToModel(row: any): ProductCsvModel {
     taxe: extractPercentage(row['taxe'], 0),
     categorie: row['categorie']?.trim() || '',
     prix_achat: toNumber(row['prix_achat'], 0),
+    line_number: toNumber(row['line_number'], 1)
   };
 }
 
 
 export function transformProductCsvRowsToModel(rows: any[]): ProductCsvModel[] {
   return rows.map(transformProductCsvRowToModel);
+}
+
+
+export function validateProductCsvRows(rows: any[]): ImportValidationResult<ProductCsvModel> {
+  const expectedKeys = ['date_availability_produit', 'nom', 'reference', 'prix_ttc', 'taxe', 'categorie', 'prix_achat', 'line_number'];
+  const result = createEmptyValidationResult<ProductCsvModel>();
+
+  for (const rawRow of rows) {
+    const errors: FieldValidationError[] = [];
+    for (const key of expectedKeys) {
+      if (!(key in rawRow)) {
+        errors.push({ field: key, code: 'required', message: `Nom de colonne non conforme: ${key}`, invalidValue: rawRow[key] });
+      }
+    }
+
+    const dateValue = (rawRow['date_availability_produit'] || '').trim();
+    if (dateValue) {
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (!dateRegex.test(dateValue)) {
+        errors.push({ field: 'date_availability_produit', code: 'format', message: 'format de date différente de DD/MM/YYYY', invalidValue: rawRow['date_availability_produit'] });
+      }
+    }
+
+    const prixTtc = toNumber(rawRow['prix_ttc'], NaN);
+    const prixAchat = toNumber(rawRow['prix_achat'], NaN);
+    if (isNaN(prixTtc) || prixTtc < 0) {
+      errors.push({ field: 'prix_ttc', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_ttc', invalidValue: rawRow['prix_ttc'] });
+    }
+    if (isNaN(prixAchat) || prixAchat < 0) {
+      errors.push({ field: 'prix_achat', code: 'invalid_value', message: 'montant non valide ou négatif pour prix_achat', invalidValue: rawRow['prix_achat'] });
+    }
+
+    const model = transformProductCsvRowToModel(rawRow);
+    if (errors.length > 0) {
+      result.invalidData.push({ lineNumber: model.line_number ?? 0, data: model, errors });
+    } else {
+      result.validData.push(model);
+    }
+  }
+
+  result.summary.total = rows.length;
+  result.summary.valid = result.validData.length;
+  result.summary.invalid = result.invalidData.length;
+
+  return result;
 }
 
 

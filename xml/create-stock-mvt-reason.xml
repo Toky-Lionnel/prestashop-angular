@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+    <stock_movement_reason>
+        <sign>
+            <![CDATA[1]]>
+        </sign>
+        <name required="true" maxSize="255" format="isGenericName">
+            <language id="1" xlink:href="http://localhost/EVALUATION/prestashop_front/api/languages/1" format="isUnsignedId" >
+                <![CDATA[Test]]>
+            </language>
+        </name>
+    </stock_movement_reason>
+</prestashop>

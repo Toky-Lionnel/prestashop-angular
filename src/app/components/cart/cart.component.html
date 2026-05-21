@@ -1,0 +1,111 @@
+<div class="cart-page">
+  <div class="container">
+    <header class="cart-page__header">
+      <h1>Mon Panier</h1>
+      <p class="cart-page__count" *ngIf="(totalCount$ | async) as count">
+        {{ count }} produit{{ count > 1 ? 's' : '' }} sélectionné{{ count > 1 ? 's' : '' }}
+      </p>
+    </header>
+
+    <div class="cart-page__grid" *ngIf="(cartItems$ | async) as items; else loading">
+
+      <!-- COLONNE GAUCHE : LISTE -->
+      <main class="cart-page__main" *ngIf="items.length > 0; else emptyCart">
+        <div class="cart-table-header">
+          <span class="col-product">Produit</span>
+          <span class="col-price">Prix</span>
+          <span class="col-qty">Quantité</span>
+          <span class="col-total">Total</span>
+          <span class="col-action"></span>
+        </div>
+
+        <div class="cart-list">
+          <article class="cart-item" *ngFor="let item of items; trackBy: trackByItem">
+            <!-- Détails Produit -->
+            <div class="cart-item__product col-product">
+              <div class="cart-item__img-placeholder"> 4 </div>
+              <div>
+                <h3 class="cart-item__name">{{ item.productNameWithAttribute }}</h3>
+                <p class="cart-item__ref">Réf: #{{ item.productId }}{{ item.attributeId }}</p>
+              </div>
+            </div>
+
+            <!-- Prix Unitaire -->
+            <div class="cart-item__price col-price">
+              {{ item.price | number:'1.2-2' }} €
+            </div>
+
+            <!-- Sélecteur Quantité -->
+            <div class="cart-item__qty col-qty">
+              <div class="qty-selector">
+                <button (click)="updateQty(item, -1)" [disabled]="item.quantity <= 1">−</button>
+                <input type="number" [value]="item.quantity" (change)="onQtyChange($event, item)" min="1">
+                <button (click)="updateQty(item, 1)">+</button>
+              </div>
+            </div>
+
+            <!-- Total Ligne -->
+            <div class="cart-item__total col-total">
+              {{ (item.price * item.quantity) | number:'1.2-2' }} €
+            </div>
+
+            <!-- Suppression -->
+            <div class="cart-item__action col-action">
+              <button class="btn-remove" (click)="removeItem(item)" title="Supprimer">
+                <span>✕</span>
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <button class="btn-back" (click)="goToShop()">
+          ← Continuer mes achats
+        </button>
+      </main>
+
+      <!-- COLONNE DROITE : RÉCAPITULATIF -->
+      <aside class="cart-page__summary" *ngIf="items.length > 0">
+        <div class="summary-card">
+          <h3>Récapitulatif</h3>
+
+          <div class="summary-row">
+            <span>Sous-total</span>
+            <span>{{ (totalPrice$ | async) | number:'1.2-2' }} €</span>
+          </div>
+
+          <hr>
+
+          <div class="summary-row summary-total">
+            <span>Total (TTC)</span>
+            <span class="price">{{ (totalPrice$ | async) | number:'1.2-2' }} €</span>
+          </div>
+
+          <button class="btn-checkout" (click)="checkout()">
+            Passer la commande
+          </button>
+
+          <button class="btn-clear" (click)="clearCart()">
+            Vider le panier
+          </button>
+        </div>
+      </aside>
+
+      <!-- Templates vides -->
+      <ng-template #emptyCart>
+        <div class="empty-view">
+          <div class="empty-icon">🛒</div>
+          <h2>Votre panier est vide</h2>
+          <p>Il semblerait que vous n'ayez pas encore fait votre choix.</p>
+          <button class="btn-primary" (click)="goToShop()">Découvrir nos produits</button>
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+</div>
+
+<button (click)="clearCustomerSession()" > Clear Session </button>
+
+<ng-template #loading>
+  <div class="loader">Chargement...</div>
+</ng-template>

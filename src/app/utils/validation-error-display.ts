@@ -9,6 +9,7 @@ export interface FormattedError {
     field: string;
     code: string;
     message: string;
+    invalidValue?: unknown;
   }[];
 }
 
@@ -32,7 +33,8 @@ export function formatValidationErrors<T>(result: ImportValidationResult<T>): Fo
     errors: invalidRow.errors.map(error => ({
       field: error.field,
       code: error.code,
-      message: error.message
+      message: error.message,
+      invalidValue: (error as any).invalidValue
     }))
   }));
 
@@ -138,6 +140,9 @@ export function getErrorsAsHTML<T>(result: ImportValidationResult<T>, file_name 
         html += `<span class="error-field">${escapeHtml(error.field)}</span>`;
         html += `<span class="error-code">[${escapeHtml(error.code)}]</span>`;
         html += `<div class="error-message">${escapeHtml(error.message)}</div>`;
+        if (error.invalidValue !== undefined) {
+          html += `<div class="error-value">Valeur non conforme: <code>${escapeHtml(stringifyValue(error.invalidValue))}</code></div>`;
+        }
         html += `</li>`;
       });
 
@@ -166,6 +171,17 @@ function escapeHtml(input: string | undefined): string {
     .replace(/'/g, '&#39;');
 }
 
+function stringifyValue(value: unknown): string {
+  try {
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
+    if (typeof value === 'string') return value;
+    return JSON.stringify(value);
+  } catch (e) {
+    try { return String(value); } catch { return ''; }
+  }
+}
+
 /**
  * Retourne seulement les erreurs en tant qu'array plat (pour itération simple)
  * Utile pour ngFor dans les templates Angular
@@ -176,7 +192,8 @@ export function getErrorsList<T>(result: ImportValidationResult<T>): Array<{ lin
       lineNumber: invalidRow.lineNumber,
       field: error.field,
       code: error.code,
-      message: error.message
+      message: error.message,
+      invalidValue: (error as any).invalidValue
     }))
   );
 }

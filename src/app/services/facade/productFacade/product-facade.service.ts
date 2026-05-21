@@ -2,11 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { ProductService } from '../../service/product/product.service';
 import { StocksService } from '../../service/stocks/stocks.service';
 import { PrestashopProduct } from '../../../models/product.model';
-import {
-  createEmptyValidationResult,
-  FieldValidationError,
-  ImportValidationResult,
-} from '../../../models/validation.model';
 import { CategoriesService } from '../../service/categories/categories.service';
 import { PrestashopCategory } from '../../../models/category.model';
 import { ProductCsvModel } from '../../../models/product-csv.model';
@@ -16,9 +11,7 @@ import {
   PrestashopTaxRule,
   PrestashopTaxRuleGroup,
 } from '../../../models/tax.model';
-import { CombinationCsvModel } from '../../../models/combination-csv.model';
-import { AttributeService } from '../../service/attribute/attribute.service';
-import { PrestashopCombination, PrestashopProductOption } from '../../../models/attribute.model';
+import { createEmptyValidationResult, FieldValidationError, ImportValidationResult } from '../../../models/validation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +21,17 @@ export class ProductFacadeService {
   private stocksService: StocksService = inject(StocksService);
   private categoriesService: CategoriesService = inject(CategoriesService);
   private taxService: TaxService = inject(TaxService);
-  private attributeService: AttributeService = inject(AttributeService);
+
+  productMap : Map <string,number> = new Map <string,number> ();
+  availabiltyMap : Map <number,string> = new Map <number,string> ();
+
+  public getProductMap () : Map <string,number> {
+    return this.productMap;
+  }
+
+  public getAvailabilityMap() : Map<number, string> {
+    return this.availabiltyMap;
+  }
 
   constructor() {}
 
@@ -53,11 +56,8 @@ export class ProductFacadeService {
 
       for (const category of categories) {
         const categoryName = category.name.language[0]?.value?.trim() ?? '';
-        const createdCategoryId =
-          await this.categoriesService.createCategories(category);
-        const resolvedCategoryId =
-          createdCategoryId ??
-          (await this.categoriesService.getIdCategoryByName(categoryName));
+        const createdCategoryId = await this.categoriesService.createCategories(category);
+        const resolvedCategoryId = createdCategoryId;
 
         if (resolvedCategoryId) {
           categoryIdByName.set(categoryName.toLowerCase(), resolvedCategoryId);
@@ -72,7 +72,7 @@ export class ProductFacadeService {
         const tax: PrestashopTax = {
           name: {
             language: [
-              { id: 1, value: `Tax for ${product.nom} - ${product.taxe}%` },
+              { id: 1, value: `Tax ${product.taxe}%` },
             ],
           },
           rate: product.taxe,
@@ -82,7 +82,7 @@ export class ProductFacadeService {
         const taxId = await this.taxService.createTax(tax);
 
         const taxGroup: PrestashopTaxRuleGroup = {
-          name: `Tax Rule Group for ${product.nom}`,
+          name: `Tax ${product.nom}`,
           active: 1,
         };
 
@@ -133,9 +133,14 @@ export class ProductFacadeService {
             },
           },
         };
-
-        await this.productService.createProduct(prestashopProduct);
+        const idProduct = await this.productService.createProduct(prestashopProduct);
+        this.productMap.set(product.reference,idProduct);
+        this.availabiltyMap.set(idProduct, product.date_availability_produit);
+        console.log(`=== FIN CREATION PRODUIT ${product.line_number}`);
       }
+
+      console.log("==== FIN CREATION DES PRODUITS ====");
+
     } catch (error) {
       console.error('Error importing products:', error);
       throw error;

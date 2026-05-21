@@ -4,6 +4,11 @@ import { PrestashopCategory, buildCategoryXML} from '../../../models/category.mo
 import { parseStringPromise } from 'xml2js';
 import { ProductCsvModel } from '../../../models/product-csv.model';
 
+export interface CategoryOption {
+  id: number;
+  name: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +51,56 @@ export class CategoriesService {
     }
 
     return Number(idCategory);
+  }
+
+  async getNameCategoryById(idCategory: number): Promise<string | null> {
+    const api = this.intereceptor.getApi();
+
+    const response = await api.get(`/api/categories/${idCategory}?display=[name]`,{
+        responseType: 'text'
+      }
+    );
+
+    const responseData = await parseStringPromise(response.data);
+    const category = responseData?.prestashop?.category;
+    const name = category[0]?.name?.[0]?.language?.[0]?._;
+
+    if (!name) {
+      return null;
+    }
+
+    return name;
+  }
+
+  async getAll(): Promise<CategoryOption[]> {
+    const api = this.intereceptor.getApi();
+    const response = await api.get('/api/categories', {
+      params: {
+        display: '[id,name]'
+      },
+      responseType: 'text'
+    });
+
+    const responseData = await parseStringPromise(response.data);
+    const categories = responseData?.prestashop?.categories?.[0]?.category ?? [];
+
+    return (Array.isArray(categories) ? categories : [categories])
+      .filter(Boolean)
+      .map((category: any) => {
+        const id = Number(category?.id?.[0] ?? 0);
+        const nameEntry = category?.name?.[0]?.language?.[0];
+        const name =
+          nameEntry?.value ??
+          nameEntry?._ ??
+          nameEntry ??
+          '';
+
+        return {
+          id,
+          name: String(name).trim()
+        };
+      })
+      .filter((category) => category.id > 0 && category.name.length > 0);
   }
 
 

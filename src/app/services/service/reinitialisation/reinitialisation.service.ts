@@ -23,20 +23,31 @@ export class ReinitialisationService {
     // =========================
     // COMMANDES
     // =========================
-    await this.deleteAll('/api/order_slip', 'order_slip');
-    await this.deleteAll('/api/order_invoices', 'order_invoice');
-    await this.deleteAll('/api/order_payments', 'order_payment');
-    await this.deleteAll('/api/order_histories', 'order_history');
-    await this.deleteAll('/api/order_cart_rules', 'order_cart_rule');
-    await this.deleteAll('/api/order_carriers', 'order_carrier');
-    await this.deleteAll('/api/order_details', 'order_detail');
-    await this.deleteAll('/api/orders', 'order');
+    await this.deleteBatch([
+      () => this.deleteAll('/api/order_slip', 'order_slip'),
+      () => this.deleteAll('/api/order_invoices', 'order_invoice'),
+      () => this.deleteAll('/api/order_payments', 'order_payment'),
+      () => this.deleteAll('/api/order_histories', 'order_history'),
+      () => this.deleteAll('/api/order_cart_rules', 'order_cart_rule'),
+      () => this.deleteAll('/api/order_carriers', 'order_carrier'),
+      () => this.deleteAll('/api/order_details', 'order_detail'),
+      () => this.deleteAll('/api/orders', 'order'),
+    ]);
 
     // =========================
     // CARTS
     // =========================
-    await this.deleteAll('/api/carts', 'cart');
-    await this.deleteAll('/api/cart_rules', 'cart_rule');
+    await this.deleteBatch([
+      () => this.deleteAll('/api/carts', 'cart'),
+      () => this.deleteAll('/api/cart_rules', 'cart_rule'),
+    ]);
+
+    // =========================
+    // MESSAGES
+    // =========================
+    await this.deleteAll('/api/stock_availables', 'stock_available');
+    await this.deleteAll('/api/stock_movements', 'stock_movement');
+    await this.deleteAll('/api/stock_movement_reasons', 'stock_movement_reason');
 
     // =========================
     // PRODUITS
@@ -51,25 +62,28 @@ export class ReinitialisationService {
     // =========================
     // CLIENTS
     // =========================
-    await this.deleteAll('/api/addresses', 'address');
-    await this.deleteAll('/api/messages', 'message');
-    await this.deleteAll('/api/customers', 'customer');
-
+    await this.deleteBatch([
+      () => this.deleteAll('/api/addresses', 'address'),
+      () => this.deleteAll('/api/messages', 'message'),
+      () => this.deleteAll('/api/customers', 'customer'),
+    ]);
 
     // =========================
     // ATTRIBUTES & COMBINATIONS
     // =========================
-    await this.deleteAll('/api/combinations', 'combination');
-    await this.deleteAll('/api/product_option_values', 'product_option_value');
-    await this.deleteAll('/api/product_options', 'product_option');
-
+    await this.deleteBatch([
+      () => this.deleteAll('/api/combinations', 'combination'),
+      () => this.deleteAll('/api/product_option_values', 'product_option_value'),
+      () => this.deleteAll('/api/product_options', 'product_option'),
+    ]);
     // =========================
     // TAXES
     // =========================
-    await this.deleteAll('/api/tax_rules', 'tax_rule');
-    await this.deleteAll('/api/tax_rule_groups', 'tax_rule_group');
-    await this.deleteAll('/api/taxes', 'tax');
-
+    await this.deleteBatch([
+      () => this.deleteAll('/api/tax_rules', 'tax_rule'),
+      () => this.deleteAll('/api/tax_rule_groups', 'tax_rule_group'),
+      () => this.deleteAll('/api/taxes', 'tax'),
+    ]);
     console.log('=== RESET PRESTASHOP END ===');
   }
 
@@ -189,4 +203,9 @@ export class ReinitialisationService {
       }
     }
   }
+
+  private async deleteBatch(tasks: (() => Promise<any>)[]): Promise<void> {
+    await Promise.all(tasks.map(t => t()));
+  }
+
 }
