@@ -6,6 +6,7 @@ import { StocksService } from '../../services/service/stocks/stocks.service';
 import { CartService } from '../../services/service/cart/cart.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
 import { OrderService } from '../../services/service/orders/order.service';
+import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
 
 export interface CartElements {
   product_id : number,
@@ -37,7 +38,7 @@ export class ValidationComponent implements OnInit {
   private cartService : CartService = inject(CartService);
   private orderService : OrderService = inject(OrderService);
   private dialogRef = inject(MatDialogRef<ValidationComponent>);
-
+  private orderFacade : OrderFacadeService = inject(OrderFacadeService);
 
   @Input ({required : true}) carts : PrestashopCart = {
     id_currency: 0,
@@ -105,11 +106,11 @@ export class ValidationComponent implements OnInit {
   async onValidate () {
     try {
       const id_cart = await this.cartService.createCart(this.carts);
-
       this.carts.id = id_cart ?? 0;
-      const orders : PrestashopOrder = transformCartToOrder(this.carts);
-      await this.orderService.createOrderData(orders,5);
 
+      const orders : PrestashopOrder = transformCartToOrder(this.carts);
+      await this.orderFacade.insertOrderAndMouvementStock(orders);
+      
       this.dialogRef.close({ success: true, orderId: this.carts.id });
     } catch (error) {
       console.error('Erreur lors de la validation :', error);

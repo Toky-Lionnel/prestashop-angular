@@ -10,6 +10,9 @@ import { PrestashopCart } from '../../models/cart.model';
 import { CartService } from '../../services/service/cart/cart.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
 import { OrderService } from '../../services/service/orders/order.service';
+import { StocksService } from '../../services/service/stocks/stocks.service';
+import { StockFacadeService } from '../../services/facade/stockFacade/stock-facade.service';
+import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
 
 @Component({
   selector: 'app-checkout',
@@ -28,6 +31,8 @@ export class CheckoutComponent {
 
   private cartPrestashopService : CartService = inject(CartService);
   private orderService : OrderService = inject(OrderService);
+  private stockFacadeService : StockFacadeService = inject(StockFacadeService);
+  private orderFacade : OrderFacadeService = inject(OrderFacadeService);
 
   userHasAddress: boolean = false;
   userAddress: any = null;
@@ -71,7 +76,7 @@ export class CheckoutComponent {
     }
 
     const id_cart = this.sessionService.getCartId();
-    
+
     const prestashopCart : PrestashopCart = {
       id : id_cart ?? undefined,
       id_currency: 1,
@@ -95,8 +100,8 @@ export class CheckoutComponent {
 
     await this.cartPrestashopService.updateCart(prestashopCart, id_cart ?? 0);
     const orders : PrestashopOrder = transformCartToOrder(prestashopCart);
-    await this.orderService.createOrder(orders);
 
+    await this.orderFacade.insertOrderAndMouvementStock(orders);
     alert('Commande confirmée !');
     this.cartService.clearCartCommande();
     this.router.navigate(['/products']);

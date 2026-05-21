@@ -258,4 +258,38 @@ export class OrderFacadeService {
       }
     }
   }
+
+  async createOrderStateOrder(id_order: number, order_state_name: string, cart_associations: any , date_add : string): Promise<void> {
+    const id_order_state = this.orderHistoryService.getOrderStateIdByName(order_state_name);
+    if (!id_order_state) {
+      throw new Error(`Cannot create order state: Order state not found for name ${order_state_name}`);
+    }
+
+    await this.updateFirstOrderState(id_order, order_state_name, date_add);
+
+    if (id_order_state == 5) {
+      for (const cart of cart_associations.order_rows) {
+        const id_product = cart.product_id;
+        const id_product_attribute = cart.product_attribute_id ?? 0;
+        const quantity = cart.product_quantity;
+        await this.stockFacadeService.createStockMouvement(id_product, id_product_attribute, -quantity, 'Order creation', date_add);
+      }
+    }
+  }
+
+
+  async insertOrderAndMouvementStock (order : PrestashopOrder) {
+
+    const id_order_state = this.orderHistoryService.getOrderStateIdByName(order.order_state ?? '');
+    const orderData = await this.orderService.createOrderData(order,id_order_state ?? undefined);
+    const idOrder = orderData?.id?.[0];
+
+    if (!order.date_add) {
+      order.date_add = new Date().toISOString();
+    }
+
+    // update de la date via GET + PUT
+    await this.orderService.patchCurrentState(idOrder ?? 0, id_order_state ?? 0, order.date_add ?? '');
+    await this.createOrderStateOrder(idOrder ?? 0, order.order_state ?? '', order.associations, order.date_add ?? '');
+  }
 }
