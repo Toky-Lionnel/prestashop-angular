@@ -5,7 +5,7 @@ import { CartItem, UserCartService } from '../../services/service/user-cart/user
 import { Router } from '@angular/router';
 import { SessionService } from '../../services/service/session/session.service';
 import { LoginFrontComponent } from '../login-front/login-front.component';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-cart',

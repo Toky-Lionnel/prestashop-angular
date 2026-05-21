@@ -314,17 +314,6 @@ export class CartService {
     }
   }
 
-  async getNombreProduitsReserve (id_cart: number): Promise<any> {
-    const cart = await this.getCartById(id_cart);
-    if (!cart) return 0;
-
-    let total = 0;
-    for (const product of cart.products) {
-      total += product.quantity;
-    }
-    return total;
-  }
-
   async getCartById(id_cart: number) {
     const api = this.interceptor.getApi();
     const response = await api.get(`/api/carts/${id_cart}?display=full`, {
@@ -338,12 +327,4 @@ export class CartService {
     return cart;
   }
 
-
-  setCart(cart: PrestashopCart) {
-    this.cartPrestashop = cart;
-  }
-
-  getCart(): PrestashopCart | null {
-    return this.cartPrestashop;
-  }
 }

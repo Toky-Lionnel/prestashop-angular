@@ -95,14 +95,8 @@ export class ProductVitrineComponent {
     return this.product.combinations.find((combination) => combination.id === this.selectedCombinationId) ?? null;
   }
 
-  // TODO: fix price display when combination has price 0 but product has price > 0 (should display product price)
   get currentPrice(): number {
     return this.product.price ?? this.selectedCombination?.price ?? 0;
-  }
-
-  async calculPrixCombo (combo : any) : Promise<number> {
-    const price = await this.cartService.getProductNameAndCombinationAndPriceTTC(this._product.id,combo.id ?? 0);
-    return price.price_ttc ?? 0;
   }
 
   selectImage(url: string | null): void {
@@ -126,7 +120,6 @@ export class ProductVitrineComponent {
     this.quantity = this.isAdmin ? rounded : (rounded > 0 ? rounded : 1);
   }
 
-  // TODO : prix and image should be those of the combination if they exist, not the product ones
   addToCart(): void {
     this.userCartService.addItem({
       productId: this.product.id,

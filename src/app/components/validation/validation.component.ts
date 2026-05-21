@@ -110,7 +110,8 @@ export class ValidationComponent implements OnInit {
 
       const orders : PrestashopOrder = transformCartToOrder(this.carts);
       await this.orderFacade.insertOrderAndMouvementStock(orders);
-      
+
+      alert('Commande confirmée !');
       this.dialogRef.close({ success: true, orderId: this.carts.id });
     } catch (error) {
       console.error('Erreur lors de la validation :', error);

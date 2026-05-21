@@ -26,7 +26,6 @@ export class AccueilComponent {
   private customerService : CustomerService = inject(CustomerService);
   private sessionService : SessionService = inject(SessionService);
   private router : Router = inject(Router);
-  private cartService : CartService = inject(CartService);
 
   async ngOnInit() {
     const customersRaw = await this.customerService.getAllCustomers();

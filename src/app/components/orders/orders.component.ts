@@ -1,7 +1,7 @@
 import { Order } from '../../models/OrderModel';
 import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +17,6 @@ import { PrestashopOrder, transformCartToOrder } from '../../models/order.model'
 import { OrderService } from '../../services/service/orders/order.service';
 import { FormsModule } from "@angular/forms";
 import { ValidationComponent } from '../validation/validation.component';
-import { Router } from '@angular/router';
 
 
 @Component({
@@ -54,14 +53,11 @@ export class OrdersComponent {
 
   nombreDuplicate : number = 1;
 
-
   onQtyChange(event: Event, item: number): void {
       const input = event.target as HTMLInputElement;
       const newQty = parseInt(input.value, 10);
       this.nombreDuplicate = newQty;
   }
-
-
 
   getStatusColor(status: string): string {
     switch (status.toLowerCase()) {
