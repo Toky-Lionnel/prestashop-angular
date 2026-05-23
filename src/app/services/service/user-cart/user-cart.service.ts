@@ -113,7 +113,7 @@ export class UserCartService {
   }
 
 
-  updateQuantity(productId: number, attributeId: number, delta: number) {
+  async updateQuantity(productId: number, attributeId: number, delta: number) {
     const cart = [...this.cartSubject.value];
     const item = cart.find(p => p.productId === productId && p.attributeId === attributeId);
 
@@ -122,6 +122,10 @@ export class UserCartService {
       this.cartSubject.next(cart);
       this.saveCart(cart);
     }
+
+    const idCustomer : number = this.getCustomerId() ?? 0;
+    let cartId = this.getCartId() ?? 0;
+    await this.cartService.updateCartUser(cart, cartId, idCustomer);
   }
 
   removeItem(productId: number, attributeId: number) {
@@ -135,6 +139,14 @@ export class UserCartService {
   private getCustomerId(): number | null {
     const customer = JSON.parse(localStorage.getItem('customerData') || 'null');
     return customer ? customer.id : null;
+  }
+
+
+  setCart(items: CartItem[], id_cart : number): void {
+    this.clear();
+    this.cartSubject.next(items);
+    this.setCartId(id_cart);
+    this.saveCart(items);
   }
 
 }
