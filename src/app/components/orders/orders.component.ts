@@ -17,6 +17,7 @@ import { PrestashopOrder, transformCartToOrder } from '../../models/order.model'
 import { OrderService } from '../../services/service/orders/order.service';
 import { FormsModule } from "@angular/forms";
 import { ValidationComponent } from '../validation/validation.component';
+import { CartItem, UserCartService } from '../../services/service/user-cart/user-cart.service';
 
 
 @Component({
@@ -43,6 +44,8 @@ export class OrdersComponent {
   private sessionService : SessionService = inject(SessionService);
   private customerService : CustomerService = inject(CustomerService);
   private orderService : OrderService = inject(OrderService);
+
+  private cartUserService : UserCartService = inject(UserCartService);
 
   @Input() orders: Order[] = [];
 
@@ -188,6 +191,43 @@ export class OrdersComponent {
       width: '1700px',
       maxHeight: '120vh'
     });
+  }
+
+
+  async onReprise (o : Order) {
+    const idCart = o.id;
+
+    const cart = await this.cartService.getCartById(idCart ?? 0);
+    const cartRows = cart?.associations[0].cart_rows[0].cart_row;
+
+    const carts : PrestashopCartRow [] = cartRows.map((item : any) => ({
+      product_name: '', // Récupérer la référence du produit
+      id_product: item.id_product[0]._,
+      product_attribute: '', // Récupérer la référence de l'attribut si nécessaire
+      id_product_attribute: item.id_product_attribute[0]._,
+      id_address_delivery: 0,
+      quantity: item.quantity[0]
+    }));
+
+
+    const cartsItems : CartItem [] = [];
+
+    for (const c of carts) {
+      const info = await this.cartService.getProductNameAndCombinationAndPriceTTC(c.id_product,c.id_product_attribute ?? 0);
+      const items : CartItem = {
+        productId : Number(c.id_product),
+        attributeId : Number(c.id_product_attribute) ?? 0,
+        quantity : Number(c.quantity),
+        productNameWithAttribute : `${info.productName} - ${info.combinationName}`,
+        image : '',
+        price : Number(info.price_ttc) ?? 0,
+      }
+      cartsItems.push(items);
+    }
+
+    this.cartUserService.setCart(cartsItems, idCart);
+
+    console.log(cartsItems);
   }
 
 
