@@ -72,9 +72,9 @@ export class StockEvolutionComponent implements OnInit {
       }
     });
 
-    // Convertit la Map en tableau et trie par date décroissante
+    // Convertit la Map en tableau et trie par date croissante
     return Array.from(groupsMap.values()).sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+      new Date(a.date).getTime() - new Date(b.date).getTime()
     );
   }
 
