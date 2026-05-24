@@ -1,0 +1,33 @@
+<div class="table-container">
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Statut</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data">
+        <td><strong>{{ row.name }}</strong></td>
+        <td>{{ row.email }}</td>
+        <td>{{ row.role }}</td>
+        <td>
+          <span class="badge" [ngClass]="{
+            'badge-active': row.status === 'Actif',
+            'badge-pending': row.status === 'En attente',
+            'badge-inactive': row.status === 'Inactif'
+          }">{{ row.status }}</span>
+        </td>
+        <td class="text-center">
+          <div class="action-buttons">
+            <button class="btn btn-edit" (click)="onEdit(row)">Modifier</button>
+            <button class="btn btn-delete" (click)="onDelete(row.id)">Supprimer</button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

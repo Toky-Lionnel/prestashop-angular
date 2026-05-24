@@ -1,0 +1,97 @@
+.dashboard-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  font-family: system-ui, sans-serif;
+  border-radius: 12px;
+}
+
+// Barre de filtres épurée
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    select {
+      padding: 8px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background-color: #fff;
+      font-size: 0.9rem;
+      color: #1e293b;
+      cursor: pointer;
+      outline: none;
+
+      &:focus {
+        border-color: #2563eb;
+      }
+    }
+  }
+
+  .status-indicator {
+    font-size: 0.8rem;
+    color: #10b981;
+    background: #dcfce7;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 500;
+  }
+}
+
+// Grille responsive asymétrique
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+
+  // Permet au graphique linéaire de prendre toute la largeur si besoin
+  &.large {
+    grid-column: span 2;
+
+    @media (max-width: 1024px) {
+      grid-column: span 1;
+    }
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: #334155;
+    font-weight: 600;
+  }
+}
+
+// Très important pour la réactivité de Chart.js
+.canvas-wrapper {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}

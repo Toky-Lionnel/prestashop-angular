@@ -1,0 +1,59 @@
+<div class="form-card">
+  <h2>Profil Collaborateur</h2>
+  <form (ngSubmit)="onSubmit()" #userForm="ngForm">
+
+    <!-- Champ Texte -->
+    <div class="form-group">
+      <label for="username">Nom complet</label>
+      <input type="text" id="username" name="username" [(ngModel)]="formData.username" placeholder="Ex: Alice Martin" required />
+    </div>
+
+    <!-- Champ Date -->
+    <div class="form-group">
+      <label for="birthDate">Date de naissance</label>
+      <input type="date" id="birthDate" name="birthDate" [(ngModel)]="formData.birthDate" />
+    </div>
+
+    <!-- Sélecteur / Dropdown -->
+    <div class="form-group">
+      <label for="department">Département</label>
+      <select id="department" name="department" [(ngModel)]="formData.department">
+        <option value="tech">Technologie & Dev</option>
+        <option value="hr">Ressources Humaines</option>
+        <option value="marketing">Marketing & Design</option>
+      </select>
+    </div>
+
+    <!-- Boutons Radio -->
+    <div class="form-group">
+      <label>Type de contrat</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="contractType" value="cdi" [(ngModel)]="formData.contractType" /> CDI
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="contractType" value="cdd" [(ngModel)]="formData.contractType" /> CDD
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="contractType" value="freelance" [(ngModel)]="formData.contractType" /> Freelance
+        </label>
+      </div>
+    </div>
+
+    <!-- Case à cocher / Checkbox -->
+    <div class="form-group checkbox-group">
+      <input type="checkbox" id="newsletter" name="newsletter" [(ngModel)]="formData.newsletter" />
+      <label for="newsletter">Activer les notifications par email</label>
+    </div>
+
+    <!-- Zone de texte / Textarea -->
+    <div class="form-group">
+      <label for="comments">Notes internes</label>
+      <textarea id="comments" name="comments" [(ngModel)]="formData.comments" rows="4" placeholder="Ajouter des notes complémentaires..."></textarea>
+    </div>
+
+    <!-- Bouton Soumettre -->
+    <button type="submit" class="btn-submit" [disabled]="!userForm.form.valid">Enregistrer</button>
+
+  </form>
+</div>

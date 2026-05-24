@@ -1,0 +1,42 @@
+<div class="dashboard-container">
+
+  <!-- Section Filtres -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label for="yearSelect">Exercice comptable :</label>
+      <select id="yearSelect" [(ngModel)]="selectedYear" (change)="onFilterChange()">
+        <option *ngFor="let year of years" [value]="year">Année {{ year }}</option>
+      </select>
+    </div>
+    <span class="status-indicator">Données fictives synchronisées</span>
+  </div>
+
+  <!-- Grille des Graphiques -->
+  <div class="charts-grid">
+
+    <!-- Box 1: Ligne -->
+    <div class="chart-card large">
+      <h3>Évolution des Revenus (Line Chart)</h3>
+      <div class="canvas-wrapper">
+        <canvas #lineCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Box 2: Bâtons -->
+    <div class="chart-card">
+      <h3>Comparatif Flux (Bar Chart)</h3>
+      <div class="canvas-wrapper">
+        <canvas #barCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Box 3: Camembert -->
+    <div class="chart-card">
+      <h3>Distribution des Coûts (Pie Chart)</h3>
+      <div class="canvas-wrapper">
+        <canvas #pieCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
