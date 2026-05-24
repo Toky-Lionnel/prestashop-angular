@@ -3,7 +3,6 @@ import { CustomerService } from '../../services/service/customer/customer.servic
 import { CommonModule } from '@angular/common';
 import { SessionService } from '../../services/service/session/session.service';
 import { Router } from '@angular/router';
-import { CartService } from '../../services/service/cart/cart.service';
 
 export interface Customer {
   id: number;

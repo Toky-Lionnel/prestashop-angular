@@ -1,7 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { PrestashopStockMovementList } from '../../models/stock-mvt-list.model';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Chart, registerables, ChartConfiguration } from 'chart.js';
+
+Chart.register(...registerables);
 
 export interface PrestashopStockMovementGroup {
   date: string;
@@ -19,16 +23,70 @@ export interface PrestashopStockMovementGroup {
   templateUrl: './stock-evolution.component.html',
   styleUrl: './stock-evolution.component.scss'
 })
-export class StockEvolutionComponent implements OnInit {
+export class StockEvolutionComponent implements OnInit,AfterViewInit  {
+
+  @ViewChild('lineCanvas') lineCanvas!: ElementRef<HTMLCanvasElement>;
 
   groupedStocks: PrestashopStockMovementGroup[] = [];
+
+  private lineChart?: Chart;
+
 
   private dialogRef = inject(MatDialogRef<StockEvolutionComponent>);
   public stocksItems: PrestashopStockMovementList = inject(MAT_DIALOG_DATA);
 
   ngOnInit(): void {
     this.groupedStocks = this.processStockMovements(this.stocksItems);
+    this.initCharts();
   }
+
+  ngAfterViewInit(): void {
+    // Initialisation des graphiques après le rendu du DOM
+    this.initCharts();
+  }
+
+  private initCharts(): void {
+    const activeData = this.groupedStocks;
+
+    const dates_libelle : string [] = [];
+    const entrees : number [] = [];
+    const sorties : number [] = [];
+
+    for (const o of activeData) {
+      entrees.push(o.total_entries);
+      sorties.push(o.total_exits);
+      dates_libelle.push(o.date);
+    }
+
+    // 1. Diagramme en Ligne (Line Chart)
+    this.lineChart = new Chart(this.lineCanvas.nativeElement, {
+      type: 'line',
+      data: {
+        labels: dates_libelle,
+        datasets: [
+          {
+            label: 'Entrées',
+            data: entrees,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Sorties',
+            data: sorties,
+            borderColor: '#f43f5e',
+            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+            fill: true,
+            tension: 0.3
+          }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+  }
+
 
   /**
    * Regroupe les mouvements par Date, Produit et Attribut

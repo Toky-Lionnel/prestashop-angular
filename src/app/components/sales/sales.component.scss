@@ -118,3 +118,26 @@
   color: #94a3b8;
   font-style: italic;
 }
+
+.chart-card {
+  padding: 1.5rem 2rem 2rem;
+  border-top: 1px solid #e2e8f0;
+
+  h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+}
+
+.canvas-wrapper {
+  position: relative;
+  height: 320px;
+}
+
+.canvas-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
