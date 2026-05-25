@@ -122,6 +122,9 @@ export class AttributeService {
       const option = responseData?.prestashop?.product_options?.[0]?.product_option?.[0];
       const optionId = Number(option?.id?.[0] ?? id);
 
+      console.log(`Option: ${JSON.stringify(responseData)}`);
+
+
       if (!optionId) {
         return null;
       }
@@ -162,8 +165,8 @@ export class AttributeService {
       }
 
       const nameEntry = optionValue?.name?.[0]?.language?.[0];
-      const groupId = Number(optionValue?.id_attribute_group?.[0] ?? 0);
-      const optionGroup = groupId > 0 ? await this.getProductOptionById(groupId) : null;
+      const groupId = Number(optionValue?.id_attribute_group?.[0]._ ?? 0);
+      const optionGroup = await this.getProductOptionById(groupId);
 
       return {
         id: optionValueId,

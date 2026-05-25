@@ -100,7 +100,7 @@ export class CategoriesService {
           name: String(name).trim()
         };
       })
-      .filter((category) => category.id > 0 && category.name.length > 0);
+      .filter((category) => category.id > 2 && category.name.length > 0);
   }
 
 
