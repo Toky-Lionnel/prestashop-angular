@@ -42,14 +42,14 @@
                   </button>
 
                   <div class="duplicate-controls" role="group" aria-label="Dupliquer commande" *ngIf="order.recent_statut !== 'Non commandé'">
-                    <input
+                    <!-- <input
                       type="number"
                       class="duplicate-qty"
                       [value]="nombreDuplicate"
                       (change)="onQtyChange($event, nombreDuplicate)"
                       min="1"
                       aria-label="Quantité de duplication"
-                    />
+                    /> -->
                     <button
                       type="button"
                       class="action-btn action-btn--primary duplicate-btn"

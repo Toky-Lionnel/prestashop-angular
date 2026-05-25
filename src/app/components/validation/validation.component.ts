@@ -1,12 +1,12 @@
 import { Component, inject, Inject, Input, OnInit, Optional } from '@angular/core';
 import { PrestashopCart, PrestashopCartAssociations } from '../../models/cart.model';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { StocksService } from '../../services/service/stocks/stocks.service';
 import { CartService } from '../../services/service/cart/cart.service';
 import { PrestashopOrder, transformCartToOrder } from '../../models/order.model';
-import { OrderService } from '../../services/service/orders/order.service';
 import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
+import { UserCartService } from '../../services/service/user-cart/user-cart.service';
+import { Router } from '@angular/router';
 
 export interface CartElements {
   product_id : number,
@@ -36,11 +36,12 @@ export class ValidationComponent implements OnInit {
 
   private stockService : StocksService = inject(StocksService);
   private cartService : CartService = inject(CartService);
-  private orderService : OrderService = inject(OrderService);
-  private dialogRef = inject(MatDialogRef<ValidationComponent>);
   private orderFacade : OrderFacadeService = inject(OrderFacadeService);
+  private cartUserService : UserCartService = inject(UserCartService);
 
-  @Input ({required : true}) carts : PrestashopCart = {
+  private router : Router = inject(Router);
+
+  carts : PrestashopCart = {
     id_currency: 0,
     id_lang: 0,
     id_customer: 0,
@@ -50,12 +51,21 @@ export class ValidationComponent implements OnInit {
     associations: this.associations
   }
 
-  constructor(@Optional() @Inject(MAT_DIALOG_DATA) data?: PrestashopCart) {
-    if (data) {
-      this.carts = data;
+  constructor() {
+    this.carts = this.cartUserService.getCartDuplicata();
+
+    if (!this.carts) {
+      this.router.navigate(['/products']);
     }
 
+    const nombre_duplicata = this.cartUserService.getNombreDuplicatas();
+
     const cartRows = this.carts.associations.cart_rows;
+
+    for (const c of cartRows) {
+      c.quantity = c.quantity * nombre_duplicata;
+    }
+
     const elements : CartElements [] = [];
 
       for (const c of cartRows) {
@@ -110,16 +120,10 @@ export class ValidationComponent implements OnInit {
 
       const orders : PrestashopOrder = transformCartToOrder(this.carts);
       await this.orderFacade.insertOrderAndMouvementStock(orders);
-
       alert('Commande confirmée !');
-      this.dialogRef.close({ success: true, orderId: this.carts.id });
     } catch (error) {
       console.error('Erreur lors de la validation :', error);
-      this.dialogRef.close({ success: false, error });
     }
   }
 
-  onCancel(): void {
-    this.dialogRef.close({ success: false, cancelled: true });
-  }
 }
