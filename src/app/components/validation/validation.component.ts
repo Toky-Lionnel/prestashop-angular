@@ -51,6 +51,20 @@ export class ValidationComponent implements OnInit {
     associations: this.associations
   }
 
+  onQtyChange(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const newQty = parseInt(input.value, 10);
+    this.elements[index].product_quantity = newQty;
+    this.calculInfo();
+
+    for (const e of this.elements) {
+      if (e.product_quantity > e.stock_disponible) {
+        this.indisponible = true;
+      }
+    }
+  }
+
+
   constructor() {
     this.carts = this.cartUserService.getCartDuplicata();
 
@@ -97,6 +111,13 @@ export class ValidationComponent implements OnInit {
     }
   }
 
+  calculInfo (){
+    this.calculateSubtotal();
+    this.calculateTotalQuantity();
+    this.getUnavailableCount();
+    this.getUnavailableItems();
+  }
+
   calculateSubtotal(): number {
     return this.elements.reduce((sum, e) => sum + e.prix_total, 0);
   }
@@ -115,11 +136,30 @@ export class ValidationComponent implements OnInit {
 
   async onValidate () {
     try {
+      const associationsCarts : PrestashopCartAssociations = {
+        cart_rows : []
+      }
+
+      for (const e of this.elements) {
+        associationsCarts.cart_rows.push({
+          product_name: '',
+          id_product: e.product_id,
+          product_attribute: '',
+          id_product_attribute: e.product_id_attribute,
+          id_address_delivery: 0,
+          quantity: e.product_quantity
+        })
+      }
+
+      this.carts.associations = associationsCarts;
       const id_cart = await this.cartService.createCart(this.carts);
       this.carts.id = id_cart ?? 0;
 
-      const orders : PrestashopOrder = transformCartToOrder(this.carts);
-      await this.orderFacade.insertOrderAndMouvementStock(orders);
+      console.log(this.carts);
+
+
+      // const orders : PrestashopOrder = transformCartToOrder(this.carts);
+      // await this.orderFacade.insertOrderAndMouvementStock(orders);
       alert('Commande confirmée !');
     } catch (error) {
       console.error('Erreur lors de la validation :', error);

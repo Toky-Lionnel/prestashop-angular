@@ -24,13 +24,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let e of elements" [class.unavailable]="e.product_quantity > e.stock_disponible">
+          <tr *ngFor="let e of elements ; let i = index" [class.unavailable]="e.product_quantity > e.stock_disponible">
             <td class="product-name">
               <strong>{{ e.product_name }}</strong>
             </td>
             <td class="text-right">{{ e.prix_unitaire | currency:'EUR':'symbol':'1.2-2' }}</td>
             <td class="text-center">
-              <span class="quantity-badge">{{ e.product_quantity }}</span>
+              <span class="quantity-badge">
+                <input type="number" [value]="e.product_quantity" (change)="onQtyChange($event, i)">
+              </span>
             </td>
             <td class="text-right font-semibold">{{ e.prix_total | currency:'EUR':'symbol':'1.2-2' }}</td>
             <td class="text-center">
