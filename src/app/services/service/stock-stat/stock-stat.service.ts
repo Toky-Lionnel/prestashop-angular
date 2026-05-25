@@ -50,6 +50,7 @@ export class StockStatService {
   }
 
 
+  // qté réservé par produits
   async getReservedProductsOrders(): Promise<Array<{ id_product: number; id_product_attribute: number; quantity: number ; category : number}>> {
     try {
       const orderRows = await this.orderService.getReservedOrders() || [];
@@ -73,6 +74,38 @@ export class StockStatService {
               id_product_attribute: idProductAttribute,
               quantity,
               category: category
+            });
+          }
+      }
+      return [...reservedProducts.values()];
+    } catch (error) {
+      console.error('Error getting reserved products:', error);
+      return [];
+    }
+  }
+
+
+  // qté reservé par produits et produits attributes
+  async getReservedProductsAttributeOrders(): Promise<Array<{ id_product: number; id_product_attribute: number; quantity: number }>> {
+    try {
+      const orderRows = await this.orderService.getReservedOrders() || [];
+      const reservedProducts = new Map<string, { id_product: number; id_product_attribute: number; quantity: number}>();
+
+      for (const row of orderRows) {
+        const idProduct = row.product_id[0]._;
+        const idProductAttribute = row.product_attribute_id[0];
+        const quantity = Number(row.product_quantity);
+
+          const key = `${idProduct}-${idProductAttribute}`;
+
+          const existing = reservedProducts.get(key);
+          if (existing) {
+            existing.quantity += quantity;
+          } else {
+            reservedProducts.set(key, {
+              id_product: idProduct,
+              id_product_attribute: idProductAttribute,
+              quantity
             });
           }
       }

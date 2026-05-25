@@ -122,9 +122,6 @@ export class AttributeService {
       const option = responseData?.prestashop?.product_options?.[0]?.product_option?.[0];
       const optionId = Number(option?.id?.[0] ?? id);
 
-      console.log(`Option: ${JSON.stringify(responseData)}`);
-
-
       if (!optionId) {
         return null;
       }

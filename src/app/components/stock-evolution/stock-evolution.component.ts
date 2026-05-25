@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { PrestashopStockMovementList } from '../../models/stock-mvt-list.model';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
 
 export interface PrestashopStockMovementGroup {
   date: string;
@@ -26,8 +27,29 @@ export class StockEvolutionComponent implements OnInit {
   private dialogRef = inject(MatDialogRef<StockEvolutionComponent>);
   public stocksItems: PrestashopStockMovementList = inject(MAT_DIALOG_DATA);
 
-  ngOnInit(): void {
+  private stockStatService : StockStatService = inject(StockStatService);
+
+
+
+  async ngOnInit(): Promise<void> {
     this.groupedStocks = this.processStockMovements(this.stocksItems);
+    await this.getProduitReserve();
+  }
+
+
+  async getProduitReserve () {
+    const reservedProducts = await this.stockStatService.getReservedProductsAttributeOrders();
+    console.log(reservedProducts);
+
+    const nombres : any [] = [];
+
+    for (const r of reservedProducts) {
+      if (r.id_product == this.groupedStocks[0].id_product && r.id_product_attribute == this.groupedStocks[0].id_product_attribute)
+      {
+        nombres.push(r);
+      }
+    }
+    console.log(`Correspondance : ${JSON.stringify(nombres)}`);
   }
 
   /**
