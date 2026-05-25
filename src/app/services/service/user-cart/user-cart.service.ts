@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { CartService } from '../cart/cart.service';
+import { PrestashopCart, PrestashopCartAssociations } from '../../../models/cart.model';
 
 export interface CartItem {
   productId: number;
@@ -22,6 +23,22 @@ export class UserCartService {
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
   private cartService : CartService = inject(CartService);
 
+  nb_duplicatas : number = 0 ;
+
+  cartAssociations : PrestashopCartAssociations = {
+    cart_rows: []
+  }
+
+  cartDuplicata : PrestashopCart = {
+    id_currency: 0,
+    id_lang: 0,
+    id_customer: 0,
+    id_address_delivery: 0,
+    id_address_invoice: 0,
+    line_number: 0,
+    associations : this.cartAssociations
+  }
+
   cart$ = this.cartSubject.asObservable();
   totalPrice$ = this.cart$.pipe(
     map((items: CartItem[]) => items.reduce((acc : number, item : CartItem) => acc + (item.price * item.quantity), 0))
@@ -29,6 +46,22 @@ export class UserCartService {
   totalItems$ = this.cart$.pipe(
     map((items: CartItem[]) => items.reduce((acc : number, item : CartItem) => acc + item.quantity, 0))
   );
+
+  public setCartDuplicata (cart : PrestashopCart) {
+    this.cartDuplicata = cart;
+  }
+
+  public getCartDuplicata () : PrestashopCart {
+    return this.cartDuplicata;
+  }
+
+  public setNombreDuplicatas (nb : number) {
+    this.nb_duplicatas = nb;
+  }
+
+  public getNombreDuplicatas () : number {
+    return this.nb_duplicatas;
+  }
 
   constructor() {
     this.loadCart();

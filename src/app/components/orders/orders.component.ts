@@ -18,6 +18,7 @@ import { OrderService } from '../../services/service/orders/order.service';
 import { FormsModule } from "@angular/forms";
 import { ValidationComponent } from '../validation/validation.component';
 import { CartItem, UserCartService } from '../../services/service/user-cart/user-cart.service';
+import { InputDuplicataComponent } from '../input-duplicata/input-duplicata.component';
 
 
 @Component({
@@ -167,7 +168,7 @@ export class OrdersComponent {
       product_attribute: '', // Récupérer la référence de l'attribut si nécessaire
       id_product_attribute: item.id_product_attribute[0]._,
       id_address_delivery: customerAdress ?? 0,
-      quantity: item.quantity * this.nombreDuplicate
+      quantity: item.quantity
     }));
 
     const prestashopAssociations : PrestashopCartAssociations = {
@@ -186,9 +187,10 @@ export class OrdersComponent {
       associations: prestashopAssociations
     };
 
-    this.dialog.open(ValidationComponent, {
-      data: prestashopCart,
-      width: '1700px',
+    this.cartUserService.setCartDuplicata(prestashopCart);
+
+    this.dialog.open(InputDuplicataComponent, {
+      width: '1400px',
       maxHeight: '120vh'
     });
   }

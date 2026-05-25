@@ -1,0 +1,15 @@
+<div class="form-card">
+  <h2>Duplications de commandes </h2>
+  <form (ngSubmit)="onSubmit()" #userForm="ngForm">
+
+    <!-- Champ Texte -->
+    <div class="form-group">
+      <label for="username">Nombre de duplicatas</label>
+      <input type="number" id="username" name="username" [(ngModel)]="formData.nombres" placeholder="Ex: 5" required />
+    </div>
+
+    <!-- Bouton Soumettre -->
+    <button type="submit" class="btn-submit" [disabled]="!userForm.form.valid">Enregistrer</button>
+
+  </form>
+</div>
