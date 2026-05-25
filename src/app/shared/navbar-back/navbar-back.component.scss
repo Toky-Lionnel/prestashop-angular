@@ -1,0 +1,226 @@
+// Variables locales pour une personnalisation rapide
+$navbar-bg: #0f172a; // Slate 900
+$navbar-text: #f8fafc;
+$link-hover: #38bdf8; // Sky 400
+$dropdown-bg: #ffffff;
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: $navbar-bg;
+  color: $navbar-text;
+  padding: 0 24px;
+  height: 64px;
+  font-family: system-ui, sans-serif;
+  position: relative;
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+// Logo
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+
+    &-icon {
+      font-size: 1.5rem;
+      color: $link-hover;
+    }
+
+    &-text {
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.025em;
+    }
+  }
+}
+
+// Liens de Navigation
+.navbar-links {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+  align-items: center;
+
+  .nav-link {
+    color: #94a3b8; // Slate 400
+    text-decoration: none;
+    font-size: 0.925rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover, &.active {
+      color: $navbar-text;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+// Actions & Dropdown Utilisateur
+.navbar-actions {
+  position: relative;
+
+  .profile-dropdown-wrapper {
+    position: relative;
+  }
+
+  .profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: $navbar-text;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 9999px;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .user-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      @media (max-width: 768px) { display: none; }
+    }
+
+    .arrow-down {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      transition: transform 0.2s;
+      &.rotated { transform: rotate(180deg); }
+      @media (max-width: 768px) { display: none; }
+    }
+  }
+}
+
+// Contenu du Dropdown de profil
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background-color: $dropdown-bg;
+  border-radius: 8px;
+  width: 220px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  padding: 6px 0;
+  color: #1e293b;
+
+  hr {
+    border: 0;
+    border-top: 1px solid #f1f5f9;
+    margin: 6px 0;
+  }
+
+  .dropdown-header {
+    padding: 10px 16px;
+    .name { margin: 0; font-weight: 600; font-size: 0.9rem; }
+    .role { margin: 2px 0 0 0; font-size: 0.75rem; color: #64748b; }
+  }
+
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    color: #334155;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    &:hover {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    &.logout {
+      color: #df2c2c;
+      &:hover { background-color: #fff5f5; }
+    }
+  }
+}
+
+// Menu Burger mobile caché par défaut
+.burger-menu {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  span {
+    width: 100%;
+    height: 2px;
+    background-color: $navbar-text;
+    transition: all 0.3s ease;
+  }
+}
+
+// --- RESPONSIVE MOBILE STRATEGY ---
+@media (max-width: 768px) {
+  .burger-menu {
+    display: flex;
+  }
+
+  // Animation X du bouton Burger
+  .burger-menu.open {
+    span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    span:nth-child(2) { opacity: 0; }
+    span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+  }
+
+  // Transformation des liens en volet déroulant vertical
+  .navbar-links {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    height: auto;
+    background-color: $navbar-bg;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 24px 24px 24px;
+    box-sizing: border-box;
+    gap: 8px;
+
+    // Logique d'affichage
+    display: none;
+    &.mobile-open {
+      display: flex;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link {
+      padding: 12px 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+}

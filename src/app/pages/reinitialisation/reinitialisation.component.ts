@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { ReinitialisationService } from '../../services/service/reinitialisation/reinitialisation.service';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 
 @Component({
   selector: 'app-reinitialisation',
-  imports: [],
+  imports: [NavbarBackComponent],
   templateUrl: './reinitialisation.component.html',
   styleUrls: ['./reinitialisation.component.scss']
 })

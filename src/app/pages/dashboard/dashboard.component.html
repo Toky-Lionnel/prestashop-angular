@@ -1,3 +1,5 @@
+<app-navbar-back> </app-navbar-back>
+
 <div class="dashboard-container">
   <!-- Header & Filtre -->
   <header class="dashboard-header">
@@ -9,11 +11,9 @@
     <div class="filter-bar">
       <div class="input-group">
         <label for="date">Période d'analyse</label>
-        <input type="date" id="date" [(ngModel)]="selectedDate">
+        <input type="date" id="date" [(ngModel)]="selectedDate" />
       </div>
-      <button class="btn-filter" (click)="onFilterDate()">
-        Actualiser
-      </button>
+      <button class="btn-filter" (click)="onFilterDate()">Actualiser</button>
     </div>
   </header>
 
@@ -29,7 +29,9 @@
         <div class="kpi-icon revenue"></div>
         <div class="kpi-data">
           <span class="label">Total Généraux</span>
-          <strong class="value"> {{total_orders_jour | number:'1.2-2'}} €</strong>
+          <strong class="value">
+            {{ total_orders_jour | number: "1.2-2" }} €</strong
+          >
         </div>
       </div>
 
@@ -37,7 +39,7 @@
         <div class="kpi-icon orders"></div>
         <div class="kpi-data">
           <span class="label">Nombre de Commandes</span>
-          <strong class="value">{{nb_orders_jour}} commandes</strong>
+          <strong class="value">{{ nb_orders_jour }} commandes</strong>
         </div>
       </div>
     </div>
@@ -54,41 +56,64 @@
       <div class="kpi-card total">
         <div class="kpi-data">
           <span class="label">Chiffre d'Affaires Global</span>
-          <strong class="value">{{total_orders_general | number:'1.2-2'}} €</strong>
+          <strong class="value"
+            >{{ total_orders_general | number: "1.2-2" }} €</strong
+          >
         </div>
       </div>
 
       <div class="kpi-card total">
         <div class="kpi-data">
           <span class="label">Commandes Totales</span>
-          <strong class="value">{{nb_orders_general}} commandes</strong>
+          <strong class="value">{{ nb_orders_general }} commandes</strong>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Section Stocks par Catégorie -->
+  <section class="dashboard-section">
+    <div class="section-header action-header">
+      <div>
+        <h2>Stocks par Catégorie</h2>
+        <span class="badge secondary" *ngIf="!stocksLoaded">Non chargé</span>
+        <span class="badge secondary" *ngIf="stocksLoaded">Chargé</span>
+      </div>
+      <button class="btn-secondary" (click)="loadStocks()" [disabled]="stocksLoading || stocksLoaded">
+        {{ stocksLoading ? 'Chargement...' : stocksLoaded ? 'Déjà chargé' : 'Charger les stocks' }}
+      </button>
+    </div>
+
+    <app-category-stock-list
+      *ngIf="stocksLoaded"
+      [categoriesStock]="stocksCategorySummary">
+    </app-category-stock-list>
+
+    <p class="empty-state" *ngIf="!stocksLoaded && !stocksLoading">
+      Cliquez sur le bouton pour charger les statistiques de stock.
+    </p>
+  </section>
+
+  <!-- Section Performance Commerciale par Catégorie -->
+  <section class="dashboard-section">
+    <div class="section-header action-header">
+      <div>
+        <h2>Performance Commerciale par Catégorie</h2>
+        <span class="badge secondary" *ngIf="!salesLoaded">Non chargé</span>
+        <span class="badge secondary" *ngIf="salesLoaded">Chargé</span>
+      </div>
+      <button class="btn-secondary" (click)="loadSales()" [disabled]="salesLoading || salesLoaded">
+        {{ salesLoading ? 'Chargement...' : salesLoaded ? 'Déjà chargé' : 'Charger les bénéfices' }}
+      </button>
+    </div>
+
+    <app-sales
+      *ngIf="salesLoaded"
+      [salesSummaryList]="salesCategorySummary">
+    </app-sales>
+
+    <p class="empty-state" *ngIf="!salesLoaded && !salesLoading">
+      Cliquez sur le bouton pour charger les bénéfices par catégorie.
+    </p>
+  </section>
 </div>
-
-<!-- Section Stocks par Catégorie -->
-<section class="dashboard-section">
-  <div class="section-header">
-    <h2>Stocks par Catégorie</h2>
-    <span class="badge secondary">Données actuelles</span>
-  </div>
-  <!-- Dans la page principale de votre application -->
-<app-category-stock-list
-  [categoriesStock]="stocksCategorySummary">
-</app-category-stock-list>
-</section>
-
-
-<!-- Section Performance Commerciale par Catégorie -->
-<section class="dashboard-section">
-  <div class="section-header">
-    <h2>Performance Commerciale par Catégorie</h2>
-    <span class="badge secondary">Données actuelles</span>
-  </div>
-  <!-- Dans la page principale de votre application -->
-  <app-sales
-    [salesSummaryList]="salesCategorySummary">
-  </app-sales>
-</section>

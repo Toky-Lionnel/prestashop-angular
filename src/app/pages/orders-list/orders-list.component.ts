@@ -6,10 +6,11 @@ import { OrderStateService } from '../../services/service/order-state/order-stat
 import { transformToOrderHistory } from '../../models/order-history.model';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../services/service/cart/cart.service';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarBackComponent],
   templateUrl: './orders-list.component.html',
   styleUrl: './orders-list.component.scss',
 })

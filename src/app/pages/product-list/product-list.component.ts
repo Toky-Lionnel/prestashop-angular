@@ -8,16 +8,13 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ProductVitrineComponent } from '../../components/product-vitrine/product-vitrine.component';
 import { UserCartService } from '../../services/service/user-cart/user-cart.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Order } from '../../models/OrderModel';
-import { OrderService } from '../../services/service/orders/order.service';
-import { OrdersComponent } from '../../components/orders/orders.component';
 import { SessionService } from '../../services/service/session/session.service';
-import { CartService } from '../../services/service/cart/cart.service';
 import { LoginFrontComponent } from '../../components/login-front/login-front.component';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule],
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, NavbarBackComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -33,9 +30,7 @@ export class ProductListComponent {
   private userCartService : UserCartService = inject(UserCartService);
   private dialog = inject(MatDialog);
   private router : Router = inject(Router);
-  private orderService : OrderService = inject(OrderService);
   private sessionService : SessionService = inject(SessionService);
-  private cartService : CartService = inject(CartService);
 
   private route : ActivatedRoute = inject(ActivatedRoute);
   isAdmin = false;

@@ -1,19 +1,12 @@
-:host {
-  display: block;
-  min-height: 100vh;
-  background-color: #f8fafc;
-  padding: 2rem;
-  color: #1e293b;
-  font-family: 'Inter', sans-serif;
-}
-
 .dashboard-container {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 
 // Header
 .dashboard-header {
+
+  margin-top: 20px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -86,6 +79,42 @@
   }
 }
 
+  .action-header {
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+
+.btn-secondary {
+  background: white;
+  color: #1c61fe;
+  border: 2px solid #bfdbfe;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    border-color: #1c61fe;
+    box-shadow: 0 2px 8px rgba(28, 97, 254, 0.12);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+.empty-state {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  color: #64748b;
+}
 // Cards Grid
 .kpi-grid {
   display: grid;

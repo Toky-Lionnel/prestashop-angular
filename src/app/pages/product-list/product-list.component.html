@@ -1,3 +1,6 @@
+<app-navbar-back *ngIf="isAdmin"> </app-navbar-back>
+
+
 <div class="header-top" *ngIf="!isAdmin">
 	<div class="header-actions">
 		<button class="btn-action btn-cart" (click)="openCart()">

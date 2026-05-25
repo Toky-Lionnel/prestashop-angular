@@ -33,6 +33,7 @@ import { StocksService } from '../../services/service/stocks/stocks.service';
 import { StockStatService } from '../../services/service/stock-stat/stock-stat.service';
 import { VenteService } from '../../services/service/vente/vente.service';
 import { CategoriesService } from '../../services/service/categories/categories.service';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 
 @Component({
   selector: 'app-import-file',
@@ -40,7 +41,8 @@ import { CategoriesService } from '../../services/service/categories/categories.
   imports: [
     CommonModule,
     FormsModule,
-    ToastModule
+    ToastModule,
+    NavbarBackComponent
   ],
   providers: [MessageService],
   templateUrl: './import-file.component.html',

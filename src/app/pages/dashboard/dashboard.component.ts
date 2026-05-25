@@ -9,11 +9,12 @@ import { CategoryStockListComponent } from '../../components/category-stock-list
 import { SalesComponent } from '../../components/sales/sales.component';
 import { CategorySalesSummary } from '../../models/category-sales-summary.model';
 import { VenteService } from '../../services/service/vente/vente.service';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, CategoryStockListComponent, SalesComponent],
+  imports: [CommonModule, FormsModule, CategoryStockListComponent, SalesComponent,NavbarBackComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -26,6 +27,11 @@ export class DashboardComponent {
 
   salesCategorySummary : CategorySalesSummary[] = [];
   stocksCategorySummary : CategoryStockSummary[] = [];
+
+  stocksLoaded = false;
+  salesLoaded = false;
+  stocksLoading = false;
+  salesLoading = false;
 
 
   // Date par défaut : aujourd'hui
@@ -42,12 +48,9 @@ export class DashboardComponent {
   }
 
   async ngOnInit() {
-    const [orders,ordersToday,stocksCategorySummary,salesCategorySummary] =
-    await Promise.all([
+    const [orders, ordersToday] = await Promise.all([
       this.orderService.getOrdersFull(),
-      this.orderService.getOrdersFull(this.selectedDate),
-      this.stockStatService.getCategoryStockSummary(),
-      this.venteService.getSalesByCategory()
+      this.orderService.getOrdersFull(this.selectedDate)
     ]);
 
     this.total_orders_general = this.calculTotalOrders(orders);
@@ -55,14 +58,36 @@ export class DashboardComponent {
 
     this.total_orders_jour = this.calculTotalOrders(ordersToday);
     this.nb_orders_jour = ordersToday.length;
-
-    this.stocksCategorySummary = stocksCategorySummary;
-    this.salesCategorySummary = salesCategorySummary;
   }
 
-  async getDataOrders() {
-    const orders : Order [] = await this.orderService.getOrdersFull(this.selectedDate);
-    console.log(orders);
+  async loadStocks() {
+    if (this.stocksLoaded || this.stocksLoading) {
+      return;
+    }
+
+    this.stocksLoading = true;
+
+    try {
+      this.stocksCategorySummary = await this.stockStatService.getCategoryStockSummary();
+      this.stocksLoaded = true;
+    } finally {
+      this.stocksLoading = false;
+    }
+  }
+
+  async loadSales() {
+    if (this.salesLoaded || this.salesLoading) {
+      return;
+    }
+
+    this.salesLoading = true;
+
+    try {
+      this.salesCategorySummary = await this.venteService.getSalesByCategory();
+      this.salesLoaded = true;
+    } finally {
+      this.salesLoading = false;
+    }
   }
 
 

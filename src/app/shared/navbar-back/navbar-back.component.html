@@ -1,0 +1,41 @@
+<nav class="navbar-container">
+  <div class="navbar-brand">
+    <div class="logo">
+      <span class="logo-icon">▲</span>
+      <span class="logo-text">Prestashop Angular</span>
+    </div>
+
+    <button class="burger-menu" (click)="toggleMobileMenu()" [class.open]="isMobileMenuOpen" aria-label="Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <div class="navbar-links" [class.mobile-open]="isMobileMenuOpen">
+    <a *ngFor="let item of navItems"
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      class="nav-link">
+      {{ item.label }}
+    </a>
+  </div>
+
+  <div class="navbar-actions">
+    <div class="profile-dropdown-wrapper">
+      <button class="profile-trigger" (click)="toggleProfileMenu()">
+        <img [src]="user.avatar" [alt]="user.name" class="avatar" />
+        <span class="user-name">{{ user.name }}</span>
+        <span class="arrow-down" [class.rotated]="isProfileMenuOpen">▼</span>
+      </button>
+
+      <div class="dropdown-menu" *ngIf="isProfileMenuOpen">
+        <div class="dropdown-header">
+          <p class="name">{{ user.name }}</p>
+        </div>
+        <hr />
+        <button class="dropdown-item logout" (click)="logout()">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</nav>
