@@ -57,6 +57,7 @@ export function transformProductCsvRowsToModel(rows: any[]): ProductCsvModel[] {
 export function validateProductCsvRows(rows: any[]): ImportValidationResult<ProductCsvModel> {
   const expectedKeys = ['date_availability_produit', 'nom', 'reference', 'prix_ttc', 'taxe', 'categorie', 'prix_achat', 'line_number'];
   const result = createEmptyValidationResult<ProductCsvModel>();
+  const seenReferences = new Map<string, number>();
 
   for (const rawRow of rows) {
     const errors: FieldValidationError[] = [];
@@ -84,6 +85,21 @@ export function validateProductCsvRows(rows: any[]): ImportValidationResult<Prod
     }
 
     const model = transformProductCsvRowToModel(rawRow);
+    const reference = model.reference.trim();
+    if (reference) {
+      const previousLine = seenReferences.get(reference);
+      if (previousLine !== undefined) {
+        errors.push({
+          field: 'reference',
+          code: 'duplicate',
+          message: `référence en doublon avec la ligne ${previousLine}`,
+          invalidValue: model.reference
+        });
+      } else {
+        seenReferences.set(reference, model.line_number ?? 0);
+      }
+    }
+
     if (errors.length > 0) {
       result.invalidData.push({ lineNumber: model.line_number ?? 0, data: model, errors });
     } else {

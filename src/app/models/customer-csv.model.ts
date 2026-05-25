@@ -42,6 +42,7 @@ import { createEmptyValidationResult, ImportValidationResult, FieldValidationErr
 export function validateCustomerCsvRows(rows: any[]): ImportValidationResult<CustomerCsvModel> {
   const expectedKeys = ['date', 'nom', 'email', 'pwd', 'adresse', 'achat', 'etat'];
   const result = createEmptyValidationResult<CustomerCsvModel>();
+  const seenEmails = new Set<string>();
 
   for (const rawRow of rows) {
     const errors: FieldValidationError[] = [];
@@ -56,6 +57,15 @@ export function validateCustomerCsvRows(rows: any[]): ImportValidationResult<Cus
       const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
       if (!dateRegex.test(dateValue)) {
         errors.push({ field: 'date', code: 'format', message: 'format de date différente de DD/MM/YYYY pour date', invalidValue: rawRow['date'] });
+      }
+    }
+
+    const emailValue = normalizeValue(rawRow['email']);
+    if (emailValue) {
+      if (seenEmails.has(emailValue)) {
+        errors.push({ field: 'email', code: 'duplicate', message: 'Email en double', invalidValue: rawRow['email'] });
+      } else {
+        seenEmails.add(emailValue);
       }
     }
 
