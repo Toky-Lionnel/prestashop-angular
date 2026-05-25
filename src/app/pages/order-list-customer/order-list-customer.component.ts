@@ -4,10 +4,11 @@ import { Order } from '../../models/OrderModel';
 import { SessionService } from '../../services/service/session/session.service';
 import { OrderService } from '../../services/service/orders/order.service';
 import { CartService } from '../../services/service/cart/cart.service';
+import { NavbarFrontComponent } from "../../shared/navbar-front/navbar-front.component";
 
 @Component({
   selector: 'app-order-list-customer',
-  imports: [OrdersComponent],
+  imports: [OrdersComponent, NavbarFrontComponent],
   templateUrl: './order-list-customer.component.html',
   styleUrl: './order-list-customer.component.scss'
 })

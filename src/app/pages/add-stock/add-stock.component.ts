@@ -5,11 +5,12 @@ import { ProductVitrineComponent } from '../../components/product-vitrine/produc
 
 import { VitrineProductDetail } from '../../models/vitrine-product.model';
 import { ProductService } from '../../services/service/product/product.service';
+import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
 
 @Component({
   selector: 'app-add-stock',
   standalone: true,
-  imports: [CommonModule, ProductVitrineComponent],
+  imports: [CommonModule, ProductVitrineComponent, NavbarBackComponent],
   templateUrl: './add-stock.component.html',
   styleUrl: './add-stock.component.scss'
 })

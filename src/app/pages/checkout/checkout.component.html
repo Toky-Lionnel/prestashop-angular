@@ -1,3 +1,4 @@
+<app-navbar-front> </app-navbar-front>
 <div class="checkout-container">
   <div class="container">
     <header class="checkout-header">
@@ -51,18 +52,18 @@
             <h2>Mode de paiement</h2>
           </div>
           <div class="payment-readonly">
-            <div class="payment-option active">
-              <span class="icon">🚚</span>
-              <div>
+            <div class="payment-option active" role="group" aria-label="Mode de paiement choisi">
+              <span class="icon" aria-hidden="true">Livr</span>
+              <div class="payment-info">
                 <strong>Paiement à la livraison</strong>
-                <p>Payez en espèces ou par carte dès réception de votre colis.</p>
+                <p>Payez en espèces ou par carte dès réception du colis.</p>
               </div>
-              <span class="badge-check">✓</span>
+              <span class="badge-check" aria-hidden="true">✓</span>
             </div>
           </div>
         </section>
 
-       <p (click)="goToCart()"> Retour à la cart </p>
+      <button class="btn-link" (click)="goToCart()">Retour au panier</button>
       </div>
 
       <!-- DROITE : RECAPITULATIF -->

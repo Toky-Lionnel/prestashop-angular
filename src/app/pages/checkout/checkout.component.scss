@@ -82,8 +82,19 @@
   background: rgba(28, 97, 254, 0.03);
   border-radius: 12px;
   position: relative;
-
-  .icon { font-size: 1.8rem; }
+  .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #eef6ff;
+    color: #1c61fe;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex: 0 0 44px;
+  }
+  .payment-info { min-width: 0; }
   strong { display: block; margin-bottom: 0.2rem; }
   p { margin: 0; font-size: 0.85rem; color: #64748b; }
 
@@ -98,6 +109,31 @@
     place-items: center;
     font-size: 0.8rem;
   }
+}
+
+/* Small helper for link-styled buttons used on the page */
+.btn-link {
+  background: transparent;
+  border: none;
+  color: #1c61fe;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Address preview styling */
+.address-preview {
+  background: #f8fafc;
+  border: 1px solid #e6eefc;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .checkout-summary { order: -1; }
+  .summary-card { position: static; top: auto; }
 }
 
 // Récapitulatif

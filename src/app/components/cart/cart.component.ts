@@ -75,12 +75,4 @@ export class CartComponent {
       height : '500px',
     });
   }
-
-
-  // sady mamafa cart no mamafa customer
-  clearCustomerSession() {
-    this.sessionService.clearCustomer();
-    alert("Session client effacée !");
-  }
-
 }

@@ -13,11 +13,12 @@ import { OrderService } from '../../services/service/orders/order.service';
 import { StocksService } from '../../services/service/stocks/stocks.service';
 import { StockFacadeService } from '../../services/facade/stockFacade/stock-facade.service';
 import { OrderFacadeService } from '../../services/facade/orderFacade/order-facade.service';
+import { NavbarFrontComponent } from "../../shared/navbar-front/navbar-front.component";
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarFrontComponent, NavbarFrontComponent],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.scss'
 })

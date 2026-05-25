@@ -1,0 +1,147 @@
+// Variables de design - Nouvelle palette Bleue Professionnelle
+$navbar-height: 70px;
+$bg-color: #ffffff;
+$border-color: #e2e8f0;
+
+// Déclinaisons de bleus
+$blue-primary: #0284c7;   // Bleu ciel soutenu (Sky 600)
+$blue-hover: #0369a1;     // Bleu plus foncé pour l'interaction (Sky 700)
+$blue-light: #f0f9ff;     // Fond bleu ciel très clair (Sky 50)
+$blue-border: #bae6fd;    // Bordure bleue claire (Sky 200)
+$text-dark: #0f172a;      // Slate 900
+
+.customer-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $navbar-height;
+  padding: 0 32px;
+  background-color: $bg-color;
+  border-bottom: 1px solid $border-color;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  font-family: system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .logo-icon { display: inline-flex; align-items: center; justify-content: center; }
+  .logo-icon svg { display: block; border-radius: 6px; }
+  .logo-text { font-weight: 700; color: $text-dark; font-size: 1.1rem; letter-spacing: 0.2px; }
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
+  margin-left: 40px;
+
+  @media (max-width: 640px) {
+    margin-left: 16px;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+
+  .icon-cart { margin-right: 8px; flex: 0 0 18px; }
+
+  // Style Panier ajusté en Bleu Ciel Professionnel 🛒
+  &.btn-cart {
+    background-color: $blue-light;
+    color: $blue-primary;
+    border-color: $blue-border;
+    gap: 8px;
+    position: relative;
+
+    &:hover {
+      background-color: $blue-primary;
+      color: #ffffff;
+      border-color: $blue-primary;
+
+      .cart-badge {
+        background-color: #ffffff;
+        color: $blue-primary;
+      }
+    }
+
+    .cart-badge {
+      background-color: $blue-primary;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      transition: all 0.2s ease;
+    }
+  }
+
+  /* shrink padding on small screens */
+  @media (max-width: 480px) {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  // Style Commandes
+  &.btn-secondary {
+    border-color: #cbd5e1;
+    color: #475569;
+
+    &:hover {
+      background-color: #f8fafc;
+      color: $text-dark;
+      border-color: #94a3b8;
+    }
+  }
+
+  // Style Déconnexion
+  &.btn-logout {
+    margin-left: auto;
+    color: #64748b; // Plus discret par défaut, passe au rouge uniquement au survol
+
+    &:hover {
+      color: #df2c2c;
+      background-color: #fff5f5;
+      border-color: #fee2e2;
+    }
+  }
+}
+
+// Badge Admin
+.admin-badge {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+/* Responsive: collapse actions on very small screens */
+@media (max-width: 560px) {
+  .header-top { margin-left: 12px; }
+  .header-actions { gap: 8px; }
+  .logo-text { display: none; }
+}

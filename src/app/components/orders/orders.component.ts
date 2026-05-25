@@ -218,7 +218,7 @@ export class OrdersComponent {
         productId : Number(c.id_product),
         attributeId : Number(c.id_product_attribute) ?? 0,
         quantity : Number(c.quantity),
-        productNameWithAttribute : `${info.productName} - ${info.combinationName}`,
+        productNameWithAttribute : `${info.productName} - ${info.combinationName ?? ''}`,
         image : '',
         price : Number(info.price_ttc) ?? 0,
       }
@@ -227,7 +227,8 @@ export class OrdersComponent {
 
     this.cartUserService.setCart(cartsItems, idCart);
 
-    console.log(cartsItems);
+    alert("Panier repris avec succes");
+
   }
 
 

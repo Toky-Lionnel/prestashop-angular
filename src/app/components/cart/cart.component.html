@@ -23,7 +23,7 @@
           <article class="cart-item" *ngFor="let item of items; trackBy: trackByItem">
             <!-- Détails Produit -->
             <div class="cart-item__product col-product">
-              <div class="cart-item__img-placeholder"> 4 </div>
+              <div class="cart-item__img-placeholder" aria-hidden="true"></div>
               <div>
                 <h3 class="cart-item__name">{{ item.productNameWithAttribute }}</h3>
                 <p class="cart-item__ref">Réf: #{{ item.productId }}{{ item.attributeId }}</p>
@@ -51,8 +51,8 @@
 
             <!-- Suppression -->
             <div class="cart-item__action col-action">
-              <button class="btn-remove" (click)="removeItem(item)" title="Supprimer">
-                <span>✕</span>
+              <button class="btn-remove" (click)="removeItem(item)" aria-label="Supprimer l'article">
+                <span aria-hidden="true">×</span>
               </button>
             </div>
           </article>
@@ -92,8 +92,14 @@
 
       <!-- Templates vides -->
       <ng-template #emptyCart>
-        <div class="empty-view">
-          <div class="empty-icon">🛒</div>
+        <div class="empty-view" role="status" aria-live="polite">
+          <div class="empty-icon" aria-hidden="true">
+            <svg class="empty-svg" width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M7 4h-2l-1 2H2" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 6h1l2 11a2 2 0 0 0 2 1.6h8a2 2 0 0 0 2-1.6l1-6H7" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 17a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 17a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" fill="#94a3b8"/>
+            </svg>
+          </div>
           <h2>Votre panier est vide</h2>
           <p>Il semblerait que vous n'ayez pas encore fait votre choix.</p>
           <button class="btn-primary" (click)="goToShop()">Découvrir nos produits</button>
@@ -103,8 +109,6 @@
     </div>
   </div>
 </div>
-
-<button (click)="clearCustomerSession()" > Clear Session </button>
 
 <ng-template #loading>
   <div class="loader">Chargement...</div>

@@ -110,6 +110,7 @@ export class UserCartService {
   clear(): void {
     this.cartSubject.next([]);
     localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.CART_ID_KEY);
   }
 
 

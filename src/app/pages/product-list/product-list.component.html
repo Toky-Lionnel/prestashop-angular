@@ -1,22 +1,7 @@
 <app-navbar-back *ngIf="isAdmin"> </app-navbar-back>
 
+<app-navbar-front *ngIf="!isAdmin"> </app-navbar-front>
 
-<div class="header-top" *ngIf="!isAdmin">
-	<div class="header-actions">
-		<button class="btn-action btn-cart" (click)="openCart()">
-			<span class="cart-label">🛒 Panier</span>
-			<span class="cart-badge">{{ cartLength }}</span>
-		</button>
-
-		<button class="btn-action btn-secondary" (click)="openOrders()">
-			<span class="cart-label">Commandes</span>
-		</button>
-	</div>
-
-	<button class="btn-action btn-logout" (click)="clearCustomerSession()">
-		<span class="cart-label">Déconnecter</span>
-	</button>
-</div>
 
 <section class="catalog-shell">
 	<header class="catalog-header">

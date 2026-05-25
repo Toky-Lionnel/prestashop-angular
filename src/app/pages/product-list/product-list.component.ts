@@ -11,10 +11,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../services/service/session/session.service';
 import { LoginFrontComponent } from '../../components/login-front/login-front.component';
 import { NavbarBackComponent } from '../../shared/navbar-back/navbar-back.component';
+import { NavbarFrontComponent } from "../../shared/navbar-front/navbar-front.component";
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, NavbarBackComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, NavbarBackComponent, NavbarFrontComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
