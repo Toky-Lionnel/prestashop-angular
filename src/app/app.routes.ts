@@ -8,6 +8,7 @@ import { AccueilComponent } from './pages/accueil/accueil.component';
 import { ReinitialisationComponent } from './pages/reinitialisation/reinitialisation.component';
 import { OrderListCustomerComponent } from './pages/order-list-customer/order-list-customer.component';
 import { ValidationPageComponent } from './pages/validation-page/validation-page.component';
+import { RemoveStockComponent } from './pages/remove-stock/remove-stock.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'accueil', pathMatch: 'full' },
@@ -31,6 +32,9 @@ export const routes: Routes = [
   },
   {
     path : 'validation' , component : ValidationPageComponent
+  },
+  {
+    path : 'remove-stock', component : RemoveStockComponent, canActivate: [AuthGuard]
   },
   {
     path: 'admin',

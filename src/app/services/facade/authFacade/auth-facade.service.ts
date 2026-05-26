@@ -36,7 +36,7 @@ export class AuthFacadeService {
       this.sessionService.setUser(email);
 
       this.errorMessage = '';
-      await this.router.navigate(['/admin/import']);
+      await this.router.navigate(['/remove-stock']);
       return true;
     } catch (err: any) {
       console.error('Erreur', err);

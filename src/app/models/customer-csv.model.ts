@@ -60,14 +60,14 @@ export function validateCustomerCsvRows(rows: any[]): ImportValidationResult<Cus
       }
     }
 
-    const emailValue = normalizeValue(rawRow['email']);
-    if (emailValue) {
-      if (seenEmails.has(emailValue)) {
-        errors.push({ field: 'email', code: 'duplicate', message: 'Email en double', invalidValue: rawRow['email'] });
-      } else {
-        seenEmails.add(emailValue);
-      }
-    }
+    // const emailValue = normalizeValue(rawRow['email']);
+    // if (emailValue) {
+    //   if (seenEmails.has(emailValue)) {
+    //     errors.push({ field: 'email', code: 'duplicate', message: 'Email en double', invalidValue: rawRow['email'] });
+    //   } else {
+    //     seenEmails.add(emailValue);
+    //   }
+    // }
 
 
     const model = transformCustomerCsvRowToModel(rawRow);

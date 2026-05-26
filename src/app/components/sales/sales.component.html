@@ -41,6 +41,25 @@
           </td>
         </tr>
 
+        <tr>
+          <td class="id-column">
+            Total general
+          </td>
+          <td class="name-column font-semibold">
+          </td>
+          <td class="text-right price-purchase">
+            {{ totalAchat | number:'1.2-2' }} €
+          </td>
+          <td class="text-right price-sales font-medium">
+            {{ totalSales | number:'1.2-2' }} €
+          </td>
+          <td class="text-right font-medium">
+          </td>
+          <td class="text-right font-bold benefit-column">
+            <span></span>{{ totalBenefices | number:'1.2-2' }} €
+          </td>
+        </tr>
+
         <!-- État vide si aucune donnée n'est reçue -->
         <tr *ngIf="salesSummaryList.length === 0">
           <td colspan="6" class="empty-row">

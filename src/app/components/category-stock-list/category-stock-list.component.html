@@ -32,6 +32,23 @@
           </td>
         </tr>
 
+
+        <tr>
+          <td class="name-column font-semibold">
+            Total general
+          </td>
+          <td class="text-right font-medium">
+            {{ totalPhysique | number}}
+          </td>
+          <td class="text-right text-warning font-medium">
+            {{ totalReserved | number }}
+          </td>
+          <td class="text-right font-bold">
+            {{ totalDispo | number }}
+          </td>
+        </tr>
+
+
         <!-- État vide si aucune valeur n'est passée -->
         <tr *ngIf="categoriesStock.length === 0">
           <td colspan="6" class="empty-row">

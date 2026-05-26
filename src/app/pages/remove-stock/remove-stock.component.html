@@ -1,0 +1,52 @@
+<app-navbar-front> </app-navbar-front>
+
+<div class="form-card">
+<form class="catalog-filters" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+
+    <!-- Champ Texte -->
+    <div class="form-group">
+      <label for="quantity">Quantite</label>
+      <input type="number" id="quantity" formControlName="quantity" required />
+    </div>
+
+
+    <div class="form-group">
+    <label for="categoryId">Catégorie</label>
+			<select id="categoryId" formControlName="categoryId">
+				<option value="">Toutes les catégories</option>
+				<option *ngFor="let category of categories" [value]="category.id">
+					{{ category.name }}
+				</option>
+			</select>
+    </div>
+
+
+    <!-- Bouton Soumettre -->
+    <div class="filter-actions">
+			<button type="submit" class="search-button">Valider</button>
+		</div>
+  </form>
+</div>
+
+<div class="table-container" *ngIf="result">
+  <h2> Resultat du remove stock mère </h2>
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th> Nombre total </th>
+        <th> Realise </th>
+        <th> Produit total </th>
+        <th> Produit réalisé </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>{{ nombre_total }}</strong></td>
+        <td>{{ nombre_realise }}</td>
+        <td> {{ produit_total }} </td>
+        <td> {{ produit_realise }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+

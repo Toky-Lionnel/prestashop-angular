@@ -362,4 +362,26 @@ export class ProductService {
 
     return Number(categoryId);
   }
+
+
+  async getProductsByIdCategory (id_category : number) : Promise<any> {
+    const api = this.interceptor.getApi();
+    const response = await api.get(
+      `/api/products?filter[id_category_default]=[${id_category}]&display=[id]`,
+      {
+        responseType: 'text'
+      }
+    );
+
+    const json = await parseStringPromise(response.data);
+
+    const ids : number [] = [];
+
+    const products = json?.prestashop?.products[0].product;
+
+    for (const p of products) {
+      ids.push(p.id[0]);
+    }
+    return ids;
+  }
 }

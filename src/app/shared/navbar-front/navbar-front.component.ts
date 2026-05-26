@@ -46,6 +46,10 @@ export class NavbarFrontComponent {
     this.router.navigate(['/orders']);
   }
 
+  removeStock () {
+    this.router.navigate(['/remove-stock']);
+  }
+
 
   clearCustomerSession() {
     this.sessionService.clearCustomer();
