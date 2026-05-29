@@ -43,9 +43,6 @@ export class RemoveStockComponent implements OnInit {
     const categoryId = Number(this.searchForm.value.categoryId);
     await this.removeStockFront(quantity,categoryId);
     this.result = true;
-
-    //await this.removeStockFrontAvecDeclinaisons(quantity,categoryId);
-
   }
 
 
@@ -92,45 +89,5 @@ export class RemoveStockComponent implements OnInit {
     this.nombre_realise = total_realises;
   }
 
-
-  async removeStockFrontAvecDeclinaisons (quantity : number , category_id : number) : Promise <any> {
-    const idProducts = await this.productService.getProductsByIdCategory(category_id);
-
-    for (const i of idProducts) {
-      const product : any = await this.productService.getProductDetailSansImagesById(i) ?? null;
-
-      for (const declinaison of product.combinations) {
-        console.log(`Declinaison`);
-        console.log(declinaison);
-
-        for (const attribute of declinaison.attributes ) {
-
-          console.log(`Attribute`);
-          console.log(attribute.attributeId);
-
-
-
-          const stock_available = await this.stockService.getStockQuantity(i,Number(attribute.attributeId) ?? 0);
-          console.log(`Stock available par combinaison ${stock_available}`);
-        }
-      }
-
-
-      // const stock_available = await this.stockService.getStockQuantity(i);
-      // const idStock = await this.stockService.getIdStockProductsId(i);
-
-      // if (stock_available < quantity) {
-      //   await this.stockService.updateStockWithIdProduct(idStock,i,0);
-      //   total_realises += stock_available;
-      // } else {
-      //   await this.stockService.updateStockWithIdProduct(idStock,i,stock_available-quantity);
-      //   total_realises += quantity;
-      // }
-      // total += quantity;
-    }
-
-    // this.nombre_total = total;
-    // this.nombre_realise = total_realises;
-  }
 
 }
